@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMWAJ SEAFRONT VENUE | Session ERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    .login-bg { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
+    .fc-event { border: none !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; }
+    .fc-daygrid-day-frame { min-height: 70px !important; }
+    .fc .fc-daygrid-day.fc-day-today { background-color: #eff6ff !important; }
+    .hover-row:hover { background-color: #f9fafb; transition: 0.1s; }
+    .tab-active { background: #2563eb; color: white; }
+    .tab-inactive { background: #f3f4f6; color: #374151; }
+    .status-badge { @apply px-2 py-0.5 rounded-full text-xs font-semibold; }
+    .session-badge { @apply px-2 py-0.5 rounded text-xs font-medium; }
+    .sync-log { font-family: monospace; font-size: 0.75rem; }
+    /* FIX: Prevent calendar overflow & fix button interaction */
+    .fc-scrollgrid { overflow: hidden !important; border-radius: 0.5rem; }
+    .calendar-wrapper { position: relative; overflow: hidden; background: white; border-radius: 0.75rem; }
+    .table-wrapper { position: relative; z-index: 10; margin-top: 1.5rem; }
+    .invoice-btn { cursor: pointer; pointer-events: auto; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+
+  <!-- LOGIN -->
+  <div id="login-screen" class="fixed inset-0 login-bg flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center mb-2">AMWAJ SEAFRONT VENUE</h1>
+      <p class="text-gray-500 text-center mb-6">Staff & Management Login</p>
+      <form id="login-form" class="space-y-4">
+        <input id="email" type="email" placeholder="Email: admin@amwaj.com" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+        <input id="password" type="password" placeholder="Password: Admin123!" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+        <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 font-medium transition">Sign In</button>
+      </form>
+      <p id="login-error" class="text-red-500 text-sm text-center mt-2 hidden"></p>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="hidden min-h-screen p-4 md:p-6">
+    <header class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">AMWAJ SEAFRONT VENUE</h1>
+        <p class="text-gray-500">Operations ERP • Session Booking • Cloud Sync</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="logout()" class="text-sm bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 transition">🚪 Logout</button>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <div class="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
+      <button onclick="switchTab('main')" id="tab-main" class="px-4 py-2 rounded-md font-medium transition tab-active">📊 Dashboard</button>
+      <button onclick="switchTab('staff')" id="tab-staff" class="px-4 py-2 rounded-md font-medium transition tab-inactive">👥 Staff Shifts</button>
+      <button onclick="switchTab('sync')" id="tab-sync" class="px-4 py-2 rounded-md font-medium transition tab-inactive">☁️ Google Sheets</button>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="view-main">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="stats-grid"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- LEFT: Calendar & Table -->
+        <div class="lg:col-span-2 space-y-0">
+          <div class="calendar-wrapper p-4 shadow-sm border">
+            <div class="flex justify-between items-center mb-3">
+              <h2 class="text-lg font-semibold">📅 Venue Schedule</h2>
+              <p class="text-xs text-gray-500">Click date → Pick session → Auto-fills form</p>
+            </div>
+            <div id="calendar" class="h-[480px]"></div>
+          </div>
+
+          <div class="table-wrapper bg-white p-4 rounded-xl shadow-sm border">
+            <h3 class="font-semibold mb-3">📋 Bookings Table</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-600">
+                  <tr><th class="p-3">Client</th><th class="p-3">Event</th><th class="p-3">Session</th><th class="p-3">Amount</th><th class="p-3">Action</th></tr>
+                </thead>
+                <tbody id="bookings-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Form & FX -->
+        <div class="space-y-4">
+          <form id="booking-form" class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
+            <h2 class="text-lg font-semibold">📝 New Booking</h2>
+            <input id="b-client" placeholder="Client Name" required class="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500">
+            <div class="grid grid-cols-2 gap-2">
+              <input id="b-email" type="email" placeholder="Email" required class="p-2 border rounded outline-none">
+              <input id="b-phone" placeholder="Phone" required class="p-2 border rounded outline-none">
+            </div>
+            <select id="b-category" class="w-full p-2 border rounded outline-none">
+              <option>WEDDING</option><option>EXHIBITION</option><option>CONFERENCE</option><option>BIRTHDAY</option>
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+              <input id="b-date" type="date" required class="p-2 border rounded outline-none bg-blue-50">
+              <select id="b-session" required class="p-2 border rounded outline-none bg-blue-50">
+                <option value="">Select Session</option>
+                <option value="1">1:00 PM - 5:00 PM</option>
+                <option value="2">8:00 PM - 12:00 AM</option>
+              </select>
+            </div>
+            <input id="b-amount" type="number" placeholder="Amount (AED)" required class="w-full p-2 border rounded outline-none">
+            <textarea id="b-notes" placeholder="Notes / FX Requirements" class="w-full p-2 border rounded h-16 outline-none"></textarea>
+            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 font-medium transition">✅ Hold Session & Create Record</button>
+          </form>
+          <div class="bg-white p-4 rounded-xl shadow-sm border">
+            <h3 class="font-semibold mb-3">🔌 FX Inventory</h3>
+            <div id="fx-list" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAFF SHIFTS -->
+    <div id="view-staff" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white p-4 rounded-xl shadow-sm border overflow-x-auto">
+          <h3 class="font-semibold mb-4">👥 Staff Shift Roster</h3>
+          <table class="w-full text-sm text-left">
+            <thead class="bg-gray-50 text-gray-600">
+              <tr><th class="p-3">Staff Name</th><th class="p-3">Role</th><th class="p-3">Date</th><th class="p-3">Shift</th><th class="p-3">Status</th><th class="p-3">Action</th></tr>
+            </thead>
+            <tbody id="staff-table"></tbody>
+          </table>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border">
+          <h2 class="text-lg font-semibold mb-3">➕ Add Shift</h2>
+          <form id="shift-form" class="space-y-3">
+            <input id="s-name" placeholder="Staff Name" required class="w-full p-2 border rounded outline-none">
+            <select id="s-role" class="w-full p-2 border rounded outline-none">
+              <option>Security</option><option>Operations</option><option>Cleaning</option><option>Event Coordinator</option><option>Kitchen Staff</option>
+            </select>
+            <input id="s-date" type="date" required class="w-full p-2 border rounded outline-none">
+            <div class="grid grid-cols-2 gap-2">
+              <input id="s-start" type="time" required class="p-2 border rounded outline-none">
+              <input id="s-end" type="time" required class="p-2 border rounded outline-none">
+            </div>
+            <select id="s-status" class="w-full p-2 border rounded outline-none">
+              <option>Scheduled</option><option>Confirmed</option><option>On Leave</option>
+            </select>
+            <button type="submit" class="w-full bg-emerald-600 text-white p-2 rounded hover:bg-emerald-700 font-medium">📅 Assign Shift</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLOUD SYNC -->
+    <div id="view-sync" class="hidden max-w-2xl">
+      <div class="bg-white p-6 rounded-xl shadow-sm border space-y-6">
+        <div>
+          <h2 class="text-xl font-bold mb-2">☁️ Google Sheets Cloud Sync</h2>
+          <p class="text-gray-500 text-sm">Backup & sync bookings/staff data across devices.</p>
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium">Google Apps Script Web App URL</label>
+          <input id="sheet-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-3 border rounded outline-none text-sm">
+          <p class="text-xs text-gray-400">👉 <button onclick="document.getElementById('sheet-guide').classList.toggle('hidden')" class="text-blue-600 underline">How to get this URL?</button></p>
+          <div id="sheet-guide" class="hidden bg-gray-50 p-3 rounded text-xs text-gray-600 space-y-1">
+            <p>1. Create new Google Sheet. Row 1: <code>Type,ID,Client/Name,Category/Role,Start,End,Amount/Status,Notes</code></p>
+            <p>2. Extensions → Apps Script → Paste deployment script → Deploy → Web app → Execute as: Me → Access: <b>Anyone</b> → Deploy</p>
+            <p>3. Copy Web App URL & paste above.</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="saveSheetUrl()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">💾 Save URL</button>
+          <button onclick="syncPush()" class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">⬆️ Push to Sheets</button>
+          <button onclick="syncPull()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">⬇️ Pull from Sheets</button>
+        </div>
+        <div class="bg-gray-900 text-green-400 p-3 rounded-lg h-32 overflow-y-auto sync-log" id="sync-log">
+          [System] Ready. Connect your sheet to enable cloud sync.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === CORE DB & AUTH ===
+    const DB_KEY = 'amwaj_erp_v5';
+    const SHEET_KEY = 'amwaj_sheet_url';
+    
+    const defaultDB = {
+      bookings: [
+        {id:'1', clientName:'Sarah & James', email:'s@mail.com', category:'WEDDING', session:'2', startDate:'2026-05-10T20:00', endDate:'2026-05-11T00:00', status:'CONFIRMED', totalAmount:15000, notes:'Creek lawn, Pyro'},
+        {id:'2', clientName:'Tech Expo', email:'info@tech.ae', category:'EXHIBITION', session:'1', startDate:'2026-04-25T13:00', endDate:'2026-04-25T17:00', status:'HELD', totalAmount:8500, notes:'Conference Hall A'}
+      ],
+      fx: [
+        {id:'fx1', type:'Pyro', serialNo:'PYR-001', status:'AVAILABLE'},
+        {id:'fx2', type:'Moving Head', serialNo:'MH-045', status:'BOOKED'},
+        {id:'fx3', type:'Smoke Machine', serialNo:'SMK-112', status:'AVAILABLE'},
+        {id:'fx4', type:'RGB Light', serialNo:'RGB-88', status:'AVAILABLE'}
+      ],
+      shifts: [
+        {id:'s1', name:'Ahmed K.', role:'Security', date:'2026-05-10', start:'16:00', end:'00:00', status:'Confirmed'},
+        {id:'s2', name:'Maria L.', role:'Coordinator', date:'2026-05-10', start:'15:00', end:'01:00', status:'Scheduled'}
+      ]
+    };
+
+    let db = JSON.parse(localStorage.getItem(DB_KEY)) || defaultDB;
+    function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+    let calendar;
+
+    // Auth
+    if(sessionStorage.getItem('auth')) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); initAll(); }
+    document.getElementById('login-form').onsubmit = e => {
+      e.preventDefault();
+      if(document.getElementById('email').value==='admin@amwaj.com' && document.getElementById('password').value==='Admin123!') {
+        sessionStorage.setItem('auth','1'); location.reload();
+      } else { document.getElementById('login-error').classList.remove('hidden'); }
+    };
+    function logout() { sessionStorage.clear(); location.reload(); }
+
+    // UI Helpers
+    function switchTab(tab) {
+      ['main','staff','sync'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.toggle('hidden', t!==tab);
+        document.getElementById(`tab-${t}`).className = t===tab ? 'px-4 py-2 rounded-md font-medium transition tab-active' : 'px-4 py-2 rounded-md font-medium transition tab-inactive';
+      });
+      if(tab==='main') { setTimeout(()=>calendar?.updateSize(), 150); }
+    }
+
+    function fmt(d) { return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+    function log(msg) { const el=document.getElementById('sync-log'); el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; el.scrollTop = el.scrollHeight; }
+
+    // === SESSION TIME LOGIC ===
+    function getSessionTimes(dateStr, session) {
+      const d = dateStr.split('T')[0];
+      if(session === '1') return { start: `${d}T13:00`, end: `${d}T17:00` };
+      const next = new Date(d); next.setDate(next.getDate()+1);
+      return { start: `${d}T20:00`, end: `${next.toISOString().split('T')[0]}T00:00` };
+    }
+
+    // === INIT ===
+    function initAll() {
+      renderStats(); renderBookings(); renderFX(); renderStaff(); initCalendar();
+      document.getElementById('sheet-url').value = localStorage.getItem(SHEET_KEY) || '';
+    }
+
+    function renderStats() {
+      const now=new Date(), m=db.bookings.filter(b=>new Date(b.startDate).getMonth()===now.getMonth() && new Date(b.startDate).getFullYear()===now.getFullYear());
+      const rev=m.reduce((s,b)=>s+b.totalAmount,0);
+      document.getElementById('stats-grid').innerHTML = `
+        <div class="bg-green-50 p-4 rounded-xl flex items-center gap-4"><div class="text-2xl">💰</div><div><p class="text-sm opacity-80">Monthly Revenue</p><p class="text-2xl font-bold">AED ${rev.toLocaleString()}</p></div></div>
+        <div class="bg-blue-50 p-4 rounded-xl flex items-center gap-4"><div class="text-2xl">📅</div><div><p class="text-sm opacity-80">Active Sessions</p><p class="text-2xl font-bold">${m.length}</p></div></div>
+        <div class="bg-purple-50 p-4 rounded-xl flex items-center gap-4"><div class="text-2xl">👥</div><div><p class="text-sm opacity-80">Staff Scheduled</p><p class="text-2xl font-bold">${db.shifts.length}</p></div></div>
+        <div class="bg-amber-50 p-4 rounded-xl flex items-center gap-4"><div class="text-2xl">⚡</div><div><p class="text-sm opacity-80">FX Available</p><p class="text-2xl font-bold">${db.fx.filter(f=>f.status==='AVAILABLE').length}/${db.fx.length}</p></div></div>
+      `;
+    }
+
+    function renderBookings() {
+      const sc = {CONFIRMED:'bg-green-100 text-green-800', HELD:'bg-amber-100 text-amber-800'};
+      document.getElementById('bookings-table').innerHTML = db.bookings.map(b => `
+        <tr class="border-t hover-row transition">
+          <td class="p-3 font-medium">${b.clientName}</td>
+          <td class="p-3">${b.category}</td>
+          <td class="p-3"><span class="session-badge ${b.session==='1'?'bg-indigo-100 text-indigo-800':'bg-rose-100 text-rose-800'}">${b.session==='1'?'1PM-5PM':'8PM-12AM'}</span></td>
+          <td class="p-3">AED ${b.totalAmount.toLocaleString()}</td>
+          <td class="p-3"><button onclick="genPDF('${b.id}')" class="invoice-btn text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">📄 PDF Invoice</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderFX() {
+      document.getElementById('fx-list').innerHTML = db.fx.map(f => `
+        <div class="flex justify-between items-center text-sm p-2 bg-gray-50 rounded">
+          <span class="font-medium">${f.type} (${f.serialNo})</span>
+          <span class="px-2 py-0.5 rounded text-xs ${f.status==='AVAILABLE'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-800'}">${f.status}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderStaff() {
+      document.getElementById('staff-table').innerHTML = db.shifts.map(s => `
+        <tr class="border-t hover-row transition"><td class="p-3 font-medium">${s.name}</td><td class="p-3">${s.role}</td>
+        <td class="p-3">${s.date}</td><td class="p-3">${s.start} - ${s.end}</td>
+        <td class="p-3"><span class="status-badge ${s.status==='Confirmed'?'bg-green-100 text-green-800':s.status==='On Leave'?'bg-red-100 text-red-800':'bg-blue-100 text-blue-800'}">${s.status}</span></td>
+        <td class="p-3"><button onclick="deleteShift('${s.id}')" class="invoice-btn text-red-500 hover:text-red-700 text-xs">Remove</button></td></tr>
+      `).join('');
+    }
+
+    function initCalendar() {
+      const el=document.getElementById('calendar'); if(calendar) calendar.destroy();
+      calendar = new FullCalendar.Calendar(el, {
+        initialView:'dayGridMonth', 
+        height: 480,
+        selectable:true, 
+        selectMirror:true,
+        dayMaxEvents: 2,
+        handleWindowResize: true,
+        dateClick: info => { document.getElementById('b-date').value = info.dateStr; },
+        events: db.bookings.map(b=>({
+          title:`${b.category} | ${b.session==='1'?'1PM':'8PM'}`,
+          start:b.startDate, end:b.endDate,
+          backgroundColor:b.status==='CONFIRMED'?'#10b981':'#f59e0b',
+          id:b.id
+        })),
+        eventClick: info => { const b=db.bookings.find(x=>x.id===info.event.id); if(b) alert(`👤 ${b.clientName}\n🎉 ${b.category} | Session ${b.session==='1'?'1PM-5PM':'8PM-12AM'}\n📅 ${fmt(b.startDate)}\n📝 ${b.notes||'None'}`); }
+      }); calendar.render();
+    }
+
+    // === FORMS ===
+    document.getElementById('booking-form').onsubmit = e => {
+      e.preventDefault();
+      const date = document.getElementById('b-date').value;
+      const session = document.getElementById('b-session').value;
+      const times = getSessionTimes(date, session);
+      
+      const nb = { 
+        id: Date.now().toString(), 
+        clientName: document.getElementById('b-client').value, 
+        email: document.getElementById('b-email').value, 
+        category: document.getElementById('b-category').value, 
+        session, 
+        startDate: times.start, 
+        endDate: times.end, 
+        totalAmount: +document.getElementById('b-amount').value, 
+        notes: document.getElementById('b-notes').value, 
+        status: 'HELD' 
+      };
+
+      const conflict = db.bookings.find(b => b.status!=='CANCELLED' && 
+        ((nb.startDate >= b.startDate && nb.startDate < b.endDate) || (nb.endDate > b.startDate && nb.endDate <= b.endDate)));
+      
+      if(conflict) return alert(`⚠️ Session conflict: ${conflict.clientName} (${conflict.category}) already booked for this time.`);
+      
+      db.bookings.push(nb); saveDB(); initAll(); e.target.reset(); alert('✅ Session held successfully!');
+    };
+
+    document.getElementById('shift-form').onsubmit = e => {
+      e.preventDefault();
+      db.shifts.push({ id:'s'+Date.now(), name:document.getElementById('s-name').value, role:document.getElementById('s-role').value, date:document.getElementById('s-date').value, start:document.getElementById('s-start').value, end:document.getElementById('s-end').value, status:document.getElementById('s-status').value });
+      saveDB(); renderStaff(); e.target.reset(); alert('✅ Shift assigned!');
+    };
+
+    function deleteShift(id) { if(confirm('Remove shift?')) { db.shifts=db.shifts.filter(s=>s.id!==id); saveDB(); renderStaff(); } }
+
+    // === PDF ===
+    function genPDF(id) {
+      const b=db.bookings.find(x=>x.id===id); if(!b)return;
+      const {jsPDF}=window.jspdf; const doc=new jsPDF();
+      doc.setFontSize(22); doc.setTextColor(41,128,185); doc.text('AMWAJ SEAFRONT VENUE', 105, 20, {align:'center'});
+      doc.setFontSize(10); doc.setTextColor(100); doc.text('Creek Front Management ERP • Professional Invoicing', 105, 27, {align:'center'});
+      doc.line(14,36,196,36); doc.text(`Booking ID: ${b.id}`,14,45); doc.text(`Issue Date: ${new Date().toLocaleDateString()}`,14,51);
+      doc.text(`Client: ${b.clientName}`,14,57); doc.text(`Event: ${b.category} | Session ${b.session==='1'?'1PM-5PM':'8PM-12AM'}`,14,63);
+      doc.text(`Dates: ${new Date(b.startDate).toLocaleString()} → ${new Date(b.endDate).toLocaleString()}`,14,69);
+      const v=b.totalAmount*0.05, t=b.totalAmount+v;
+      doc.autoTable({startY:80, head:[['Description','Amount (AED)']], body:[['Venue & Session Rental',b.totalAmount.toFixed(2)],['VAT (5%)',v.toFixed(2)],['GRAND TOTAL',t.toFixed(2)]], theme:'grid', headStyles:{fillColor:[41,128,185],textColor:255}});
+      doc.save(`AMWAJ_Invoice_${b.id}.pdf`);
+    }
+
+    // === GOOGLE SHEETS SYNC ===
+    function saveSheetUrl() { localStorage.setItem(SHEET_KEY, document.getElementById('sheet-url').value); log('✅ Sheet URL saved.'); }
+    
+    async function syncPush() {
+      const url = document.getElementById('sheet-url').value;
+      if(!url) return log('❌ Error: No Sheet URL configured.');
+      log('⬆️ Pushing data...');
+      const items = [
+        ...db.bookings.map(b=>({Type:'booking',ID:b.ID||b.id,Client:b.clientName,Category:b.category,Start:b.startDate,End:b.endDate,Amount:b.totalAmount,Notes:`Session ${b.session} | ${b.notes}`})),
+        ...db.shifts.map(s=>({Type:'shift',ID:s.id,Client:s.name,Category:s.role,Start:s.date+'T'+s.start,End:s.date+'T'+s.end,Amount:s.status,Notes:''}))
+      ];
+      for(const item of items) {
+        try { await fetch(url, { method:'POST', mode:'cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(item) }); log(`✅ Pushed: ${item.Type} ${item.ID}`); } catch(e) { log(`⚠️ Failed: ${item.ID} - ${e.message}`); }
+      }
+      log('🎉 Push complete.');
+    }
+
+    async function syncPull() {
+      const url = document.getElementById('sheet-url').value;
+      if(!url) return log('❌ Error: No Sheet URL configured.');
+      log('⬇️ Pulling data...');
+      try {
+        const res = await fetch(url); const json = await res.json();
+        if(json.success && (json.data || json.rows)) {
+          const rows = json.data || json.rows;
+          db.bookings = rows.filter(d=>d.Type==='booking').map(d=>({id:d.ID, clientName:d.Client, email:'synced@cloud.com', category:d.Category, session: d.Notes?.includes('Session 1')?'1':'2', startDate:d.Start, endDate:d.End, totalAmount:+d.Amount, notes:d.Notes||'', status:'CONFIRMED'}));
+          db.shifts = rows.filter(d=>d.Type==='shift').map(d=>({id:d.ID, name:d.Client, role:d.Category, date:d.Start.split('T')[0], start:d.Start.split('T')[1], end:d.End.split('T')[1], status:d.Amount}));
+          saveDB(); initAll(); log('✅ Data pulled & synced locally.');
+        } else log('⚠️ Invalid response format.');
+      } catch(e) { log(`❌ Pull failed: ${e.message}`); }
+    }
+
+    window.onload = () => { if(sessionStorage.getItem('auth')) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); initAll(); } };
+  </script>
+</body>
+</html>
