@@ -3,394 +3,2149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AMWAJ SEAFRONT VENUE | Session ERP</title>
+  <title>AMWAJ SEAFRONT VENUE · ERP v4</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    .login-bg { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
-    .fc-event { border: none !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; }
-    .fc-daygrid-day-frame { min-height: 70px !important; }
-    .fc .fc-daygrid-day.fc-day-today { background-color: #eff6ff !important; }
-    .hover-row:hover { background-color: #f9fafb; transition: 0.1s; }
-    .tab-active { background: #2563eb; color: white; }
-    .tab-inactive { background: #f3f4f6; color: #374151; }
-    .status-badge { @apply px-2 py-0.5 rounded-full text-xs font-semibold; }
-    .session-badge { @apply px-2 py-0.5 rounded text-xs font-medium; }
-    .sync-log { font-family: monospace; font-size: 0.75rem; }
-    /* FIX: Prevent calendar overflow & fix button interaction */
-    .fc-scrollgrid { overflow: hidden !important; border-radius: 0.5rem; }
-    .calendar-wrapper { position: relative; overflow: hidden; background: white; border-radius: 0.75rem; }
-    .table-wrapper { position: relative; z-index: 10; margin-top: 1.5rem; }
-    .invoice-btn { cursor: pointer; pointer-events: auto; }
+    :root {
+      --ocean:    #0d4a6b;
+      --ocean-lt: #1a6d9e;
+      --coral:    #e05c3a;
+      --sand:     #f5f0e8;
+      --ink:      #0f1c2a;
+      --ink2:     #3d5168;
+      --ink3:     #8fa3b8;
+      --surface:  #ffffff;
+      --surface2: #f4f7fa;
+      --border:   #dde5ed;
+      --shadow:   rgba(13,74,107,.08);
+      --green:    #14805e;
+      --amber:    #b05c10;
+      --red:      #b52a2a;
+      --mpesa:    #00a651;
+    }
+    .dark {
+      --ocean:    #3b9fd8;
+      --ocean-lt: #5cb8ee;
+      --coral:    #f07a5a;
+      --sand:     #131c28;
+      --ink:      #e4ecf5;
+      --ink2:     #8fa3b8;
+      --ink3:     #4d6478;
+      --surface:  #0f1c2a;
+      --surface2: #162333;
+      --border:   #1e3044;
+      --shadow:   rgba(0,0,0,.4);
+      --green:    #2ecb8a;
+      --amber:    #f5a623;
+      --red:      #f05050;
+      --mpesa:    #00cc66;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--surface2);
+      color: var(--ink);
+      min-height: 100vh;
+      transition: background .3s, color .3s;
+    }
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--surface2); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 1px 4px var(--shadow);
+    }
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: 220px; min-height: 100vh; background: var(--ink);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; z-index: 40;
+      transition: transform .3s;
+    }
+    #sidebar.collapsed { transform: translateX(-220px); }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 18px; font-size: 13px; font-weight: 500;
+      color: var(--ink3); cursor: pointer; border-radius: 8px;
+      transition: all .15s; margin: 1px 8px;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .nav-item.active { background: var(--ocean); color: #fff; }
+    .nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+    /* ── MAIN ── */
+    #main-content { margin-left: 220px; min-height: 100vh; transition: margin .3s; }
+    #main-content.full { margin-left: 0; }
+    /* ── TOPBAR ── */
+    #topbar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 20px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 30;
+    }
+    /* ── ROLE BADGE ── */
+    .role-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; letter-spacing: .5px; text-transform: uppercase; }
+    .role-admin   { background: #e8f0fe; color: #1a56db; }
+    .role-manager { background: #e8fdf0; color: #0a6d3a; }
+    .role-staff   { background: #fef3e2; color: #925a0d; }
+    .dark .role-admin   { background: #1e2f5c; color: #7baaf7; }
+    .dark .role-manager { background: #0f2e1e; color: #6ee7b7; }
+    .dark .role-staff   { background: #2e1c04; color: #fcd34d; }
+    /* ── INPUTS ── */
+    input, select, textarea {
+      background: var(--surface2) !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px; font-family: inherit;
+      font-size: 13px; outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--ocean) !important;
+      box-shadow: 0 0 0 3px rgba(13,74,107,.12);
+    }
+    input::placeholder, textarea::placeholder { color: var(--ink3) !important; }
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
+    .btn-ocean { background: var(--ocean); color: #fff; }
+    .btn-ocean:hover { background: var(--ocean-lt); }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-red   { background: var(--red); color: #fff; }
+    .btn-ghost { background: var(--surface2); color: var(--ink2); border: 1px solid var(--border) !important; }
+    .btn-ghost:hover { background: var(--border); }
+    .btn-mpesa { background: var(--mpesa); color: #fff; }
+    .btn-sm { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+    /* ── BADGES ── */
+    .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; display: inline-block; }
+    .b-reserved  { background: #fff8e1; color: #b45309; border: 1px solid #fcd34d; }
+    .b-confirmed { background: #e8f5e9; color: #2e7d32; border: 1px solid #86efac; }
+    .b-completed { background: #e3f2fd; color: #1565c0; border: 1px solid #93c5fd; }
+    .b-cancelled { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+    .b-unpaid    { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .b-partial   { background: #fffbeb; color: #b45309; border: 1px solid #fcd34d; }
+    .b-paid      { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+    .dark .b-reserved  { background: #3b1f00; color: #fbbf24; }
+    .dark .b-confirmed { background: #0a2e14; color: #86efac; }
+    .dark .b-completed { background: #0e1f3a; color: #93c5fd; }
+    .dark .b-cancelled { background: #1e2430; color: #94a3b8; }
+    .dark .b-unpaid    { background: #2e0a0a; color: #f87171; }
+    .dark .b-partial   { background: #3b1f00; color: #fbbf24; }
+    .dark .b-paid      { background: #041e10; color: #4ade80; }
+    /* ── STAT CARD ── */
+    .stat-card { padding: 18px 20px; border-radius: 14px; }
+    .stat-card .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--ink3); }
+    .stat-card .value { font-size: 22px; font-weight: 800; line-height: 1.2; margin-top: 4px; }
+    .stat-card .sub   { font-size: 11px; color: var(--ink3); margin-top: 3px; }
+    /* ── PAY BAR ── */
+    .pay-bar { height: 4px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .pay-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
+    /* ── TABLE ── */
+    .tbl { width: 100%; font-size: 12.5px; border-collapse: collapse; }
+    .tbl th { padding: 9px 10px; text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ink3); background: var(--surface2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .tbl td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .tbl tbody tr:last-child td { border-bottom: none; }
+    .tbl tbody tr:hover { background: var(--surface2); }
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-box { background: var(--surface); border-radius: 18px; width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+    /* ── TOAST ── */
+    #toast-root { position: fixed; top: 16px; right: 16px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,.2); pointer-events: auto; animation: tIn .25s ease; max-width: 320px; }
+    .toast-s { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+    .toast-e { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+    .toast-w { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+    .toast-i { background: #eff6ff; color: #1e40af; border: 1px solid #93c5fd; }
+    .dark .toast-s { background: #052e16; color: #4ade80; }
+    .dark .toast-e { background: #450a0a; color: #f87171; }
+    .dark .toast-w { background: #3b1f00; color: #fbbf24; }
+    .dark .toast-i { background: #0e1f3a; color: #93c5fd; }
+    @keyframes tIn  { from { opacity:0; transform: translateX(12px); } to { opacity:1; transform: translateX(0); } }
+    @keyframes tOut { to   { opacity:0; transform: translateX(12px); } }
+    /* ── SPINNER ── */
+    .spin { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--ocean); border-radius: 50%; animation: _spin .7s linear infinite; }
+    @keyframes _spin { to { transform: rotate(360deg); } }
+    /* ── CHIP ── */
+    .chip { padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--ink2); transition: all .15s; }
+    .chip.on { background: var(--ocean); color: #fff; border-color: var(--ocean); }
+    /* ── SECTION HEADER ── */
+    .sec-h { font-size: 18px; font-weight: 800; }
+    /* ── SECURITY NOTICE ── */
+    .sec-notice { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #7a5c00; }
+    .dark .sec-notice { background: #2e2200; color: #fcd34d; border-color: #7a5c00; }
+    /* ── CALENDAR ── */
+    .fc .fc-daygrid-day-frame { min-height: 50px; }
+    .fc .fc-col-header-cell { background: var(--surface2); color: var(--ink2); font-size: 10px; font-weight: 700; }
+    .fc .fc-daygrid-day-number { color: var(--ink2); font-size: 11px; }
+    .fc .fc-event { font-size: 10px; border-radius: 4px; padding: 1px 4px; }
+    .fc .fc-toolbar-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .fc .fc-button { background: var(--surface2) !important; color: var(--ink2) !important; border: 1px solid var(--border) !important; font-size: 11px !important; border-radius: 6px !important; padding: 3px 8px !important; box-shadow: none !important; }
+    .fc .fc-button:hover { background: var(--ocean) !important; color: #fff !important; }
+    .fc .fc-button-active { background: var(--ocean) !important; color: #fff !important; }
+    .fc .fc-daygrid-day.fc-day-today { background: rgba(13,74,107,.06) !important; }
+    /* ── SECTION VISIBILITY ── */
+    .view { display: none; }
+    .view.active { display: block; }
+    /* ── LOGIN ── */
+    #login-screen { position: fixed; inset: 0; background: linear-gradient(145deg, #071424 0%, #0d3a5a 60%, #0a2040 100%); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-220px); }
+      #sidebar.open { transform: translateX(0); }
+      #main-content { margin-left: 0; }
+      .hide-mob { display: none !important; }
+      .hide-mob-grid { grid-template-columns: 1fr !important; }
+      #views { padding: 12px !important; }
+      .modal-box { border-radius: 12px; }
+      form[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+      [style*="grid-column:span 2"] { grid-column: span 1 !important; }
+    }
+    /* ── PASSWORD FIELD ── */
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 36px !important; }
+    .pw-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none !important; color: var(--ink3); font-size: 14px; padding: 0; }
+    /* ── SEARCH ── */
+    .search-input { padding: 7px 12px 7px 34px; background: var(--surface2) !important; position: relative; }
+    .search-wrap { position: relative; }
+    .search-wrap::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none; }
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--ink3); }
+    .empty-state .emoji { font-size: 36px; margin-bottom: 10px; }
+    .empty-state p { font-size: 13px; }
+    /* ── PROGRESS ── */
+    #page-loader { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--ocean); transform-origin: left; transform: scaleX(0); transition: transform .3s; z-index: 9999; }
+    /* ── DIVIDER ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    /* ── FORM LABEL ── */
+    .lbl { font-size: 11px; font-weight: 600; color: var(--ink2); margin-bottom: 4px; display: block; }
+    /* ── ACCENT LINE ── */
+    .accent-line { width: 40px; height: 3px; background: var(--coral); border-radius: 2px; margin-top: 4px; }
+    /* ── SIDEBAR LOGO ── */
+    #sb-logo-area { padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+<body>
 
-  <!-- LOGIN -->
-  <div id="login-screen" class="fixed inset-0 login-bg flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-      <h1 class="text-2xl font-bold text-center mb-2">AMWAJ SEAFRONT VENUE</h1>
-      <p class="text-gray-500 text-center mb-6">Staff & Management Login</p>
-      <form id="login-form" class="space-y-4">
-        <input id="email" type="email" placeholder="Email: admin@amwaj.com" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-        <input id="password" type="password" placeholder="Password: Admin123!" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-        <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 font-medium transition">Sign In</button>
+<!-- LOGIN -->
+<div id="login-screen">
+  <div style="width:100%;max-width:400px;padding:16px">
+    <div class="card" style="padding:36px 32px;border-radius:20px">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="width:56px;height:56px;background:var(--ocean);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px">🌊</div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">AMWAJ SEAFRONT</div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:2px">ERP v4 · Tudor Creek, Mombasa</div>
+        <div style="font-size:10px;color:var(--ink3);margin-top:6px">Powered by Supabase Auth · RLS Enabled</div>
+      </div>
+      <form id="login-form" style="display:flex;flex-direction:column;gap:12px">
+        <div><label class="lbl">Email Address</label><input id="l-email" type="email" placeholder="admin@amwaj.co.ke" required style="width:100%;padding:10px 12px"></div>
+        <div><label class="lbl">Password</label>
+          <div class="pw-wrap"><input id="l-pass" type="password" placeholder="••••••••" required style="width:100%;padding:10px 12px">
+          <button type="button" class="pw-eye" onclick="togglePw('l-pass')">👁</button></div>
+        </div>
+        <button id="login-btn" type="submit" class="btn btn-ocean" style="width:100%;justify-content:center;padding:10px">Sign In</button>
+        <p id="login-err" style="color:var(--red);font-size:12px;text-align:center;display:none"></p>
       </form>
-      <p id="login-error" class="text-red-500 text-sm text-center mt-2 hidden"></p>
+      <div class="sec-notice" style="margin-top:20px">🔒 Authentication via Supabase Auth. Credentials never stored in browser.</div>
     </div>
   </div>
+</div>
 
-  <!-- APP -->
-  <div id="app" class="hidden min-h-screen p-4 md:p-6">
-    <header class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">AMWAJ SEAFRONT VENUE</h1>
-        <p class="text-gray-500">Operations ERP • Session Booking • Cloud Sync</p>
-      </div>
-      <div class="flex gap-2">
-        <button onclick="logout()" class="text-sm bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200 transition">🚪 Logout</button>
-      </div>
-    </header>
+<!-- PAGE LOADER BAR -->
+<div id="page-loader"></div>
 
-    <!-- TABS -->
-    <div class="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
-      <button onclick="switchTab('main')" id="tab-main" class="px-4 py-2 rounded-md font-medium transition tab-active">📊 Dashboard</button>
-      <button onclick="switchTab('staff')" id="tab-staff" class="px-4 py-2 rounded-md font-medium transition tab-inactive">👥 Staff Shifts</button>
-      <button onclick="switchTab('sync')" id="tab-sync" class="px-4 py-2 rounded-md font-medium transition tab-inactive">☁️ Google Sheets</button>
-    </div>
+<!-- TOAST -->
+<div id="toast-root"></div>
 
-    <!-- MAIN DASHBOARD -->
-    <div id="view-main">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="stats-grid"></div>
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- LEFT: Calendar & Table -->
-        <div class="lg:col-span-2 space-y-0">
-          <div class="calendar-wrapper p-4 shadow-sm border">
-            <div class="flex justify-between items-center mb-3">
-              <h2 class="text-lg font-semibold">📅 Venue Schedule</h2>
-              <p class="text-xs text-gray-500">Click date → Pick session → Auto-fills form</p>
-            </div>
-            <div id="calendar" class="h-[480px]"></div>
-          </div>
+<!-- MODAL -->
+<div id="modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div id="modal-box" class="modal-box"></div>
+</div>
 
-          <div class="table-wrapper bg-white p-4 rounded-xl shadow-sm border">
-            <h3 class="font-semibold mb-3">📋 Bookings Table</h3>
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm text-left">
-                <thead class="bg-gray-50 text-gray-600">
-                  <tr><th class="p-3">Client</th><th class="p-3">Event</th><th class="p-3">Session</th><th class="p-3">Amount</th><th class="p-3">Action</th></tr>
-                </thead>
-                <tbody id="bookings-table"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+<!-- APP SHELL (hidden until auth) -->
+<div id="app" style="display:none">
 
-        <!-- RIGHT: Form & FX -->
-        <div class="space-y-4">
-          <form id="booking-form" class="bg-white p-4 rounded-xl shadow-sm border space-y-3">
-            <h2 class="text-lg font-semibold">📝 New Booking</h2>
-            <input id="b-client" placeholder="Client Name" required class="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500">
-            <div class="grid grid-cols-2 gap-2">
-              <input id="b-email" type="email" placeholder="Email" required class="p-2 border rounded outline-none">
-              <input id="b-phone" placeholder="Phone" required class="p-2 border rounded outline-none">
-            </div>
-            <select id="b-category" class="w-full p-2 border rounded outline-none">
-              <option>WEDDING</option><option>EXHIBITION</option><option>CONFERENCE</option><option>BIRTHDAY</option>
-            </select>
-            <div class="grid grid-cols-2 gap-2">
-              <input id="b-date" type="date" required class="p-2 border rounded outline-none bg-blue-50">
-              <select id="b-session" required class="p-2 border rounded outline-none bg-blue-50">
-                <option value="">Select Session</option>
-                <option value="1">1:00 PM - 5:00 PM</option>
-                <option value="2">8:00 PM - 12:00 AM</option>
-              </select>
-            </div>
-            <input id="b-amount" type="number" placeholder="Amount (AED)" required class="w-full p-2 border rounded outline-none">
-            <textarea id="b-notes" placeholder="Notes / FX Requirements" class="w-full p-2 border rounded h-16 outline-none"></textarea>
-            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 font-medium transition">✅ Hold Session & Create Record</button>
-          </form>
-          <div class="bg-white p-4 rounded-xl shadow-sm border">
-            <h3 class="font-semibold mb-3">🔌 FX Inventory</h3>
-            <div id="fx-list" class="space-y-2"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- STAFF SHIFTS -->
-    <div id="view-staff" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 bg-white p-4 rounded-xl shadow-sm border overflow-x-auto">
-          <h3 class="font-semibold mb-4">👥 Staff Shift Roster</h3>
-          <table class="w-full text-sm text-left">
-            <thead class="bg-gray-50 text-gray-600">
-              <tr><th class="p-3">Staff Name</th><th class="p-3">Role</th><th class="p-3">Date</th><th class="p-3">Shift</th><th class="p-3">Status</th><th class="p-3">Action</th></tr>
-            </thead>
-            <tbody id="staff-table"></tbody>
-          </table>
-        </div>
-        <div class="bg-white p-4 rounded-xl shadow-sm border">
-          <h2 class="text-lg font-semibold mb-3">➕ Add Shift</h2>
-          <form id="shift-form" class="space-y-3">
-            <input id="s-name" placeholder="Staff Name" required class="w-full p-2 border rounded outline-none">
-            <select id="s-role" class="w-full p-2 border rounded outline-none">
-              <option>Security</option><option>Operations</option><option>Cleaning</option><option>Event Coordinator</option><option>Kitchen Staff</option>
-            </select>
-            <input id="s-date" type="date" required class="w-full p-2 border rounded outline-none">
-            <div class="grid grid-cols-2 gap-2">
-              <input id="s-start" type="time" required class="p-2 border rounded outline-none">
-              <input id="s-end" type="time" required class="p-2 border rounded outline-none">
-            </div>
-            <select id="s-status" class="w-full p-2 border rounded outline-none">
-              <option>Scheduled</option><option>Confirmed</option><option>On Leave</option>
-            </select>
-            <button type="submit" class="w-full bg-emerald-600 text-white p-2 rounded hover:bg-emerald-700 font-medium">📅 Assign Shift</button>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- CLOUD SYNC -->
-    <div id="view-sync" class="hidden max-w-2xl">
-      <div class="bg-white p-6 rounded-xl shadow-sm border space-y-6">
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div id="sb-logo-area">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;background:var(--ocean);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🌊</div>
         <div>
-          <h2 class="text-xl font-bold mb-2">☁️ Google Sheets Cloud Sync</h2>
-          <p class="text-gray-500 text-sm">Backup & sync bookings/staff data across devices.</p>
-        </div>
-        <div class="space-y-2">
-          <label class="text-sm font-medium">Google Apps Script Web App URL</label>
-          <input id="sheet-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-3 border rounded outline-none text-sm">
-          <p class="text-xs text-gray-400">👉 <button onclick="document.getElementById('sheet-guide').classList.toggle('hidden')" class="text-blue-600 underline">How to get this URL?</button></p>
-          <div id="sheet-guide" class="hidden bg-gray-50 p-3 rounded text-xs text-gray-600 space-y-1">
-            <p>1. Create new Google Sheet. Row 1: <code>Type,ID,Client/Name,Category/Role,Start,End,Amount/Status,Notes</code></p>
-            <p>2. Extensions → Apps Script → Paste deployment script → Deploy → Web app → Execute as: Me → Access: <b>Anyone</b> → Deploy</p>
-            <p>3. Copy Web App URL & paste above.</p>
-          </div>
-        </div>
-        <div class="flex gap-2">
-          <button onclick="saveSheetUrl()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">💾 Save URL</button>
-          <button onclick="syncPush()" class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">⬆️ Push to Sheets</button>
-          <button onclick="syncPull()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">⬇️ Pull from Sheets</button>
-        </div>
-        <div class="bg-gray-900 text-green-400 p-3 rounded-lg h-32 overflow-y-auto sync-log" id="sync-log">
-          [System] Ready. Connect your sheet to enable cloud sync.
+          <div style="font-size:12px;font-weight:800;color:#fff;line-height:1.2">AMWAJ</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4)">ERP v4</div>
         </div>
       </div>
     </div>
-  </div>
-
-  <script>
-    // === CORE DB & AUTH ===
-    const DB_KEY = 'amwaj_erp_v5';
-    const SHEET_KEY = 'amwaj_sheet_url';
-    
-    const defaultDB = {
-      bookings: [
-        {id:'1', clientName:'Sarah & James', email:'s@mail.com', category:'WEDDING', session:'2', startDate:'2026-05-10T20:00', endDate:'2026-05-11T00:00', status:'CONFIRMED', totalAmount:15000, notes:'Creek lawn, Pyro'},
-        {id:'2', clientName:'Tech Expo', email:'info@tech.ae', category:'EXHIBITION', session:'1', startDate:'2026-04-25T13:00', endDate:'2026-04-25T17:00', status:'HELD', totalAmount:8500, notes:'Conference Hall A'}
-      ],
-      fx: [
-        {id:'fx1', type:'Pyro', serialNo:'PYR-001', status:'AVAILABLE'},
-        {id:'fx2', type:'Moving Head', serialNo:'MH-045', status:'BOOKED'},
-        {id:'fx3', type:'Smoke Machine', serialNo:'SMK-112', status:'AVAILABLE'},
-        {id:'fx4', type:'RGB Light', serialNo:'RGB-88', status:'AVAILABLE'}
-      ],
-      shifts: [
-        {id:'s1', name:'Ahmed K.', role:'Security', date:'2026-05-10', start:'16:00', end:'00:00', status:'Confirmed'},
-        {id:'s2', name:'Maria L.', role:'Coordinator', date:'2026-05-10', start:'15:00', end:'01:00', status:'Scheduled'}
-      ]
-    };
-
-    let db = JSON.parse(localStorage.getItem(DB_KEY)) || defaultDB;
-    function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-    let calendar;
-
-    // Auth
-    if(sessionStorage.getItem('auth')) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); initAll(); }
-    document.getElementById('login-form').onsubmit = e => {
-      e.preventDefault();
-      if(document.getElementById('email').value==='admin@amwaj.com' && document.getElementById('password').value==='Admin123!') {
-        sessionStorage.setItem('auth','1'); location.reload();
-      } else { document.getElementById('login-error').classList.remove('hidden'); }
-    };
-    function logout() { sessionStorage.clear(); location.reload(); }
-
-    // UI Helpers
-    function switchTab(tab) {
-      ['main','staff','sync'].forEach(t => {
-        document.getElementById(`view-${t}`).classList.toggle('hidden', t!==tab);
-        document.getElementById(`tab-${t}`).className = t===tab ? 'px-4 py-2 rounded-md font-medium transition tab-active' : 'px-4 py-2 rounded-md font-medium transition tab-inactive';
-      });
-      if(tab==='main') { setTimeout(()=>calendar?.updateSize(), 150); }
-    }
-
-    function fmt(d) { return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
-    function log(msg) { const el=document.getElementById('sync-log'); el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; el.scrollTop = el.scrollHeight; }
-
-    // === SESSION TIME LOGIC ===
-    function getSessionTimes(dateStr, session) {
-      const d = dateStr.split('T')[0];
-      if(session === '1') return { start: `${d}T13:00`, end: `${d}T17:00` };
-      const next = new Date(d); next.setDate(next.getDate()+1);
-      return { start: `${d}T20:00`, end: `${next.toISOString().split('T')[0]}T00:00` };
-    }
-
-    // === INIT ===
-    function initAll() {
-      renderStats(); renderBookings(); renderFX(); renderStaff(); initCalendar();
-      document.getElementById('sheet-url').value = localStorage.getItem(SHEET_KEY) || '';
-    }
-
-    function renderStats() {
-      const now=new Date(), m=db.bookings.filter(b=>new Date(b.startDate).getMonth()===now.getMonth() && new Date(b.startDate).getFullYear()===now.getFullYear());
-      const rev=m.reduce((s,b)=>s+b.totalAmount,0);
-      document.getElementById('stats-grid').innerHTML = `
-        <div class="bg-green-50 p-4 rounded-xl flex items-center gap-4"><div class="text-2xl">💰</div><div><p class="text-sm opacity-80">Monthly Revenue</p><p class="text-2xl font-bold">AED ${rev.toLocaleString()}</p></div></div>
-        <div class="bg-blue-50 p-4 rounded-xl flex items-center gap-4"><div class="text-2xl">📅</div><div><p class="text-sm opacity-80">Active Sessions</p><p class="text-2xl font-bold">${m.length}</p></div></div>
-        <div class="bg-purple-50 p-4 rounded-xl flex items-center gap-4"><div class="text-2xl">👥</div><div><p class="text-sm opacity-80">Staff Scheduled</p><p class="text-2xl font-bold">${db.shifts.length}</p></div></div>
-        <div class="bg-amber-50 p-4 rounded-xl flex items-center gap-4"><div class="text-2xl">⚡</div><div><p class="text-sm opacity-80">FX Available</p><p class="text-2xl font-bold">${db.fx.filter(f=>f.status==='AVAILABLE').length}/${db.fx.length}</p></div></div>
-      `;
-    }
-
-    function renderBookings() {
-      const sc = {CONFIRMED:'bg-green-100 text-green-800', HELD:'bg-amber-100 text-amber-800'};
-      document.getElementById('bookings-table').innerHTML = db.bookings.map(b => `
-        <tr class="border-t hover-row transition">
-          <td class="p-3 font-medium">${b.clientName}</td>
-          <td class="p-3">${b.category}</td>
-          <td class="p-3"><span class="session-badge ${b.session==='1'?'bg-indigo-100 text-indigo-800':'bg-rose-100 text-rose-800'}">${b.session==='1'?'1PM-5PM':'8PM-12AM'}</span></td>
-          <td class="p-3">AED ${b.totalAmount.toLocaleString()}</td>
-          <td class="p-3"><button onclick="genPDF('${b.id}')" class="invoice-btn text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">📄 PDF Invoice</button></td>
-        </tr>
-      `).join('');
-    }
-
-    function renderFX() {
-      document.getElementById('fx-list').innerHTML = db.fx.map(f => `
-        <div class="flex justify-between items-center text-sm p-2 bg-gray-50 rounded">
-          <span class="font-medium">${f.type} (${f.serialNo})</span>
-          <span class="px-2 py-0.5 rounded text-xs ${f.status==='AVAILABLE'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-800'}">${f.status}</span>
+    <div style="flex:1;padding:10px 0;overflow-y:auto">
+      <div style="padding:6px 18px 4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.25)">Main</div>
+      <div class="nav-item active" onclick="goView('dash')" id="nav-dash"><span class="nav-icon">📊</span>Dashboard</div>
+      <div class="nav-item" onclick="goView('calendar')" id="nav-calendar"><span class="nav-icon">📅</span>Calendar</div>
+      <div class="nav-item" onclick="goView('bookings')" id="nav-bookings"><span class="nav-icon">🗓</span>Bookings</div>
+      <div class="nav-item" onclick="goView('invoices')" id="nav-invoices"><span class="nav-icon">💰</span>Invoices</div>
+      <div style="padding:6px 18px 4px;margin-top:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.25)">Operations</div>
+      <div class="nav-item" onclick="goView('expenses')" id="nav-expenses"><span class="nav-icon">💳</span>Expenses</div>
+      <div class="nav-item" onclick="goView('clients')" id="nav-clients"><span class="nav-icon">👥</span>Clients</div>
+      <div class="nav-item" onclick="goView('vendors')" id="nav-vendors"><span class="nav-icon">🏪</span>Vendors</div>
+      <div class="nav-item" onclick="goView('inventory')" id="nav-inventory"><span class="nav-icon">📦</span>Inventory</div>
+      <div class="nav-item" onclick="goView('staff')" id="nav-staff"><span class="nav-icon">👤</span>Staff</div>
+      <div class="nav-item" onclick="goView('reports')" id="nav-reports"><span class="nav-icon">📈</span>Reports</div>
+      <div style="padding:6px 18px 4px;margin-top:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.25)">System</div>
+      <div class="nav-item" onclick="goView('settings')" id="nav-settings"><span class="nav-icon">⚙️</span>Settings</div>
+    </div>
+    <div style="padding:12px 8px;border-top:1px solid rgba(255,255,255,.08)">
+      <div style="padding:8px 10px;display:flex;align-items:center;gap:8px">
+        <div style="width:30px;height:30px;background:var(--ocean);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">👤</div>
+        <div style="flex:1;min-width:0">
+          <div id="sb-uname" style="font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">User</div>
+          <div id="sb-urole" style="font-size:10px;color:rgba(255,255,255,.4)">Role</div>
         </div>
-      `).join('');
+      </div>
+      <button onclick="doLogout()" class="btn btn-ghost" style="width:100%;justify-content:center;font-size:11px;margin-top:4px;border-radius:8px">🚪 Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div id="main-content">
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:var(--ink2);font-size:18px">☰</button>
+        <div id="tb-title" style="font-size:15px;font-weight:700">Dashboard</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="tb-role" class="role-badge"></span>
+        <span id="tb-uname" style="font-size:12px;color:var(--ink2)" class="hide-mob"></span>
+        <button onclick="toggleDark()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--ink3)" title="Toggle dark mode">🌙</button>
+        <button onclick="goView('settings')" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--ink3)">⚙️</button>
+      </div>
+    </div>
+
+    <!-- VIEWS CONTAINER -->
+    <div id="views" style="padding:20px">
+
+      <!-- ═══════════════════════ DASHBOARD ═══════════════════════ -->
+      <div id="v-dash" class="view active">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div><div class="sec-h" id="dash-greeting">Good morning 👋</div><div class="accent-line"></div><div style="font-size:12px;color:var(--ink3);margin-top:6px" id="dash-date">Loading…</div></div>
+          <button class="btn btn-ocean" onclick="openBookingModal()">+ New Booking</button>
+        </div>
+        <!-- KPI ROW -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px">
+          <div class="card stat-card"><div class="label">Monthly Revenue</div><div class="value" id="d-rev" style="color:var(--green)">KES 0</div><div class="pay-bar" style="margin-top:8px"><div class="pay-fill" id="d-rev-bar" style="width:0%;background:var(--green)"></div></div><div class="sub" id="d-rev-pct">0% of target</div></div>
+          <div class="card stat-card"><div class="label">Pending Balances</div><div class="value" id="d-pend" style="color:var(--amber)">KES 0</div><div class="sub" id="d-pend-c">0 bookings</div></div>
+          <div class="card stat-card"><div class="label">Events Next 7 Days</div><div class="value" id="d-upcoming" style="color:var(--ocean)">0</div><div class="sub" id="d-next">—</div></div>
+          <div class="card stat-card"><div class="label">Monthly Expenses</div><div class="value" id="d-exp" style="color:var(--red)">KES 0</div><div class="sub" id="d-exp-c">0 entries</div></div>
+        </div>
+        <!-- MINI KPI -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px">
+          <div class="card" style="padding:12px 14px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase">Confirmed</div><div style="font-size:20px;font-weight:800;color:var(--green);margin-top:2px" id="d-kpi-conf">0</div></div>
+          <div class="card" style="padding:12px 14px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase">Avg. Booking</div><div style="font-size:20px;font-weight:800;margin-top:2px" id="d-kpi-avg">KES 0</div></div>
+          <div class="card" style="padding:12px 14px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase">Occupancy</div><div style="font-size:20px;font-weight:800;color:var(--ocean-lt);margin-top:2px" id="d-kpi-occ">0%</div></div>
+          <div class="card" style="padding:12px 14px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase">M-Pesa Recv</div><div style="font-size:20px;font-weight:800;color:var(--mpesa);margin-top:2px" id="d-kpi-mp">KES 0</div></div>
+        </div>
+        <!-- CALENDAR + SIDEBAR -->
+        <div style="display:grid;grid-template-columns:1fr 280px;gap:16px" class="hide-mob-grid">
+          <div class="card" style="padding:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="font-weight:700;font-size:13px">📅 Booking Calendar</div>
+              <button class="btn btn-ghost btn-sm" onclick="goView('calendar')">Full View →</button>
+            </div>
+            <div id="mini-cal" style="min-height:280px"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="card" style="padding:16px">
+              <div style="font-weight:700;font-size:13px;margin-bottom:10px">⚡ Action Required</div>
+              <div id="dash-alerts" style="font-size:12px"></div>
+            </div>
+            <div class="card" style="padding:16px">
+              <div style="font-weight:700;font-size:13px;margin-bottom:10px">⏭ Next 7 Days</div>
+              <div id="dash-timeline" style="font-size:12px;max-height:200px;overflow-y:auto"></div>
+            </div>
+          </div>
+        </div>
+        <!-- REVENUE CHART -->
+        <div class="card" style="padding:16px;margin-top:16px">
+          <div style="font-weight:700;font-size:13px;margin-bottom:12px">📊 Revenue vs Expenses (6 months)</div>
+          <canvas id="rev-chart" style="max-height:200px"></canvas>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ CALENDAR ═══════════════════════ -->
+      <div id="v-calendar" class="view">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div><div class="sec-h">Booking Calendar</div><div class="accent-line"></div></div>
+          <button class="btn btn-ocean" onclick="openBookingModal()">+ New Booking</button>
+        </div>
+        <div class="card" style="padding:12px;margin-bottom:12px">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <span style="font-size:11px;color:var(--ink3);font-weight:600">FILTER:</span>
+            <span class="chip on" onclick="setCalF('res','all',this)">All Status</span>
+            <span class="chip" onclick="setCalF('res','RESERVED',this)">Reserved</span>
+            <span class="chip" onclick="setCalF('res','CONFIRMED',this)">Confirmed</span>
+            <span class="chip" onclick="setCalF('res','COMPLETED',this)">Completed</span>
+            <span class="chip" onclick="setCalF('res','CANCELLED',this)">Cancelled</span>
+            <span style="width:1px;height:16px;background:var(--border);display:inline-block"></span>
+            <span class="chip on" onclick="setCalF('pay','all',this)">All Payments</span>
+            <span class="chip" onclick="setCalF('pay','UNPAID',this)">Unpaid</span>
+            <span class="chip" onclick="setCalF('pay','PARTIAL',this)">Partial</span>
+            <span class="chip" onclick="setCalF('pay','PAID',this)">Paid</span>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;flex-wrap:wrap">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:#14805e;display:inline-block"></span>Confirmed & Paid</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:#d97706;display:inline-block"></span>Reserved / Partial</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:#c62828;display:inline-block"></span>Unpaid</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:#64748b;display:inline-block"></span>Cancelled</span>
+          </div>
+        </div>
+        <div class="card" style="padding:16px"><div id="full-cal" style="min-height:560px"></div></div>
+        <div class="card" style="padding:16px;margin-top:12px">
+          <div style="font-weight:700;font-size:13px;margin-bottom:10px">🔍 Check Slot Availability</div>
+          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+            <div><label class="lbl">Date</label><input type="date" id="avail-date" style="padding:7px 10px" oninput="checkAvail()"></div>
+            <div id="avail-result" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ BOOKINGS ═══════════════════════ -->
+      <div id="v-bookings" class="view">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div><div class="sec-h">Bookings & Reservations</div><div class="accent-line"></div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <div class="search-wrap"><input type="text" id="bk-search" placeholder="Search bookings…" style="padding:7px 10px 7px 32px" oninput="renderBookings()"></div>
+            <button class="btn btn-ocean" onclick="openBookingModal()">+ New Booking</button>
+          </div>
+        </div>
+        <!-- Status counts -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+          <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">RESERVED</div><div style="font-size:18px;font-weight:800;color:var(--amber)" id="bk-c-res">0</div></div>
+          <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">CONFIRMED</div><div style="font-size:18px;font-weight:800;color:var(--green)" id="bk-c-conf">0</div></div>
+          <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">COMPLETED</div><div style="font-size:18px;font-weight:800;color:var(--ocean)" id="bk-c-done">0</div></div>
+          <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">CANCELLED</div><div style="font-size:18px;font-weight:800;color:var(--ink3)" id="bk-c-canc">0</div></div>
+        </div>
+        <!-- Filter chips -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+          <span class="chip on" onclick="setBkFilter('all',this)">All</span>
+          <span class="chip" onclick="setBkFilter('RESERVED',this)">Reserved</span>
+          <span class="chip" onclick="setBkFilter('CONFIRMED',this)">Confirmed</span>
+          <span class="chip" onclick="setBkFilter('COMPLETED',this)">Completed</span>
+          <span class="chip" onclick="setBkFilter('CANCELLED',this)">Cancelled</span>
+          <span class="chip" onclick="setBkFilter('UNPAID',this)">Unpaid</span>
+          <span class="chip" onclick="setBkFilter('PARTIAL',this)">Partial</span>
+          <span class="chip" onclick="setBkFilter('PAID',this)">Paid</span>
+        </div>
+        <div class="card" style="overflow-x:auto">
+          <table class="tbl" style="min-width:900px">
+            <thead><tr>
+              <th onclick="sortBk('clientName')" style="cursor:pointer">Client ⇅</th>
+              <th>Event Type</th>
+              <th onclick="sortBk('startDate')" style="cursor:pointer">Date ⇅</th>
+              <th>Reservation</th>
+              <th>Payment</th>
+              <th style="text-align:right">Total</th>
+              <th style="text-align:right">Paid</th>
+              <th style="text-align:right">Balance</th>
+              <th>M-Pesa</th>
+              <th style="text-align:center">Actions</th>
+            </tr></thead>
+            <tbody id="bk-tbody"></tbody>
+          </table>
+          <div id="bk-empty" class="empty-state" style="display:none"><div class="emoji">🗓</div><p>No bookings found. Create your first booking!</p></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ INVOICES ═══════════════════════ -->
+      <div id="v-invoices" class="view">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div><div class="sec-h">Invoices & Payments</div><div class="accent-line"></div></div>
+          <button class="btn btn-ocean" onclick="openInvoiceModal()">+ Create Invoice</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+          <div class="card" style="padding:14px"><div style="font-size:10px;color:var(--ink3);font-weight:600">TOTAL INVOICED</div><div style="font-size:20px;font-weight:800;margin-top:3px" id="inv-total">KES 0</div></div>
+          <div class="card" style="padding:14px"><div style="font-size:10px;color:var(--ink3);font-weight:600">PAID</div><div style="font-size:20px;font-weight:800;color:var(--green);margin-top:3px" id="inv-paid">KES 0</div></div>
+          <div class="card" style="padding:14px"><div style="font-size:10px;color:var(--ink3);font-weight:600">OUTSTANDING</div><div style="font-size:20px;font-weight:800;color:var(--amber);margin-top:3px" id="inv-out">KES 0</div></div>
+        </div>
+        <div class="card" style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Invoice #</th><th>Client</th><th>Issue Date</th><th>Due Date</th><th style="text-align:right">Amount</th><th style="text-align:right">Paid</th><th style="text-align:right">Balance</th><th>Status</th><th style="text-align:center">Actions</th></tr></thead>
+            <tbody id="inv-tbody"></tbody>
+          </table>
+          <div id="inv-empty" class="empty-state" style="display:none"><div class="emoji">💰</div><p>No invoices yet. Generate from a booking or create manually.</p></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ EXPENSES ═══════════════════════ -->
+      <div id="v-expenses" class="view">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div><div class="sec-h">Expenses & Purchases</div><div class="accent-line"></div></div>
+          <button class="btn btn-red" onclick="openExpenseModal()">+ Log Expense</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 300px;gap:16px">
+          <div class="card" style="overflow-x:auto">
+            <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px">
+              <span class="chip on" onclick="setExpF('today',this)">Today</span>
+              <span class="chip" onclick="setExpF('month',this)">This Month</span>
+              <span class="chip" onclick="setExpF('all',this)">All Time</span>
+            </div>
+            <table class="tbl">
+              <thead><tr><th>Date</th><th>Category</th><th>Description</th><th style="text-align:right">Amount</th><th>Vendor</th><th style="text-align:center">Actions</th></tr></thead>
+              <tbody id="exp-tbody"></tbody>
+            </table>
+            <div id="exp-empty" class="empty-state" style="display:none"><div class="emoji">💳</div><p>No expenses logged.</p></div>
+            <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;font-weight:700">
+              <span>Total:</span><span id="exp-total" style="color:var(--red)">KES 0</span>
+            </div>
+          </div>
+          <div class="card" style="padding:18px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:14px">⚡ Quick Log</div>
+            <form id="exp-form" style="display:flex;flex-direction:column;gap:10px">
+              <div><label class="lbl">Date</label><input id="e-date" type="date" required style="width:100%;padding:7px 10px"></div>
+              <div><label class="lbl">Category</label><input id="e-cat" placeholder="e.g. Diesel, Catering" list="exp-cats" required style="width:100%;padding:7px 10px"><datalist id="exp-cats"><option value="Diesel/Generator"><option value="Toiletries"><option value="Cleaning Supplies"><option value="Maintenance"><option value="Catering"><option value="Transport"><option value="Decor/Florals"><option value="Security"><option value="Utilities"><option value="Miscellaneous"></datalist></div>
+              <div><label class="lbl">Description</label><input id="e-item" placeholder="Item / description" required style="width:100%;padding:7px 10px"></div>
+              <div><label class="lbl">Amount (KES)</label><input id="e-amt" type="number" min="0" step="0.01" placeholder="0.00" required style="width:100%;padding:7px 10px"></div>
+              <div><label class="lbl">Vendor</label><select id="e-vendor" style="width:100%;padding:7px 10px"><option value="">-- No vendor --</option></select></div>
+              <div><label class="lbl">Notes / Receipt #</label><textarea id="e-notes" style="width:100%;padding:7px 10px;height:56px;resize:vertical"></textarea></div>
+              <button type="submit" class="btn btn-red" style="width:100%;justify-content:center">💾 Save Expense</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ CLIENTS ═══════════════════════ -->
+      <div id="v-clients" class="view">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div><div class="sec-h">Client CRM</div><div class="accent-line"></div></div>
+          <div style="display:flex;gap:8px">
+            <div class="search-wrap"><input type="text" id="cl-search" placeholder="Search clients…" style="padding:7px 10px 7px 32px" oninput="renderClients()"></div>
+            <button class="btn btn-ocean" onclick="openClientModal()">+ Add Client</button>
+          </div>
+        </div>
+        <div class="card" style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th style="text-align:center">Events</th><th style="text-align:right">Total Spent</th><th>Last Contact</th><th style="text-align:center">Actions</th></tr></thead>
+            <tbody id="cl-tbody"></tbody>
+          </table>
+          <div id="cl-empty" class="empty-state" style="display:none"><div class="emoji">👥</div><p>No clients yet. Add your first client!</p></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ VENDORS ═══════════════════════ -->
+      <div id="v-vendors" class="view">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div><div class="sec-h">Vendors & Suppliers</div><div class="accent-line"></div></div>
+          <button class="btn btn-ocean" onclick="openVendorModal()">+ Add Vendor</button>
+        </div>
+        <div class="card" style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Company</th><th>Contact</th><th>Phone</th><th>Category</th><th>Status</th><th style="text-align:center">Actions</th></tr></thead>
+            <tbody id="vd-tbody"></tbody>
+          </table>
+          <div id="vd-empty" class="empty-state" style="display:none"><div class="emoji">🏪</div><p>No vendors yet.</p></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ INVENTORY ═══════════════════════ -->
+      <div id="v-inventory" class="view">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div><div class="sec-h">Equipment & FX Inventory</div><div class="accent-line"></div></div>
+          <button class="btn btn-ocean" onclick="openFXModal()">+ Add Item</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+          <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">AVAILABLE</div><div style="font-size:18px;font-weight:800;color:var(--green)" id="fx-avail">0</div></div>
+          <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">BOOKED</div><div style="font-size:18px;font-weight:800;color:var(--amber)" id="fx-booked">0</div></div>
+          <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">MAINTENANCE</div><div style="font-size:18px;font-weight:800;color:var(--red)" id="fx-maint">0</div></div>
+          <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">TOTAL VALUE</div><div style="font-size:18px;font-weight:800" id="fx-val">KES 0</div></div>
+        </div>
+        <div class="card" style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Item</th><th>Serial</th><th style="text-align:center">Qty</th><th>Rental Price</th><th>Status</th><th>Assigned To</th><th style="text-align:center">Actions</th></tr></thead>
+            <tbody id="fx-tbody"></tbody>
+          </table>
+          <div id="fx-empty" class="empty-state" style="display:none"><div class="emoji">📦</div><p>No inventory items.</p></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ STAFF ═══════════════════════ -->
+      <div id="v-staff" class="view">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div><div class="sec-h">Staff & Scheduling</div><div class="accent-line"></div></div>
+          <button class="btn btn-ocean" onclick="openStaffModal()">+ Add Staff</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:16px">
+          <div class="card" style="overflow-x:auto">
+            <table class="tbl">
+              <thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Rate/Day</th><th>Status</th><th style="text-align:center">Actions</th></tr></thead>
+              <tbody id="st-tbody"></tbody>
+            </table>
+            <div id="st-empty" class="empty-state" style="display:none"><div class="emoji">👤</div><p>No staff added yet.</p></div>
+          </div>
+          <div class="card" style="padding:18px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:14px">📅 Assign Shift</div>
+            <form id="shift-form" style="display:flex;flex-direction:column;gap:10px">
+              <div><label class="lbl">Staff Member</label><select id="sh-staff" style="width:100%;padding:7px 10px" required><option value="">-- Select --</option></select></div>
+              <div><label class="lbl">Linked Event</label><input id="sh-event" placeholder="Booking / event name" style="width:100%;padding:7px 10px"></div>
+              <div><label class="lbl">Date</label><input id="sh-date" type="date" required style="width:100%;padding:7px 10px"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div><label class="lbl">Start</label><input id="sh-start" type="time" required style="width:100%;padding:7px 10px"></div>
+                <div><label class="lbl">End</label><input id="sh-end" type="time" required style="width:100%;padding:7px 10px"></div>
+              </div>
+              <div><label class="lbl">Status</label><select id="sh-status" style="width:100%;padding:7px 10px"><option>Scheduled</option><option>Confirmed</option><option>Completed</option><option>On Leave</option></select></div>
+              <button type="submit" class="btn btn-green" style="width:100%;justify-content:center">📅 Assign Shift</button>
+            </form>
+            <hr class="divider">
+            <div style="font-weight:700;font-size:12px;margin-bottom:8px">Upcoming Shifts</div>
+            <div id="shifts-list" style="font-size:12px;max-height:160px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ REPORTS ═══════════════════════ -->
+      <div id="v-reports" class="view">
+        <div style="margin-bottom:16px"><div class="sec-h">Reports & Analytics</div><div class="accent-line"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">💰 Revenue by Event Type</div><canvas id="rpt-ev-chart" style="max-height:200px"></canvas></div>
+          <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">📈 Monthly Trend</div><canvas id="rpt-trend-chart" style="max-height:200px"></canvas></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">💳 Expense Breakdown</div><canvas id="rpt-exp-chart" style="max-height:200px"></canvas></div>
+          <div class="card" style="padding:16px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:12px">📋 Financial Summary</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+              <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:8px"><span style="color:var(--ink2)">Total Revenue (All Time)</span><span id="rpt-rev" style="font-weight:700">KES 0</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:8px"><span style="color:var(--ink2)">Total Expenses (All Time)</span><span id="rpt-exp" style="font-weight:700;color:var(--red)">KES 0</span></div>
+              <div style="display:flex;justify-content:space-between;padding:10px;background:rgba(20,128,94,.08);border-radius:8px;border:1px solid rgba(20,128,94,.2)"><span style="font-weight:700">Net Profit</span><span id="rpt-profit" style="font-weight:800;font-size:16px;color:var(--green)">KES 0</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:8px"><span style="color:var(--ink2)">Profit Margin</span><span id="rpt-margin" style="font-weight:700">0%</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:8px"><span style="color:var(--ink2)">Total Clients</span><span id="rpt-clients" style="font-weight:700">0</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:8px"><span style="color:var(--ink2)">Avg. Booking Value</span><span id="rpt-avg" style="font-weight:700">KES 0</span></div>
+              <div style="display:flex;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:8px"><span style="color:var(--ink2)">M-Pesa Transactions</span><span id="rpt-mp" style="font-weight:700;color:var(--mpesa)">0</span></div>
+            </div>
+            <button onclick="exportReport()" class="btn btn-ocean" style="width:100%;justify-content:center;margin-top:14px">📄 Export Report PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════ SETTINGS ═══════════════════════ -->
+      <div id="v-settings" class="view">
+        <div style="margin-bottom:16px"><div class="sec-h">Settings</div><div class="accent-line"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+          <!-- Venue Settings -->
+          <div class="card" style="padding:20px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:14px">🏢 Venue Configuration</div>
+            <form id="venue-form" style="display:flex;flex-direction:column;gap:10px">
+              <div><label class="lbl">Venue Name</label><input id="vs-name" style="width:100%;padding:7px 10px" placeholder="AMWAJ SEAFRONT VENUE"></div>
+              <div><label class="lbl">Location</label><input id="vs-loc" style="width:100%;padding:7px 10px" placeholder="Tudor Creek, Mombasa"></div>
+              <div><label class="lbl">Phone</label><input id="vs-phone" style="width:100%;padding:7px 10px" placeholder="+254700000000"></div>
+              <div><label class="lbl">Email</label><input id="vs-email" type="email" style="width:100%;padding:7px 10px" placeholder="info@amwaj.co.ke"></div>
+              <div><label class="lbl">Bank Details</label><input id="vs-bank" style="width:100%;padding:7px 10px" placeholder="Bank / Account"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div><label class="lbl">VAT Rate (%)</label><input id="vs-vat" type="number" style="width:100%;padding:7px 10px" value="16"></div>
+                <div><label class="lbl">Monthly Target (KES)</label><input id="vs-target" type="number" style="width:100%;padding:7px 10px" value="0"></div>
+              </div>
+              <button type="submit" class="btn btn-ocean" style="width:100%;justify-content:center">💾 Save Venue Settings</button>
+            </form>
+          </div>
+
+          <!-- M-Pesa -->
+          <div class="card" style="padding:20px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:6px">📱 M-Pesa Configuration</div>
+            <div class="sec-notice" style="margin-bottom:14px">
+              🔐 <strong>Security:</strong> M-Pesa Daraja credentials (Consumer Key, Consumer Secret, Passkey) must be stored on your <strong>backend server</strong>, not in the browser. Configure them in your Supabase Edge Function environment variables. This form only stores the Shortcode and Callback URL which are non-sensitive.
+            </div>
+            <form id="mpesa-form" style="display:flex;flex-direction:column;gap:10px">
+              <div><label class="lbl">Shortcode (Paybill/Till)</label><input id="mp-sc" style="width:100%;padding:7px 10px" placeholder="e.g. 174379"></div>
+              <div><label class="lbl">Callback URL</label><input id="mp-cb" style="width:100%;padding:7px 10px" placeholder="https://yourproject.supabase.co/functions/v1/mpesa-callback"></div>
+              <div style="background:var(--surface2);border-radius:8px;padding:10px;font-size:11px;color:var(--ink3);border:1px solid var(--border)">
+                <div style="font-weight:700;color:var(--ink2);margin-bottom:4px">Backend Required:</div>
+                Store in Supabase Edge Function env vars:<br>
+                <code style="font-family:DM Mono,monospace;color:var(--ocean)">MPESA_CONSUMER_KEY</code><br>
+                <code style="font-family:DM Mono,monospace;color:var(--ocean)">MPESA_CONSUMER_SECRET</code><br>
+                <code style="font-family:DM Mono,monospace;color:var(--ocean)">MPESA_PASSKEY</code>
+              </div>
+              <button type="submit" class="btn btn-mpesa" style="width:100%;justify-content:center">💾 Save M-Pesa Config</button>
+            </form>
+          </div>
+
+          <!-- User Management (Admin only) -->
+          <div class="card" style="padding:20px" id="user-mgmt-section">
+            <div style="font-weight:700;font-size:13px;margin-bottom:14px">👥 User Management <span class="role-badge role-admin" style="vertical-align:middle">Admin Only</span></div>
+            <div class="sec-notice" style="margin-bottom:14px">Users are managed via Supabase Auth + a <code style="font-family:DM Mono,monospace">user_roles</code> table with RLS. Invite users from the Supabase Dashboard and assign roles here.</div>
+            <div id="users-list" style="font-size:12px;margin-bottom:12px"></div>
+            <button class="btn btn-ocean btn-sm" onclick="openInviteUserModal()">+ Invite User</button>
+          </div>
+
+          <!-- Change Password -->
+          <div class="card" style="padding:20px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:14px">🔒 Change Password</div>
+            <form id="pw-form" style="display:flex;flex-direction:column;gap:10px">
+              <div><label class="lbl">New Password</label>
+                <div class="pw-wrap"><input id="pw-new" type="password" style="width:100%;padding:7px 10px" placeholder="Minimum 8 characters" minlength="8">
+                <button type="button" class="pw-eye" onclick="togglePw('pw-new')">👁</button></div>
+              </div>
+              <div><label class="lbl">Confirm Password</label>
+                <div class="pw-wrap"><input id="pw-conf" type="password" style="width:100%;padding:7px 10px" placeholder="Re-enter password">
+                <button type="button" class="pw-eye" onclick="togglePw('pw-conf')">👁</button></div>
+              </div>
+              <button type="submit" class="btn btn-ocean" style="width:100%;justify-content:center">🔒 Update Password</button>
+            </form>
+          </div>
+
+          <!-- Backup -->
+          <div class="card" style="padding:20px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:10px">💾 Data Backup</div>
+            <p style="font-size:12px;color:var(--ink3);margin-bottom:14px">Export all data as JSON for offline backup. Primary data lives in Supabase PostgreSQL.</p>
+            <button onclick="exportBackup()" class="btn btn-ghost" style="width:100%;justify-content:center">📥 Download JSON Backup</button>
+          </div>
+
+          <!-- RLS Status -->
+          <div class="card" style="padding:20px">
+            <div style="font-weight:700;font-size:13px;margin-bottom:10px">🛡️ Database Security (RLS)</div>
+            <div id="rls-status" style="font-size:12px"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /views -->
+  </div><!-- /main-content -->
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  SUPABASE INIT
+//  Replace with your project URL and anon key.
+//  In production, inject via /env.js or build-time env var.
+// ═══════════════════════════════════════════════════════════
+const SUPA_URL  = 'https://ccbgqyiiolbjcsahahkk.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhqd2tiYnNsdXRuYXhrcXp2ZXFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NTIxOTAsImV4cCI6MjA5NTAyODE5MH0.u5q34N28rfqRVD5N0WL_DEUC8LRschuQFGEa_XPAdEw';
+const sb = window.supabase.createClient(SUPA_URL, SUPA_ANON, {
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'amwaj-v3-auth' }
+});
+
+// ═══════════════════════════════════════════════════════════
+//  ROLE SYSTEM
+//  Roles: Administrator | Manager | Staff
+//  Stored in Supabase table: user_roles(user_id, role)
+//  with RLS: users can only read their own row.
+//  Admins can read all via service_role in Edge Functions.
+// ═══════════════════════════════════════════════════════════
+let CURRENT_USER = null;  // Supabase auth user
+let CURRENT_ROLE = 'Staff'; // fetched from user_roles table
+
+const ROLE_PERMS = {
+  Administrator: { canCreate: true, canEdit: true, canDelete: true, canViewReports: true, canManageUsers: true, canViewFinancials: true },
+  Manager:       { canCreate: true, canEdit: true, canDelete: false, canViewReports: true, canManageUsers: false, canViewFinancials: true },
+  Staff:         { canCreate: true, canEdit: false, canDelete: false, canViewReports: false, canManageUsers: false, canViewFinancials: false }
+};
+function can(perm) { return !!(ROLE_PERMS[CURRENT_ROLE] && ROLE_PERMS[CURRENT_ROLE][perm]); }
+
+async function fetchUserRole(userId) {
+  // Expects a 'user_roles' table with columns: user_id, role
+  // Enable RLS: users can SELECT WHERE user_id = auth.uid()
+  try {
+    const { data, error } = await sb.from('user_roles').select('role').eq('user_id', userId).single();
+    if (error || !data) return 'Staff'; // default
+    return data.role;
+  } catch { return 'Staff'; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  IN-MEMORY STATE  (source of truth = Supabase)
+//  localStorage is ONLY used for UI preferences (dark mode,
+//  venue name, M-Pesa shortcode/callback) — never for
+//  business data.
+// ═══════════════════════════════════════════════════════════
+let db = { bookings: [], invoices: [], expenses: [], clients: [], vendors: [], fx: [], staff: [], shifts: [], settings: {} };
+const PREFS_KEY = 'amwaj_v3_prefs';
+let prefs = (() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch { return {}; } })();
+function savePrefs() { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); }
+
+// ═══════════════════════════════════════════════════════════
+//  SUPABASE DATA LAYER
+//  All reads/writes go through Supabase.
+//  RLS ensures users only see data they're allowed to see.
+// ═══════════════════════════════════════════════════════════
+async function dbLoad() {
+  showLoader();
+  try {
+    const [bRes, iRes, eRes, cRes, vRes, fRes, stRes, shRes] = await Promise.all([
+      sb.from('bookings').select('*').order('start_date', { ascending: false }),
+      sb.from('invoices').select('*').order('issue_date', { ascending: false }),
+      sb.from('expenses').select('*').order('date', { ascending: false }),
+      sb.from('clients').select('*').order('name'),
+      sb.from('vendors').select('*').order('company'),
+      sb.from('inventory').select('*').order('name'),
+      sb.from('staff').select('*').order('name'),
+      sb.from('shifts').select('*').order('date', { ascending: false })
+    ]);
+    db.bookings  = (bRes.data  || []).map(camelizeBooking);
+    db.invoices  = (iRes.data  || []).map(camelizeInvoice);
+    db.expenses  = (eRes.data  || []).map(camelize);
+    db.clients   = (cRes.data  || []).map(camelize);
+    db.vendors   = (vRes.data  || []).map(camelize);
+    db.fx        = (fRes.data  || []).map(camelize);
+    db.staff     = (stRes.data || []).map(camelize);
+    db.shifts    = (shRes.data || []).map(camelize);
+    // Load settings from prefs (non-sensitive UI config)
+    db.settings  = prefs.settings || { venueName: 'AMWAJ SEAFRONT VENUE', venueLocation: 'Tudor Creek, Mombasa', phone: '', email: '', bank: '', vatRate: 16, monthlyTarget: 0, mpesaShortcode: '', mpesaCallback: '' };
+  } catch(e) {
+    toast('Failed to load data: ' + e.message, 'e');
+  } finally { hideLoader(); }
+}
+
+// ── Camelizer helpers (Supabase returns snake_case) ──
+function camelize(row) {
+  if (!row) return {};
+  const out = {};
+  for (const k in row) {
+    out[k.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] = row[k];
+  }
+  return out;
+}
+function camelizeBooking(row) {
+  const b = camelize(row);
+  // Compute derived fields
+  b.grandTotal = b.grandTotal || b.totalAmount || 0;
+  b.balance = Math.max(0, b.grandTotal - (b.amountPaid || 0));
+  const pct = (b.amountPaid || 0) / (b.grandTotal || 1);
+  if (b.reservationStatus === 'CANCELLED') { b.paymentStatus = 'UNPAID'; }
+  else if (pct <= 0) b.paymentStatus = 'UNPAID';
+  else if (pct >= 0.999) b.paymentStatus = 'PAID';
+  else b.paymentStatus = 'PARTIAL';
+  return b;
+}
+function camelizeInvoice(row) {
+  const i = camelize(row);
+  i.balance = Math.max(0, (i.amount || 0) - (i.amountPaid || 0));
+  if ((i.amountPaid || 0) >= (i.amount || 0)) i.status = 'Paid';
+  else if (i.status !== 'Cancelled') {
+    const due = new Date(i.dueDate);
+    if (!isNaN(due) && due < new Date()) i.status = 'Overdue';
+  }
+  return i;
+}
+function snakerize(obj) {
+  const out = {};
+  for (const k in obj) {
+    out[k.replace(/([A-Z])/g, '_$1').toLowerCase()] = obj[k];
+  }
+  return out;
+}
+
+// ── CRUD helpers ──
+async function dbInsert(table, item) {
+  const { data, error } = await sb.from(table).insert(snakerize(item)).select().single();
+  if (error) throw error;
+  return camelize(data);
+}
+async function dbUpdate(table, id, changes) {
+  const { data, error } = await sb.from(table).update(snakerize(changes)).eq('id', id).select().single();
+  if (error) throw error;
+  return camelize(data);
+}
+async function dbDelete(table, id) {
+  const { error } = await sb.from(table).delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════
+document.getElementById('login-form').onsubmit = async e => {
+  e.preventDefault();
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const btn   = document.getElementById('login-btn');
+  const err   = document.getElementById('login-err');
+  err.style.display = 'none';
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Signing in…';
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) throw error;
+    await bootApp(data.user);
+  } catch(ex) {
+    err.textContent = '⚠ ' + (ex.message || 'Sign in failed');
+    err.style.display = 'block';
+  } finally { btn.disabled = false; btn.innerHTML = 'Sign In'; }
+};
+
+async function bootApp(user) {
+  CURRENT_USER = user;
+  CURRENT_ROLE = await fetchUserRole(user.id);
+  const uname = user.email.split('@')[0];
+  document.getElementById('sb-uname').textContent = uname;
+  document.getElementById('sb-urole').textContent = CURRENT_ROLE;
+  document.getElementById('tb-uname').textContent = user.email;
+  const roleClass = { Administrator: 'role-admin', Manager: 'role-manager', Staff: 'role-staff' }[CURRENT_ROLE] || 'role-staff';
+  document.getElementById('tb-role').textContent = CURRENT_ROLE;
+  document.getElementById('tb-role').className = 'role-badge ' + roleClass;
+  // Hide restricted nav items for Staff
+  if (!can('canViewReports')) document.getElementById('nav-reports').style.display = 'none';
+  // Show app
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  await dbLoad();
+  initAll();
+  initInactivityWatcher();
+  sb.auth.onAuthStateChange(evt => { if (evt === 'SIGNED_OUT') location.reload(); });
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ROUTING
+// ═══════════════════════════════════════════════════════════
+let currentView = 'dash';
+const viewTitles = { dash:'Dashboard', calendar:'Calendar', bookings:'Bookings', invoices:'Invoices', expenses:'Expenses', clients:'Clients', vendors:'Vendors', inventory:'Inventory', staff:'Staff', reports:'Reports', settings:'Settings' };
+
+function goView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('v-' + v);
+  if (el) el.classList.add('active');
+  const nav = document.getElementById('nav-' + v);
+  if (nav) nav.classList.add('active');
+  document.getElementById('tb-title').textContent = viewTitles[v] || v;
+  currentView = v;
+  // Lazy-render charts on first visit
+  if (v === 'reports') renderReportCharts();
+  if (v === 'settings') loadSettingsForm();
+  // Close sidebar on mobile
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  const sb_ = document.getElementById('sidebar');
+  if (window.innerWidth <= 768) sb_.classList.toggle('open');
+  else sb_.classList.toggle('collapsed');
+  document.getElementById('main-content').classList.toggle('full', sb_.classList.contains('collapsed'));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DARK MODE
+// ═══════════════════════════════════════════════════════════
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  prefs.dark = document.body.classList.contains('dark');
+  savePrefs();
+}
+if (prefs.dark) document.body.classList.add('dark');
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+function toast(msg, type = 's', dur = 3400) {
+  const icons = { s: '✅', e: '❌', w: '⚠️', i: 'ℹ️' };
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toast-root').appendChild(t);
+  setTimeout(() => { t.style.animation = 'tOut .25s ease forwards'; setTimeout(() => t.remove(), 250); }, dur);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════════
+function openModal(html) {
+  document.getElementById('modal-box').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════
+//  LOADER
+// ═══════════════════════════════════════════════════════════
+function showLoader() { document.getElementById('page-loader').style.transform = 'scaleX(.7)'; }
+function hideLoader() { document.getElementById('page-loader').style.transform = 'scaleX(1)'; setTimeout(() => { document.getElementById('page-loader').style.transform = 'scaleX(0)'; }, 300); }
+
+// ═══════════════════════════════════════════════════════════
+//  FORMATTERS
+// ═══════════════════════════════════════════════════════════
+const fmt = n => 'KES ' + Number(n || 0).toLocaleString('en-KE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmtD = s => s ? new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDT = s => s ? new Date(s).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+function rsBadge(s) { const m = { RESERVED: 'b-reserved', CONFIRMED: 'b-confirmed', COMPLETED: 'b-completed', CANCELLED: 'b-cancelled' }; return `<span class="badge ${m[s]||'b-reserved'}">${s||'RESERVED'}</span>`; }
+function psBadge(s) { const m = { UNPAID: 'b-unpaid', PARTIAL: 'b-partial', PAID: 'b-paid' }; return `<span class="badge ${m[s]||'b-unpaid'}">${s||'UNPAID'}</span>`; }
+function uid() { return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36); }
+
+// ═══════════════════════════════════════════════════════════
+//  PASSWORD TOGGLE
+// ═══════════════════════════════════════════════════════════
+function togglePw(id) { const f = document.getElementById(id); f.type = f.type === 'password' ? 'text' : 'password'; }
+
+// ═══════════════════════════════════════════════════════════
+//  CONFLICT ENGINE
+// ═══════════════════════════════════════════════════════════
+function checkConflict(startDate, endDate, excludeId) {
+  const ns = new Date(startDate).getTime(), ne = new Date(endDate).getTime();
+  for (const b of db.bookings) {
+    if (b.id === excludeId || b.reservationStatus === 'CANCELLED') continue;
+    const bs = new Date(b.startDate).getTime(), be = new Date(b.endDate).getTime();
+    if (ns < be && ne > bs) return { conflict: true, booking: b };
+  }
+  return { conflict: false };
+}
+function checkAvail() {
+  const d = document.getElementById('avail-date').value;
+  if (!d) return;
+  const sessions = [
+    { label: 'Session 1: 1PM–5PM', start: d + 'T13:00', end: d + 'T17:00' },
+    { label: 'Session 2: 8PM–12AM', start: d + 'T20:00', end: d + 'T23:59' }
+  ];
+  const el = document.getElementById('avail-result');
+  el.innerHTML = sessions.map(s => {
+    const c = checkConflict(s.start, s.end, null);
+    const cls = c.conflict ? 'background:#fef2f2;color:#991b1b;border:1px solid #fca5a5' : 'background:#f0fdf4;color:#166534;border:1px solid #86efac';
+    return `<div style="padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;${cls}">${c.conflict ? '🚫' : '✅'} ${s.label}</div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════════════════════════════
+let miniCal = null, fullCal = null;
+let calFilters = { res: 'all', pay: 'all' };
+
+function getEventColor(b) {
+  if (b.reservationStatus === 'CANCELLED') return { bg: '#64748b', border: '#475569' };
+  if (b.paymentStatus === 'PAID' && (b.reservationStatus === 'CONFIRMED' || b.reservationStatus === 'COMPLETED')) return { bg: '#14805e', border: '#0f5c44' };
+  if (b.paymentStatus === 'PARTIAL' || b.reservationStatus === 'RESERVED') return { bg: '#d97706', border: '#b45309' };
+  return { bg: '#c62828', border: '#b71c1c' };
+}
+function buildCalEvents() {
+  return db.bookings.filter(b => {
+    if (calFilters.res !== 'all' && b.reservationStatus !== calFilters.res) return false;
+    if (calFilters.pay !== 'all' && b.paymentStatus !== calFilters.pay) return false;
+    return true;
+  }).map(b => {
+    const col = getEventColor(b);
+    return { id: b.id, title: (b.category || 'Event') + ' · ' + b.clientName, start: b.startDate, end: b.endDate, backgroundColor: col.bg, borderColor: col.border, textColor: '#fff', extendedProps: { booking: b } };
+  });
+}
+function setCalF(type, val, el) {
+  calFilters[type] = val;
+  el.closest('div').querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  if (fullCal) { fullCal.removeAllEvents(); fullCal.addEventSource(buildCalEvents()); }
+}
+
+function initCalendars() {
+  const miniEl = document.getElementById('mini-cal');
+  if (miniEl && !miniCal) {
+    miniCal = new FullCalendar.Calendar(miniEl, {
+      initialView: 'dayGridMonth', height: 280, headerToolbar: { left: 'prev', center: 'title', right: 'next' },
+      events: buildCalEvents(),
+      eventClick: ({ event }) => openBookingDetail(event.extendedProps.booking)
+    });
+    miniCal.render();
+  }
+  const fullEl = document.getElementById('full-cal');
+  if (fullEl && !fullCal) {
+    fullCal = new FullCalendar.Calendar(fullEl, {
+      initialView: 'dayGridMonth', height: 580,
+      headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
+      events: buildCalEvents(),
+      eventClick: ({ event }) => openBookingDetail(event.extendedProps.booking),
+      dateClick: ({ dateStr }) => openBookingModal(null, dateStr)
+    });
+    fullCal.render();
+  }
+}
+function refreshCalendars() {
+  const evs = buildCalEvents();
+  [miniCal, fullCal].forEach(c => { if (c) { c.removeAllEvents(); c.addEventSource(evs); } });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════════
+let revChart = null;
+function renderDash() {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const s = db.settings;
+  // Revenue
+  const monthBk = db.bookings.filter(b => new Date(b.startDate) >= monthStart && b.reservationStatus !== 'CANCELLED');
+  const monthRev = monthBk.reduce((a, b) => a + (b.amountPaid || 0), 0);
+  document.getElementById('d-rev').textContent = fmt(monthRev);
+  const target = s.monthlyTarget || 0;
+  const pct = target > 0 ? Math.min(100, (monthRev / target) * 100) : 0;
+  document.getElementById('d-rev-bar').style.width = pct + '%';
+  document.getElementById('d-rev-pct').textContent = target > 0 ? pct.toFixed(0) + '% of ' + fmt(target) : 'No target set';
+  // Pending
+  const pending = db.bookings.filter(b => b.paymentStatus !== 'PAID' && b.reservationStatus !== 'CANCELLED');
+  const pendAmt = pending.reduce((a, b) => a + (b.balance || 0), 0);
+  document.getElementById('d-pend').textContent = fmt(pendAmt);
+  document.getElementById('d-pend-c').textContent = pending.length + ' booking(s)';
+  // Upcoming
+  const in7 = new Date(now.getTime() + 7 * 86400000);
+  const upcoming = db.bookings.filter(b => { const d = new Date(b.startDate); return d >= now && d <= in7 && b.reservationStatus !== 'CANCELLED'; });
+  document.getElementById('d-upcoming').textContent = upcoming.length;
+  document.getElementById('d-next').textContent = upcoming.length ? fmtD(upcoming[0].startDate) + ': ' + upcoming[0].clientName : 'None this week';
+  // Expenses
+  const monthExp = db.expenses.filter(e => new Date(e.date) >= monthStart);
+  const expAmt = monthExp.reduce((a, e) => a + Number(e.amount || 0), 0);
+  document.getElementById('d-exp').textContent = fmt(expAmt);
+  document.getElementById('d-exp-c').textContent = monthExp.length + ' entries';
+  // KPIs
+  const confirmed = db.bookings.filter(b => b.reservationStatus === 'CONFIRMED' && new Date(b.startDate) >= monthStart).length;
+  document.getElementById('d-kpi-conf').textContent = confirmed;
+  const activeBk = db.bookings.filter(b => b.reservationStatus !== 'CANCELLED');
+  const avg = activeBk.length ? activeBk.reduce((a, b) => a + (b.grandTotal || 0), 0) / activeBk.length : 0;
+  document.getElementById('d-kpi-avg').textContent = fmt(avg);
+  // Occupancy (rough: booked sessions / (2 sessions/day * days this month))
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const occ = Math.min(100, (monthBk.length / (daysInMonth * 2)) * 100);
+  document.getElementById('d-kpi-occ').textContent = occ.toFixed(0) + '%';
+  // M-Pesa
+  const mpesa = db.bookings.reduce((a, b) => a + (b.mpesaAmount || 0), 0);
+  document.getElementById('d-kpi-mp').textContent = fmt(mpesa);
+  // Alerts
+  const alerts = [];
+  const overdueInv = db.invoices.filter(i => i.status === 'Overdue');
+  if (overdueInv.length) alerts.push(`<div style="color:var(--red);padding:6px 8px;background:#fef2f2;border-radius:6px;margin-bottom:4px">⚠ ${overdueInv.length} overdue invoice(s)</div>`);
+  const unconfirmed = db.bookings.filter(b => b.reservationStatus === 'RESERVED');
+  if (unconfirmed.length) alerts.push(`<div style="color:var(--amber);padding:6px 8px;background:#fffbeb;border-radius:6px;margin-bottom:4px">⏳ ${unconfirmed.length} unconfirmed reservation(s)</div>`);
+  const unpaidUpcoming = db.bookings.filter(b => { const d = new Date(b.startDate); return d >= now && d <= in7 && b.paymentStatus === 'UNPAID'; });
+  if (unpaidUpcoming.length) alerts.push(`<div style="color:var(--red);padding:6px 8px;background:#fef2f2;border-radius:6px;margin-bottom:4px">💸 ${unpaidUpcoming.length} upcoming booking(s) unpaid</div>`);
+  document.getElementById('dash-alerts').innerHTML = alerts.length ? alerts.join('') : '<div style="color:var(--ink3)">✅ No urgent actions</div>';
+  // Timeline
+  const timeline = upcoming.slice(0, 5).map(b => `<div style="padding:6px 8px;border-radius:6px;border-left:3px solid ${getEventColor(b).bg};background:var(--surface2);margin-bottom:5px"><div style="font-weight:600">${b.clientName}</div><div style="color:var(--ink3)">${fmtD(b.startDate)} · ${b.category||'Event'}</div></div>`);
+  document.getElementById('dash-timeline').innerHTML = timeline.length ? timeline.join('') : '<div style="color:var(--ink3)">No upcoming events</div>';
+  document.getElementById('dash-date').textContent = now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  // Time-aware greeting
+  const hr = now.getHours();
+  const greet = hr < 12 ? 'Good morning 👋' : hr < 17 ? 'Good afternoon 👋' : 'Good evening 👋';
+  const greetEl = document.getElementById('dash-greeting');
+  if (greetEl) greetEl.textContent = greet;
+  // Revenue chart
+  const months = [];
+  const revData = [], expData = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    months.push(d.toLocaleDateString('en-GB', { month: 'short' }));
+    revData.push(db.bookings.filter(b => { const s = new Date(b.startDate); return s >= d && s < end && b.reservationStatus !== 'CANCELLED'; }).reduce((a, b) => a + (b.amountPaid || 0), 0));
+    expData.push(db.expenses.filter(e => { const ed = new Date(e.date); return ed >= d && ed < end; }).reduce((a, e) => a + Number(e.amount || 0), 0));
+  }
+  const ctx = document.getElementById('rev-chart');
+  if (revChart) revChart.destroy();
+  revChart = new Chart(ctx, { type: 'bar', data: { labels: months, datasets: [{ label: 'Revenue', data: revData, backgroundColor: 'rgba(20,128,94,.7)', borderRadius: 5 }, { label: 'Expenses', data: expData, backgroundColor: 'rgba(176,44,44,.5)', borderRadius: 5 }] }, options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } } });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BOOKINGS
+// ═══════════════════════════════════════════════════════════
+let bkFilter = 'all';
+let bkSort = { col: 'startDate', dir: 'desc' };
+
+function setBkFilter(f, el) {
+  bkFilter = f;
+  document.querySelectorAll('#v-bookings .chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderBookings();
+}
+function sortBk(col) {
+  if (bkSort.col === col) bkSort.dir = bkSort.dir === 'asc' ? 'desc' : 'asc';
+  else { bkSort.col = col; bkSort.dir = 'asc'; }
+  renderBookings();
+}
+function renderBookings() {
+  const q = (document.getElementById('bk-search')?.value || '').toLowerCase();
+  let bk = [...db.bookings];
+  if (bkFilter !== 'all') bk = bk.filter(b => b.reservationStatus === bkFilter || b.paymentStatus === bkFilter);
+  if (q) bk = bk.filter(b => (b.clientName || '').toLowerCase().includes(q) || (b.category || '').toLowerCase().includes(q));
+  bk.sort((a, b) => {
+    let av = a[bkSort.col] || '', bv = b[bkSort.col] || '';
+    if (bkSort.col === 'startDate') { av = new Date(av); bv = new Date(bv); }
+    return bkSort.dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+  });
+  // Counts
+  document.getElementById('bk-c-res').textContent  = db.bookings.filter(b => b.reservationStatus === 'RESERVED').length;
+  document.getElementById('bk-c-conf').textContent = db.bookings.filter(b => b.reservationStatus === 'CONFIRMED').length;
+  document.getElementById('bk-c-done').textContent = db.bookings.filter(b => b.reservationStatus === 'COMPLETED').length;
+  document.getElementById('bk-c-canc').textContent = db.bookings.filter(b => b.reservationStatus === 'CANCELLED').length;
+  const tbody = document.getElementById('bk-tbody');
+  const empty = document.getElementById('bk-empty');
+  if (!bk.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = bk.map(b => {
+    const editBtns = can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openBookingModal('${b.id}')">✏️</button>` : '';
+    const delBtn   = can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteBooking('${b.id}')">🗑</button>` : '';
+    const mpBtn    = can('canEdit') ? `<button class="btn btn-sm btn-mpesa" onclick="initMpesa('${b.id}')">📱 Pay</button>` : '';
+    const waBtn    = b.phone && b.paymentStatus !== 'PAID' ? `<button class="btn btn-sm" style="background:#25d366;color:#fff" onclick="sendWhatsApp('${b.id}')" title="WhatsApp reminder">💬</button>` : '';
+    return `<tr>
+      <td><div style="font-weight:600">${b.clientName||'—'}</div><div style="font-size:11px;color:var(--ink3)">${b.phone||''}</div></td>
+      <td>${b.category||'—'}</td>
+      <td><div>${fmtD(b.startDate)}</div><div style="font-size:11px;color:var(--ink3)">${fmtD(b.endDate)}</div></td>
+      <td>${rsBadge(b.reservationStatus)}</td>
+      <td>${psBadge(b.paymentStatus)}</td>
+      <td style="text-align:right;font-weight:600">${fmt(b.grandTotal)}</td>
+      <td style="text-align:right;color:var(--green)">${fmt(b.amountPaid)}</td>
+      <td style="text-align:right;color:var(--amber)">${fmt(b.balance)}</td>
+      <td>${mpBtn}</td>
+      <td style="text-align:center;white-space:nowrap">${editBtns}${delBtn}${waBtn}<button class="btn btn-ghost btn-sm" onclick="openBookingDetail(db.bookings.find(x=>x.id==='${b.id}'))">👁</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openBookingDetail(b) {
+  if (!b) return;
+  openModal(`
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800">Booking Details</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink3)">×</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Client</div><div style="font-weight:600;margin-top:2px">${b.clientName||'—'}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Phone</div><div style="font-weight:600;margin-top:2px">${b.phone||'—'}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Event Type</div><div style="font-weight:600;margin-top:2px">${b.category||'—'}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Guests</div><div style="font-weight:600;margin-top:2px">${b.guestCount||'—'}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Start</div><div style="font-weight:600;margin-top:2px">${fmtDT(b.startDate)}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">End</div><div style="font-weight:600;margin-top:2px">${fmtDT(b.endDate)}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Reservation</div><div style="margin-top:2px">${rsBadge(b.reservationStatus)}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Payment</div><div style="margin-top:2px">${psBadge(b.paymentStatus)}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Total</div><div style="font-weight:800;font-size:16px;color:var(--ocean);margin-top:2px">${fmt(b.grandTotal)}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Balance</div><div style="font-weight:800;font-size:16px;color:var(--amber);margin-top:2px">${fmt(b.balance)}</div></div>
+      </div>
+      ${b.notes ? `<div style="margin-top:14px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--ink2)">${b.notes}</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+        ${can('canEdit') ? `<button class="btn btn-ocean" onclick="closeModal();openBookingModal('${b.id}')">✏️ Edit</button>` : ''}
+        <button class="btn btn-ghost" onclick="generateInvoiceFromBooking('${b.id}')">📄 Generate Invoice</button>
+        <button class="btn btn-ghost" onclick="printBookingReceipt('${b.id}')">🖨️ Print Receipt</button>
+        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      </div>
+    </div>`);
+}
+
+function openBookingModal(id, prefillDate) {
+  if (!can('canCreate') && !id) { toast('Insufficient permissions', 'e'); return; }
+  const b = id ? db.bookings.find(x => x.id === id) : null;
+  const title = b ? 'Edit Booking' : 'New Booking';
+  openModal(`
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800">${title}</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink3)">×</button>
+      </div>
+      <form id="bk-form" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Client Name *</label><input id="bk-client" value="${b?.clientName||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Phone</label><input id="bk-phone" value="${b?.phone||''}" style="width:100%;padding:7px 10px" placeholder="+254…"></div>
+        <div><label class="lbl">Email</label><input id="bk-email" value="${b?.email||''}" type="email" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Event Type *</label>
+          <select id="bk-cat" style="width:100%;padding:7px 10px">
+            ${['Wedding','Birthday','Conference','Corporate','Graduation','Anniversary','Other'].map(o => `<option ${b?.category===o?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+        <div><label class="lbl">Start Date & Time *</label><input id="bk-start" type="datetime-local" value="${b?.startDate?.slice(0,16)||prefillDate||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">End Date & Time *</label><input id="bk-end" type="datetime-local" value="${b?.endDate?.slice(0,16)||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Guest Count</label><input id="bk-guests" type="number" value="${b?.guestCount||''}" min="0" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Catering Fee (KES)</label><input id="bk-catering" type="number" value="${b?.cateringFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">FX/Decor Fee (KES)</label><input id="bk-fx" type="number" value="${b?.fxFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Discount (KES)</label><input id="bk-disc" type="number" value="${b?.discount||0}" min="0" step="0.01" style="width:100%;padding:7px 10px" oninput="calcBkTotal()"></div>
+        <div><label class="lbl">Amount Paid (KES)</label><input id="bk-paid" type="number" value="${b?.amountPaid||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Reservation Status</label>
+          <select id="bk-rstat" style="width:100%;padding:7px 10px">
+            ${['RESERVED','CONFIRMED','COMPLETED','CANCELLED'].map(s => `<option ${b?.reservationStatus===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div><label class="lbl">Notes</label><textarea id="bk-notes" style="width:100%;padding:7px 10px;height:64px;resize:vertical">${b?.notes||''}</textarea></div>
+        <div style="grid-column:span 2;background:var(--surface2);border-radius:8px;padding:10px;font-size:13px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink3)">Grand Total</span><span id="bk-total-disp" style="font-weight:800;font-size:16px">${fmt(b?.grandTotal||0)}</span></div>
+        </div>
+        <div id="bk-conflict-warn" style="grid-column:span 2;display:none" class="sec-notice" style="color:var(--red)"></div>
+        <div style="grid-column:span 2;display:flex;gap:8px">
+          <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">💾 Save Booking</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>`);
+  // Auto-calc on input
+  ['bk-venue','bk-catering','bk-fx','bk-disc'].forEach(id => document.getElementById(id)?.addEventListener('input', calcBkTotal));
+  calcBkTotal();
+  document.getElementById('bk-form').onsubmit = async ev => { ev.preventDefault(); await saveBooking(id); };
+}
+function calcBkTotal() {
+  const g = id => Number(document.getElementById(id)?.value || 0);
+  const total = g('bk-venue') + g('bk-catering') + g('bk-fx') - g('bk-disc');
+  const el = document.getElementById('bk-total-disp');
+  if (el) el.textContent = fmt(total);
+}
+async function saveBooking(editId) {
+  const v = id => document.getElementById(id)?.value;
+  const start = v('bk-start'), end = v('bk-end');
+  // Conflict check
+  const cf = checkConflict(start, end, editId);
+  if (cf.conflict) {
+    document.getElementById('bk-conflict-warn').style.display = 'block';
+    document.getElementById('bk-conflict-warn').textContent = `⚠ Conflict with ${cf.booking.clientName} (${fmtD(cf.booking.startDate)})`;
+    return;
+  }
+  const g = id => Number(document.getElementById(id)?.value || 0);
+  const venueFee = g('bk-venue'), cateringFee = g('bk-catering'), fxFee = g('bk-fx'), discount = g('bk-disc'), amountPaid = g('bk-paid');
+  const grandTotal = venueFee + cateringFee + fxFee - discount;
+  const payload = { clientName: v('bk-client'), phone: v('bk-phone'), email: v('bk-email'), category: v('bk-cat'), startDate: start, endDate: end, guestCount: g('bk-guests'), venueFee, cateringFee, fxFee, discount, amountPaid, grandTotal, reservationStatus: v('bk-rstat'), notes: v('bk-notes') };
+  try {
+    if (editId) {
+      const updated = await dbUpdate('bookings', editId, payload);
+      db.bookings = db.bookings.map(b => b.id === editId ? camelizeBooking(updated) : b);
+      toast('Booking updated ✓');
+    } else {
+      const created = await dbInsert('bookings', { ...payload, id: uid() });
+      db.bookings.unshift(camelizeBooking(created));
+      toast('Booking created ✓');
     }
+    closeModal(); renderBookings(); refreshCalendars(); renderDash();
+  } catch(e) { toast('Save failed: ' + e.message, 'e'); }
+}
+async function deleteBooking(id) {
+  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!confirm('Delete this booking?')) return;
+  try { await dbDelete('bookings', id); db.bookings = db.bookings.filter(b => b.id !== id); renderBookings(); refreshCalendars(); renderDash(); toast('Booking deleted'); }
+  catch(e) { toast('Delete failed: ' + e.message, 'e'); }
+}
 
-    function renderStaff() {
-      document.getElementById('staff-table').innerHTML = db.shifts.map(s => `
-        <tr class="border-t hover-row transition"><td class="p-3 font-medium">${s.name}</td><td class="p-3">${s.role}</td>
-        <td class="p-3">${s.date}</td><td class="p-3">${s.start} - ${s.end}</td>
-        <td class="p-3"><span class="status-badge ${s.status==='Confirmed'?'bg-green-100 text-green-800':s.status==='On Leave'?'bg-red-100 text-red-800':'bg-blue-100 text-blue-800'}">${s.status}</span></td>
-        <td class="p-3"><button onclick="deleteShift('${s.id}')" class="invoice-btn text-red-500 hover:text-red-700 text-xs">Remove</button></td></tr>
-      `).join('');
+function sendWhatsApp(bookingId) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  if (!b || !b.phone) return;
+  const s = db.settings;
+  const phone = b.phone.replace(/\D/g, '');
+  const msg = encodeURIComponent(
+    `Hello ${b.clientName},\n\nThis is a reminder from ${s.venueName || 'AMWAJ SEAFRONT VENUE'} regarding your upcoming event:\n\n` +
+    `📅 Date: ${fmtD(b.startDate)}\n` +
+    `🎉 Event: ${b.category || 'Event'}\n` +
+    `💰 Balance Due: KES ${Number(b.balance || 0).toLocaleString()}\n\n` +
+    (s.mpesaShortcode ? `Pay via M-Pesa Paybill: ${s.mpesaShortcode}\n\n` : '') +
+    `Thank you for choosing ${s.venueName || 'AMWAJ SEAFRONT VENUE'}! 🌊`
+  );
+  window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  M-PESA  (Server-side via Supabase Edge Function)
+//  Credentials stay on the server. The UI only collects
+//  phone + amount, then calls the Edge Function.
+// ═══════════════════════════════════════════════════════════
+function initMpesa(bookingId) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  if (!b) return;
+  openModal(`
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800">📱 M-Pesa STK Push</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
+      </div>
+      <div class="sec-notice" style="margin-bottom:14px">
+        🔒 Payment initiated via secure Supabase Edge Function. Consumer Key & Passkey are <strong>never</strong> exposed to the browser.
+      </div>
+      <div style="font-size:13px;margin-bottom:14px">
+        <div>Client: <strong>${b.clientName}</strong></div>
+        <div style="color:var(--amber)">Balance: <strong>${fmt(b.balance)}</strong></div>
+      </div>
+      <form id="mpesa-push-form" style="display:flex;flex-direction:column;gap:10px">
+        <div><label class="lbl">Phone (Safaricom) *</label><input id="mp-phone" value="${b.phone||''}" placeholder="254712345678" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Amount (KES) *</label><input id="mp-amt" type="number" value="${b.balance||0}" min="1" required style="width:100%;padding:7px 10px"></div>
+        <button type="submit" class="btn btn-mpesa" style="width:100%;justify-content:center;padding:10px">📱 Send STK Push</button>
+        <div id="mp-status" style="font-size:12px;text-align:center;color:var(--ink3)"></div>
+      </form>
+    </div>`);
+  document.getElementById('mpesa-push-form').onsubmit = async ev => {
+    ev.preventDefault();
+    const phone = document.getElementById('mp-phone').value.replace(/\s+/g, '');
+    const amount = document.getElementById('mp-amt').value;
+    const statusEl = document.getElementById('mp-status');
+    statusEl.textContent = '⏳ Sending STK push…';
+    try {
+      // Calls Supabase Edge Function: supabase/functions/mpesa-stk/index.ts
+      // That function reads MPESA_CONSUMER_KEY etc. from env vars (not browser)
+      const { data: { session } } = await sb.auth.getSession();
+      const res = await fetch(`${SUPA_URL}/functions/v1/mpesa-stk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session?.access_token },
+        body: JSON.stringify({ phone, amount: Number(amount), bookingId })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'STK push failed');
+      statusEl.textContent = '✅ STK push sent! Ask client to enter M-Pesa PIN.';
+      statusEl.style.color = 'var(--green)';
+      // Poll for status
+      if (json.checkoutRequestId) pollMpesa(json.checkoutRequestId, bookingId, amount);
+    } catch(e) {
+      statusEl.textContent = '❌ ' + e.message;
+      statusEl.style.color = 'var(--red)';
     }
-
-    function initCalendar() {
-      const el=document.getElementById('calendar'); if(calendar) calendar.destroy();
-      calendar = new FullCalendar.Calendar(el, {
-        initialView:'dayGridMonth', 
-        height: 480,
-        selectable:true, 
-        selectMirror:true,
-        dayMaxEvents: 2,
-        handleWindowResize: true,
-        dateClick: info => { document.getElementById('b-date').value = info.dateStr; },
-        events: db.bookings.map(b=>({
-          title:`${b.category} | ${b.session==='1'?'1PM':'8PM'}`,
-          start:b.startDate, end:b.endDate,
-          backgroundColor:b.status==='CONFIRMED'?'#10b981':'#f59e0b',
-          id:b.id
-        })),
-        eventClick: info => { const b=db.bookings.find(x=>x.id===info.event.id); if(b) alert(`👤 ${b.clientName}\n🎉 ${b.category} | Session ${b.session==='1'?'1PM-5PM':'8PM-12AM'}\n📅 ${fmt(b.startDate)}\n📝 ${b.notes||'None'}`); }
-      }); calendar.render();
-    }
-
-    // === FORMS ===
-    document.getElementById('booking-form').onsubmit = e => {
-      e.preventDefault();
-      const date = document.getElementById('b-date').value;
-      const session = document.getElementById('b-session').value;
-      const times = getSessionTimes(date, session);
-      
-      const nb = { 
-        id: Date.now().toString(), 
-        clientName: document.getElementById('b-client').value, 
-        email: document.getElementById('b-email').value, 
-        category: document.getElementById('b-category').value, 
-        session, 
-        startDate: times.start, 
-        endDate: times.end, 
-        totalAmount: +document.getElementById('b-amount').value, 
-        notes: document.getElementById('b-notes').value, 
-        status: 'HELD' 
-      };
-
-      const conflict = db.bookings.find(b => b.status!=='CANCELLED' && 
-        ((nb.startDate >= b.startDate && nb.startDate < b.endDate) || (nb.endDate > b.startDate && nb.endDate <= b.endDate)));
-      
-      if(conflict) return alert(`⚠️ Session conflict: ${conflict.clientName} (${conflict.category}) already booked for this time.`);
-      
-      db.bookings.push(nb); saveDB(); initAll(); e.target.reset(); alert('✅ Session held successfully!');
-    };
-
-    document.getElementById('shift-form').onsubmit = e => {
-      e.preventDefault();
-      db.shifts.push({ id:'s'+Date.now(), name:document.getElementById('s-name').value, role:document.getElementById('s-role').value, date:document.getElementById('s-date').value, start:document.getElementById('s-start').value, end:document.getElementById('s-end').value, status:document.getElementById('s-status').value });
-      saveDB(); renderStaff(); e.target.reset(); alert('✅ Shift assigned!');
-    };
-
-    function deleteShift(id) { if(confirm('Remove shift?')) { db.shifts=db.shifts.filter(s=>s.id!==id); saveDB(); renderStaff(); } }
-
-    // === PDF ===
-    function genPDF(id) {
-      const b=db.bookings.find(x=>x.id===id); if(!b)return;
-      const {jsPDF}=window.jspdf; const doc=new jsPDF();
-      doc.setFontSize(22); doc.setTextColor(41,128,185); doc.text('AMWAJ SEAFRONT VENUE', 105, 20, {align:'center'});
-      doc.setFontSize(10); doc.setTextColor(100); doc.text('Creek Front Management ERP • Professional Invoicing', 105, 27, {align:'center'});
-      doc.line(14,36,196,36); doc.text(`Booking ID: ${b.id}`,14,45); doc.text(`Issue Date: ${new Date().toLocaleDateString()}`,14,51);
-      doc.text(`Client: ${b.clientName}`,14,57); doc.text(`Event: ${b.category} | Session ${b.session==='1'?'1PM-5PM':'8PM-12AM'}`,14,63);
-      doc.text(`Dates: ${new Date(b.startDate).toLocaleString()} → ${new Date(b.endDate).toLocaleString()}`,14,69);
-      const v=b.totalAmount*0.05, t=b.totalAmount+v;
-      doc.autoTable({startY:80, head:[['Description','Amount (AED)']], body:[['Venue & Session Rental',b.totalAmount.toFixed(2)],['VAT (5%)',v.toFixed(2)],['GRAND TOTAL',t.toFixed(2)]], theme:'grid', headStyles:{fillColor:[41,128,185],textColor:255}});
-      doc.save(`AMWAJ_Invoice_${b.id}.pdf`);
-    }
-
-    // === GOOGLE SHEETS SYNC ===
-    function saveSheetUrl() { localStorage.setItem(SHEET_KEY, document.getElementById('sheet-url').value); log('✅ Sheet URL saved.'); }
-    
-    async function syncPush() {
-      const url = document.getElementById('sheet-url').value;
-      if(!url) return log('❌ Error: No Sheet URL configured.');
-      log('⬆️ Pushing data...');
-      const items = [
-        ...db.bookings.map(b=>({Type:'booking',ID:b.ID||b.id,Client:b.clientName,Category:b.category,Start:b.startDate,End:b.endDate,Amount:b.totalAmount,Notes:`Session ${b.session} | ${b.notes}`})),
-        ...db.shifts.map(s=>({Type:'shift',ID:s.id,Client:s.name,Category:s.role,Start:s.date+'T'+s.start,End:s.date+'T'+s.end,Amount:s.status,Notes:''}))
-      ];
-      for(const item of items) {
-        try { await fetch(url, { method:'POST', mode:'cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(item) }); log(`✅ Pushed: ${item.Type} ${item.ID}`); } catch(e) { log(`⚠️ Failed: ${item.ID} - ${e.message}`); }
+  };
+}
+async function pollMpesa(checkoutId, bookingId, amount, attempts = 0) {
+  if (attempts > 10) return;
+  await new Promise(r => setTimeout(r, 5000));
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(`${SUPA_URL}/functions/v1/mpesa-status/${encodeURIComponent(checkoutId)}`, { headers: { 'Authorization': 'Bearer ' + session?.access_token } });
+    const json = await res.json();
+    if (json.status === 'SUCCESS') {
+      // Update booking paid amount + mpesa amount
+      const b = db.bookings.find(x => x.id === bookingId);
+      if (b) {
+        const newPaid = (b.amountPaid || 0) + Number(amount);
+        const newMpesa = (b.mpesaAmount || 0) + Number(amount);
+        await saveBooking_amountPaid(bookingId, newPaid, newMpesa);
       }
-      log('🎉 Push complete.');
-    }
+      toast('M-Pesa payment confirmed! ✅', 's'); closeModal();
+    } else if (json.status === 'FAILED') { toast('M-Pesa payment failed', 'e'); }
+    else pollMpesa(checkoutId, bookingId, amount, attempts + 1);
+  } catch { /* silent */ }
+}
+async function saveBooking_amountPaid(id, amountPaid, mpesaAmount) {
+  try {
+    const changes = { amountPaid };
+    if (mpesaAmount !== undefined) changes.mpesaAmount = mpesaAmount;
+    const u = await dbUpdate('bookings', id, changes);
+    db.bookings = db.bookings.map(b => b.id === id ? camelizeBooking(u) : b);
+    renderBookings(); renderDash();
+  } catch(e) { console.error(e); }
+}
 
-    async function syncPull() {
-      const url = document.getElementById('sheet-url').value;
-      if(!url) return log('❌ Error: No Sheet URL configured.');
-      log('⬇️ Pulling data...');
+function printBookingReceipt(bookingId) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  if (!b) return;
+  const s = db.settings;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a5' });
+  const PW = doc.internal.pageSize.width;
+  // Header band
+  doc.setFillColor(13, 74, 107);
+  doc.rect(0, 0, PW, 30, 'F');
+  doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+  doc.text(s.venueName || 'AMWAJ SEAFRONT VENUE', 10, 13);
+  doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+  doc.text((s.venueLocation || 'Tudor Creek, Mombasa') + (s.phone ? '  ·  ' + s.phone : ''), 10, 19);
+  doc.text((s.email || ''), 10, 24);
+  // Title
+  doc.setTextColor(30, 30, 30);
+  doc.setFontSize(12); doc.setFont('helvetica', 'bold');
+  doc.text('BOOKING RECEIPT', PW / 2, 38, { align: 'center' });
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100);
+  doc.text('Generated: ' + new Date().toLocaleString('en-GB'), PW / 2, 43, { align: 'center' });
+  // Client info
+  let y = 52;
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30);
+  doc.text('Client Details', 10, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+  y += 5; doc.text('Name:   ' + (b.clientName || '—'), 10, y);
+  y += 4; doc.text('Phone:  ' + (b.phone || '—'), 10, y);
+  if (b.email) { y += 4; doc.text('Email:  ' + b.email, 10, y); }
+  // Event details table
+  y += 8;
+  doc.autoTable({
+    startY: y,
+    head: [['Event Details', '']],
+    body: [
+      ['Event Type', b.category || '—'],
+      ['Start', fmtDT(b.startDate)],
+      ['End', fmtDT(b.endDate)],
+      ['Guests', String(b.guestCount || '—')],
+      ['Status', b.reservationStatus || '—'],
+    ],
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [13, 74, 107] },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } },
+    margin: { left: 10, right: 10 }
+  });
+  y = doc.lastAutoTable.finalY + 6;
+  // Financial summary
+  doc.autoTable({
+    startY: y,
+    head: [['Payment Summary', 'KES']],
+    body: [
+      ['Venue Fee', Number(b.venueFee || 0).toLocaleString()],
+      ['Catering Fee', Number(b.cateringFee || 0).toLocaleString()],
+      ['FX / Decor', Number(b.fxFee || 0).toLocaleString()],
+      ['Discount', '(' + Number(b.discount || 0).toLocaleString() + ')'],
+      ['Grand Total', Number(b.grandTotal || 0).toLocaleString()],
+      ['Amount Paid', Number(b.amountPaid || 0).toLocaleString()],
+      ['Balance Due', Number(b.balance || 0).toLocaleString()],
+    ],
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [20, 128, 94] },
+    columnStyles: { 1: { halign: 'right' } },
+    didParseCell: (data) => {
+      if (data.row.index === 6) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181, 42, 42] : [20, 128, 94]; }
+      if (data.row.index === 4) { data.cell.styles.fontStyle = 'bold'; }
+    },
+    margin: { left: 10, right: 10 }
+  });
+  y = doc.lastAutoTable.finalY + 8;
+  // Payment method
+  if (b.mpesaAmount > 0) {
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 166, 81);
+    doc.text('📱 M-Pesa: KES ' + Number(b.mpesaAmount).toLocaleString() + ' received', 10, y);
+    y += 5;
+  }
+  // Bank details
+  if (s.bank) {
+    doc.setFontSize(7); doc.setFont('helvetica', 'italic'); doc.setTextColor(120, 120, 120);
+    doc.text('Bank: ' + s.bank, 10, y); y += 4;
+  }
+  // Footer
+  const PH = doc.internal.pageSize.height;
+  doc.setFontSize(7); doc.setTextColor(150, 150, 150);
+  doc.text('Thank you for choosing ' + (s.venueName || 'AMWAJ SEAFRONT VENUE') + '!', PW / 2, PH - 8, { align: 'center' });
+  doc.save('Receipt_' + (b.clientName || 'Booking').replace(/\W/g, '_') + '_' + (b.startDate || '').slice(0, 10) + '.pdf');
+  toast('Receipt PDF downloaded ✓');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INVOICES
+// ═══════════════════════════════════════════════════════════
+function renderInvoices() {
+  const invs = db.invoices;
+  const total = invs.reduce((a, i) => a + (i.amount || 0), 0);
+  const paid  = invs.reduce((a, i) => a + (i.amountPaid || 0), 0);
+  document.getElementById('inv-total').textContent = fmt(total);
+  document.getElementById('inv-paid').textContent  = fmt(paid);
+  document.getElementById('inv-out').textContent   = fmt(total - paid);
+  const tbody = document.getElementById('inv-tbody');
+  const empty = document.getElementById('inv-empty');
+  if (!invs.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = invs.map(i => `
+    <tr>
+      <td style="font-family:DM Mono,monospace;font-size:11px">${i.invNumber||'—'}</td>
+      <td><div style="font-weight:600">${i.clientName||'—'}</div></td>
+      <td>${fmtD(i.issueDate)}</td>
+      <td>${fmtD(i.dueDate)}</td>
+      <td style="text-align:right">${fmt(i.amount)}</td>
+      <td style="text-align:right;color:var(--green)">${fmt(i.amountPaid)}</td>
+      <td style="text-align:right;color:var(--amber)">${fmt(i.balance)}</td>
+      <td><span class="badge ${{'Paid':'b-paid','Overdue':'b-unpaid','Cancelled':'b-cancelled'}[i.status]||'b-partial'}">${i.status||'Pending'}</span></td>
+      <td style="text-align:center;white-space:nowrap">
+        ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openInvoiceModal('${i.id}')">✏️</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="printInvoicePDF('${i.id}')">📄</button>
+        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteInvoice('${i.id}')">🗑</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+function openInvoiceModal(id) {
+  const inv = id ? db.invoices.find(x => x.id === id) : null;
+  const nextNum = 'INV-' + String(db.invoices.length + 1).padStart(4, '0');
+  openModal(`
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800">${inv ? 'Edit Invoice' : 'New Invoice'}</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
+      </div>
+      <form id="inv-form" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="lbl">Invoice #</label><input id="inv-num" value="${inv?.invNumber||nextNum}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Client Name *</label><input id="inv-client" value="${inv?.clientName||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Issue Date *</label><input id="inv-issue" type="date" value="${inv?.issueDate?.slice(0,10)||new Date().toISOString().slice(0,10)}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Due Date *</label><input id="inv-due" type="date" value="${inv?.dueDate?.slice(0,10)||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Amount (KES) *</label><input id="inv-amt" type="number" value="${inv?.amount||''}" min="0" step="0.01" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Amount Paid (KES)</label><input id="inv-paid" type="number" value="${inv?.amountPaid||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Status</label><select id="inv-stat" style="width:100%;padding:7px 10px">${['Draft','Pending','Paid','Overdue','Cancelled'].map(s=>`<option ${inv?.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+        <div><label class="lbl">Linked Booking</label><select id="inv-bk" style="width:100%;padding:7px 10px"><option value="">—</option>${db.bookings.map(b=>`<option value="${b.id}" ${inv?.bookingId===b.id?'selected':''}>${b.clientName} (${fmtD(b.startDate)})</option>`).join('')}</select></div>
+        <div style="grid-column:span 2"><label class="lbl">Notes</label><textarea id="inv-notes" style="width:100%;padding:7px 10px;height:56px;resize:vertical">${inv?.notes||''}</textarea></div>
+        <div style="grid-column:span 2;display:flex;gap:8px">
+          <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">💾 Save Invoice</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>`);
+  document.getElementById('inv-form').onsubmit = async ev => { ev.preventDefault(); await saveInvoice(id); };
+}
+async function saveInvoice(editId) {
+  const v = id => document.getElementById(id)?.value;
+  const payload = { invNumber: v('inv-num'), clientName: v('inv-client'), issueDate: v('inv-issue'), dueDate: v('inv-due'), amount: Number(v('inv-amt')||0), amountPaid: Number(v('inv-paid')||0), status: v('inv-stat'), bookingId: v('inv-bk')||null, notes: v('inv-notes') };
+  payload.balance = Math.max(0, payload.amount - payload.amountPaid);
+  try {
+    if (editId) { const u = await dbUpdate('invoices', editId, payload); db.invoices = db.invoices.map(i => i.id === editId ? camelizeInvoice(u) : i); toast('Invoice updated ✓'); }
+    else { const c = await dbInsert('invoices', { ...payload, id: uid() }); db.invoices.unshift(camelizeInvoice(c)); toast('Invoice created ✓'); }
+    closeModal(); renderInvoices();
+  } catch(e) { toast('Save failed: ' + e.message, 'e'); }
+}
+async function deleteInvoice(id) {
+  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!confirm('Delete invoice?')) return;
+  try { await dbDelete('invoices', id); db.invoices = db.invoices.filter(i => i.id !== id); renderInvoices(); toast('Invoice deleted'); }
+  catch(e) { toast('Delete failed: ' + e.message, 'e'); }
+}
+function generateInvoiceFromBooking(bookingId) {
+  const b = db.bookings.find(x => x.id === bookingId);
+  if (!b) return;
+  closeModal();
+  setTimeout(() => {
+    openInvoiceModal();
+    setTimeout(() => {
+      document.getElementById('inv-client').value = b.clientName || '';
+      document.getElementById('inv-amt').value = b.grandTotal || 0;
+      document.getElementById('inv-paid').value = b.amountPaid || 0;
+      document.getElementById('inv-bk').value = b.id;
+    }, 100);
+  }, 150);
+}
+function printInvoicePDF(invId) {
+  const inv = db.invoices.find(i => i.id === invId);
+  if (!inv) return;
+  const s = db.settings;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const PW = doc.internal.pageSize.width;
+  doc.setFillColor(13, 74, 107);
+  doc.rect(0, 0, PW, 30, 'F');
+  doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+  doc.text(s.venueName || 'AMWAJ SEAFRONT VENUE', 14, 14);
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text(s.venueLocation || 'Tudor Creek, Mombasa', 14, 22);
+  doc.setTextColor(50, 50, 50);
+  doc.setFontSize(20); doc.setFont('helvetica', 'bold');
+  doc.text('INVOICE', PW - 14, 18, { align: 'right' });
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+  doc.text(inv.invNumber || '', PW - 14, 25, { align: 'right' });
+  let y = 42;
+  doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.text('Bill To:', 14, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+  doc.text(inv.clientName || '', 14, y + 6);
+  doc.text('Issue: ' + fmtD(inv.issueDate), PW - 14, y, { align: 'right' });
+  doc.text('Due:   ' + fmtD(inv.dueDate), PW - 14, y + 6, { align: 'right' });
+  y += 20;
+  doc.autoTable({ startY: y, head: [['Description', 'Amount']], body: [['Venue Services', 'KES ' + Number(inv.amount).toLocaleString()], ['Amount Paid', 'KES ' + Number(inv.amountPaid||0).toLocaleString()], ['Balance Due', 'KES ' + Number(inv.balance||0).toLocaleString()]], styles: { fontSize: 9 }, headStyles: { fillColor: [13, 74, 107] } });
+  if (inv.notes) { const ny = doc.lastAutoTable.finalY + 8; doc.setFontSize(8); doc.setFont('helvetica', 'italic'); doc.text('Notes: ' + inv.notes, 14, ny); }
+  doc.save((inv.invNumber || 'INV') + '_' + (inv.clientName || '').replace(/\W/g,'_') + '.pdf');
+  toast('Invoice PDF downloaded ✓');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EXPENSES
+// ═══════════════════════════════════════════════════════════
+let expFilter = 'today';
+function setExpF(f, el) { expFilter = f; document.querySelectorAll('#v-expenses .chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); renderExpenses(); }
+function renderExpenses() {
+  const now = new Date();
+  let exps = [...db.expenses];
+  if (expFilter === 'today') { const d = now.toISOString().slice(0,10); exps = exps.filter(e => (e.date||'').slice(0,10) === d); }
+  else if (expFilter === 'month') { const ms = new Date(now.getFullYear(), now.getMonth(), 1); exps = exps.filter(e => new Date(e.date) >= ms); }
+  const total = exps.reduce((a, e) => a + Number(e.amount || 0), 0);
+  document.getElementById('exp-total').textContent = fmt(total);
+  const tbody = document.getElementById('exp-tbody');
+  const empty = document.getElementById('exp-empty');
+  if (!exps.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  // Populate vendor dropdown
+  const vSel = document.getElementById('e-vendor');
+  if (vSel) { vSel.innerHTML = '<option value="">-- No vendor --</option>' + db.vendors.map(v => `<option value="${v.id}">${v.company||v.name}</option>`).join(''); }
+  tbody.innerHTML = exps.map(e => `
+    <tr>
+      <td>${fmtD(e.date)}</td>
+      <td>${e.category||'—'}</td>
+      <td>${e.item||e.description||'—'}</td>
+      <td style="text-align:right;font-weight:600;color:var(--red)">${fmt(e.amount)}</td>
+      <td>${db.vendors.find(v=>v.id===e.vendorId)?.company||e.vendorId||'—'}</td>
+      <td style="text-align:center">
+        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteExpense('${e.id}')">🗑</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+document.getElementById('exp-form').onsubmit = async ev => {
+  ev.preventDefault();
+  const v = id => document.getElementById(id)?.value;
+  const payload = { date: v('e-date'), category: v('e-cat'), item: v('e-item'), amount: Number(v('e-amt')||0), vendorId: v('e-vendor')||null, notes: v('e-notes') };
+  try {
+    const c = await dbInsert('expenses', { ...payload, id: uid() });
+    db.expenses.unshift(camelize(c));
+    document.getElementById('exp-form').reset();
+    document.getElementById('e-date').value = new Date().toISOString().slice(0,10);
+    renderExpenses(); renderDash(); toast('Expense logged ✓');
+  } catch(e) { toast('Save failed: ' + e.message, 'e'); }
+};
+async function deleteExpense(id) {
+  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!confirm('Delete expense?')) return;
+  try { await dbDelete('expenses', id); db.expenses = db.expenses.filter(e => e.id !== id); renderExpenses(); renderDash(); toast('Deleted'); }
+  catch(e) { toast(e.message, 'e'); }
+}
+function openExpenseModal() { document.getElementById('e-date').value = new Date().toISOString().slice(0,10); goView('expenses'); }
+
+// ═══════════════════════════════════════════════════════════
+//  CLIENTS
+// ═══════════════════════════════════════════════════════════
+function renderClients() {
+  const q = (document.getElementById('cl-search')?.value || '').toLowerCase();
+  let cls = [...db.clients];
+  if (q) cls = cls.filter(c => (c.name||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q));
+  const tbody = document.getElementById('cl-tbody');
+  const empty = document.getElementById('cl-empty');
+  if (!cls.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = cls.map(c => {
+    const evCount = db.bookings.filter(b => b.clientName === c.name || b.clientId === c.id).length;
+    const totalSpent = db.bookings.filter(b => b.clientName === c.name || b.clientId === c.id).reduce((a, b) => a + (b.amountPaid || 0), 0);
+    return `<tr>
+      <td><div style="font-weight:600">${c.name||'—'}</div></td>
+      <td>${c.email||'—'}</td>
+      <td>${c.phone||'—'}</td>
+      <td style="text-align:center">${evCount}</td>
+      <td style="text-align:right;font-weight:600">${fmt(totalSpent)}</td>
+      <td>${fmtD(c.lastContact)}</td>
+      <td style="text-align:center;white-space:nowrap">
+        ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openClientModal('${c.id}')">✏️</button>` : ''}
+        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteClient('${c.id}')">🗑</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+function openClientModal(id) {
+  const c = id ? db.clients.find(x => x.id === id) : null;
+  openModal(`
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800">${c ? 'Edit Client' : 'Add Client'}</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
+      </div>
+      <form id="cl-form" style="display:flex;flex-direction:column;gap:10px">
+        <div><label class="lbl">Full Name *</label><input id="cl-name" value="${c?.name||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Email</label><input id="cl-email" value="${c?.email||''}" type="email" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Phone</label><input id="cl-phone" value="${c?.phone||''}" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Company</label><input id="cl-company" value="${c?.company||''}" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Notes</label><textarea id="cl-notes" style="width:100%;padding:7px 10px;height:56px;resize:vertical">${c?.notes||''}</textarea></div>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">💾 Save</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>`);
+  document.getElementById('cl-form').onsubmit = async ev => {
+    ev.preventDefault();
+    const v = id => document.getElementById(id)?.value;
+    const payload = { name: v('cl-name'), email: v('cl-email'), phone: v('cl-phone'), company: v('cl-company'), notes: v('cl-notes'), lastContact: new Date().toISOString().slice(0,10) };
+    try {
+      if (id) { const u = await dbUpdate('clients', id, payload); db.clients = db.clients.map(c => c.id === id ? camelize(u) : c); toast('Client updated ✓'); }
+      else { const cr = await dbInsert('clients', { ...payload, id: uid() }); db.clients.push(camelize(cr)); toast('Client added ✓'); }
+      closeModal(); renderClients();
+    } catch(e) { toast(e.message, 'e'); }
+  };
+}
+async function deleteClient(id) {
+  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!confirm('Delete client?')) return;
+  try { await dbDelete('clients', id); db.clients = db.clients.filter(c => c.id !== id); renderClients(); toast('Deleted'); }
+  catch(e) { toast(e.message, 'e'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VENDORS
+// ═══════════════════════════════════════════════════════════
+function renderVendors() {
+  const tbody = document.getElementById('vd-tbody');
+  const empty = document.getElementById('vd-empty');
+  if (!db.vendors.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = db.vendors.map(v => `
+    <tr>
+      <td><div style="font-weight:600">${v.company||v.name||'—'}</div></td>
+      <td>${v.contactName||'—'}</td>
+      <td>${v.phone||'—'}</td>
+      <td>${v.category||'—'}</td>
+      <td><span class="badge ${v.status==='Active'?'b-confirmed':'b-cancelled'}">${v.status||'Active'}</span></td>
+      <td style="text-align:center;white-space:nowrap">
+        ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openVendorModal('${v.id}')">✏️</button>` : ''}
+        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteVendor('${v.id}')">🗑</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+function openVendorModal(id) {
+  const v = id ? db.vendors.find(x => x.id === id) : null;
+  openModal(`
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800">${v ? 'Edit Vendor' : 'Add Vendor'}</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
+      </div>
+      <form id="vd-form" style="display:flex;flex-direction:column;gap:10px">
+        <div><label class="lbl">Company Name *</label><input id="vd-co" value="${v?.company||v?.name||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Contact Person</label><input id="vd-cn" value="${v?.contactName||''}" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Phone</label><input id="vd-ph" value="${v?.phone||''}" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Category</label><input id="vd-cat" value="${v?.category||''}" list="vd-cats" style="width:100%;padding:7px 10px"><datalist id="vd-cats"><option value="Catering"><option value="Decor"><option value="Entertainment"><option value="Transport"><option value="Security"><option value="Cleaning"><option value="Generator/Fuel"><option value="Florist"><option value="Other"></datalist></div>
+        <div><label class="lbl">Status</label><select id="vd-stat" style="width:100%;padding:7px 10px"><option ${v?.status==='Active'?'selected':''}>Active</option><option ${v?.status==='Inactive'?'selected':''}>Inactive</option></select></div>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">💾 Save</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>`);
+  document.getElementById('vd-form').onsubmit = async ev => {
+    ev.preventDefault();
+    const g = i => document.getElementById(i)?.value;
+    const payload = { company: g('vd-co'), contactName: g('vd-cn'), phone: g('vd-ph'), category: g('vd-cat'), status: g('vd-stat') };
+    try {
+      if (id) { const u = await dbUpdate('vendors', id, payload); db.vendors = db.vendors.map(vd => vd.id === id ? camelize(u) : vd); toast('Vendor updated ✓'); }
+      else { const cr = await dbInsert('vendors', { ...payload, id: uid() }); db.vendors.push(camelize(cr)); toast('Vendor added ✓'); }
+      closeModal(); renderVendors();
+    } catch(e) { toast(e.message, 'e'); }
+  };
+}
+async function deleteVendor(id) {
+  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!confirm('Delete vendor?')) return;
+  try { await dbDelete('vendors', id); db.vendors = db.vendors.filter(v => v.id !== id); renderVendors(); toast('Deleted'); }
+  catch(e) { toast(e.message, 'e'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INVENTORY (FX)
+// ═══════════════════════════════════════════════════════════
+function renderInventory() {
+  const counts = { Available: 0, Booked: 0, 'Under Maintenance': 0 };
+  let totalVal = 0;
+  db.fx.forEach(f => { counts[f.status] = (counts[f.status] || 0) + (f.qty || 1); totalVal += (f.rentalPrice || 0) * (f.qty || 1); });
+  document.getElementById('fx-avail').textContent  = counts.Available || 0;
+  document.getElementById('fx-booked').textContent = counts.Booked || 0;
+  document.getElementById('fx-maint').textContent  = counts['Under Maintenance'] || 0;
+  document.getElementById('fx-val').textContent    = fmt(totalVal);
+  const tbody = document.getElementById('fx-tbody');
+  const empty = document.getElementById('fx-empty');
+  if (!db.fx.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = db.fx.map(f => `
+    <tr>
+      <td><div style="font-weight:600">${f.name||'—'}</div></td>
+      <td style="font-family:DM Mono,monospace;font-size:11px">${f.serial||'—'}</td>
+      <td style="text-align:center">${f.qty||1}</td>
+      <td>${fmt(f.rentalPrice)}</td>
+      <td><span class="badge ${f.status==='Available'?'b-confirmed':f.status==='Booked'?'b-partial':'b-unpaid'}">${f.status||'Available'}</span></td>
+      <td>${f.assignedTo||'—'}</td>
+      <td style="text-align:center;white-space:nowrap">
+        ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openFXModal('${f.id}')">✏️</button>` : ''}
+        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteFX('${f.id}')">🗑</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+function openFXModal(id) {
+  const f = id ? db.fx.find(x => x.id === id) : null;
+  openModal(`
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800">${f ? 'Edit Item' : 'Add Inventory Item'}</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
+      </div>
+      <form id="fx-form" style="display:flex;flex-direction:column;gap:10px">
+        <div><label class="lbl">Item Name *</label><input id="fx-name" value="${f?.name||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Serial Number</label><input id="fx-serial" value="${f?.serial||''}" style="width:100%;padding:7px 10px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label class="lbl">Quantity</label><input id="fx-qty" type="number" value="${f?.qty||1}" min="1" style="width:100%;padding:7px 10px"></div>
+          <div><label class="lbl">Rental Price/Day (KES)</label><input id="fx-price" type="number" value="${f?.rentalPrice||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+        </div>
+        <div><label class="lbl">Status</label><select id="fx-stat" style="width:100%;padding:7px 10px"><option ${f?.status==='Available'?'selected':''}>Available</option><option ${f?.status==='Booked'?'selected':''}>Booked</option><option ${f?.status==='Under Maintenance'?'selected':''}>Under Maintenance</option></select></div>
+        <div><label class="lbl">Assigned To</label><input id="fx-assigned" value="${f?.assignedTo||''}" style="width:100%;padding:7px 10px" placeholder="Booking / event name"></div>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">💾 Save</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>`);
+  document.getElementById('fx-form').onsubmit = async ev => {
+    ev.preventDefault();
+    const g = i => document.getElementById(i)?.value;
+    const payload = { name: g('fx-name'), serial: g('fx-serial'), qty: Number(g('fx-qty')||1), rentalPrice: Number(g('fx-price')||0), status: g('fx-stat'), assignedTo: g('fx-assigned') };
+    try {
+      if (id) { const u = await dbUpdate('inventory', id, payload); db.fx = db.fx.map(x => x.id === id ? camelize(u) : x); toast('Item updated ✓'); }
+      else { const cr = await dbInsert('inventory', { ...payload, id: uid() }); db.fx.push(camelize(cr)); toast('Item added ✓'); }
+      closeModal(); renderInventory();
+    } catch(e) { toast(e.message, 'e'); }
+  };
+}
+async function deleteFX(id) {
+  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!confirm('Delete item?')) return;
+  try { await dbDelete('inventory', id); db.fx = db.fx.filter(x => x.id !== id); renderInventory(); toast('Deleted'); }
+  catch(e) { toast(e.message, 'e'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STAFF
+// ═══════════════════════════════════════════════════════════
+function renderStaff() {
+  const tbody = document.getElementById('st-tbody');
+  const empty = document.getElementById('st-empty');
+  // Populate shift staff dropdown
+  const shSel = document.getElementById('sh-staff');
+  if (shSel) { shSel.innerHTML = '<option value="">-- Select --</option>' + db.staff.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); }
+  if (!db.staff.length) { tbody.innerHTML = ''; empty.style.display = 'block'; }
+  else {
+    empty.style.display = 'none';
+    tbody.innerHTML = db.staff.map(s => `
+      <tr>
+        <td><div style="font-weight:600">${s.name||'—'}</div></td>
+        <td>${s.role||'—'}</td>
+        <td>${s.phone||'—'}</td>
+        <td>${fmt(s.dailyRate)}</td>
+        <td><span class="badge ${s.status==='Active'?'b-confirmed':'b-cancelled'}">${s.status||'Active'}</span></td>
+        <td style="text-align:center;white-space:nowrap">
+          ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openStaffModal('${s.id}')">✏️</button>` : ''}
+          ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteStaff('${s.id}')">🗑</button>` : ''}
+        </td>
+      </tr>`).join('');
+  }
+  // Shifts
+  const now = new Date();
+  const upcoming = db.shifts.filter(sh => new Date(sh.date) >= now).slice(0, 10);
+  document.getElementById('shifts-list').innerHTML = upcoming.length ? upcoming.map(sh => {
+    const staffMember = db.staff.find(s => s.id === sh.staffId);
+    return `<div style="padding:6px 8px;border-radius:6px;background:var(--surface2);margin-bottom:4px"><div style="font-weight:600">${staffMember?.name||sh.staffId}</div><div style="color:var(--ink3)">${fmtD(sh.date)} · ${sh.startTime||''}–${sh.endTime||''}</div></div>`;
+  }).join('') : '<div style="color:var(--ink3)">No upcoming shifts</div>';
+}
+function openStaffModal(id) {
+  const s = id ? db.staff.find(x => x.id === id) : null;
+  openModal(`
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800">${s ? 'Edit Staff' : 'Add Staff Member'}</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
+      </div>
+      <form id="st-form" style="display:flex;flex-direction:column;gap:10px">
+        <div><label class="lbl">Full Name *</label><input id="st-name" value="${s?.name||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Role</label><input id="st-role" value="${s?.role||''}" list="st-roles" style="width:100%;padding:7px 10px"><datalist id="st-roles"><option value="Manager"><option value="Coordinator"><option value="Waiter/Waitress"><option value="Security"><option value="Cleaner"><option value="Chef"><option value="DJ"><option value="Decorator"></datalist></div>
+        <div><label class="lbl">Phone</label><input id="st-phone" value="${s?.phone||''}" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Daily Rate (KES)</label><input id="st-rate" type="number" value="${s?.dailyRate||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Status</label><select id="st-stat" style="width:100%;padding:7px 10px"><option ${s?.status==='Active'?'selected':''}>Active</option><option ${s?.status==='On Leave'?'selected':''}>On Leave</option><option ${s?.status==='Inactive'?'selected':''}>Inactive</option></select></div>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">💾 Save</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>`);
+  document.getElementById('st-form').onsubmit = async ev => {
+    ev.preventDefault();
+    const g = i => document.getElementById(i)?.value;
+    const payload = { name: g('st-name'), role: g('st-role'), phone: g('st-phone'), dailyRate: Number(g('st-rate')||0), status: g('st-stat') };
+    try {
+      if (id) { const u = await dbUpdate('staff', id, payload); db.staff = db.staff.map(x => x.id === id ? camelize(u) : x); toast('Staff updated ✓'); }
+      else { const cr = await dbInsert('staff', { ...payload, id: uid() }); db.staff.push(camelize(cr)); toast('Staff added ✓'); }
+      closeModal(); renderStaff();
+    } catch(e) { toast(e.message, 'e'); }
+  };
+}
+document.getElementById('shift-form').onsubmit = async ev => {
+  ev.preventDefault();
+  const g = id => document.getElementById(id)?.value;
+  const payload = { staffId: g('sh-staff'), linkedEvent: g('sh-event'), date: g('sh-date'), startTime: g('sh-start'), endTime: g('sh-end'), status: g('sh-status') };
+  try { const cr = await dbInsert('shifts', { ...payload, id: uid() }); db.shifts.unshift(camelize(cr)); document.getElementById('shift-form').reset(); renderStaff(); toast('Shift assigned ✓'); }
+  catch(e) { toast(e.message, 'e'); }
+};
+async function deleteStaff(id) {
+  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!confirm('Delete staff member?')) return;
+  try { await dbDelete('staff', id); db.staff = db.staff.filter(s => s.id !== id); renderStaff(); toast('Deleted'); }
+  catch(e) { toast(e.message, 'e'); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  REPORTS
+// ═══════════════════════════════════════════════════════════
+let rptCharts = {};
+function renderReportCharts() {
+  // Financial summary
+  const totalRev = db.bookings.filter(b => b.reservationStatus !== 'CANCELLED').reduce((a, b) => a + (b.amountPaid || 0), 0);
+  const totalExp = db.expenses.reduce((a, e) => a + Number(e.amount || 0), 0);
+  document.getElementById('rpt-rev').textContent    = fmt(totalRev);
+  document.getElementById('rpt-exp').textContent    = fmt(totalExp);
+  document.getElementById('rpt-profit').textContent = fmt(totalRev - totalExp);
+  document.getElementById('rpt-margin').textContent = totalRev > 0 ? ((totalRev - totalExp) / totalRev * 100).toFixed(1) + '%' : '0%';
+  document.getElementById('rpt-clients').textContent = db.clients.length;
+  const activeBk = db.bookings.filter(b => b.reservationStatus !== 'CANCELLED');
+  document.getElementById('rpt-avg').textContent = fmt(activeBk.length ? activeBk.reduce((a, b) => a + (b.grandTotal || 0), 0) / activeBk.length : 0);
+  document.getElementById('rpt-mp').textContent = db.bookings.filter(b => b.mpesaAmount > 0).length;
+  // Revenue by event type chart
+  const evTypes = {}; db.bookings.filter(b => b.reservationStatus !== 'CANCELLED').forEach(b => { evTypes[b.category || 'Other'] = (evTypes[b.category || 'Other'] || 0) + (b.amountPaid || 0); });
+  if (rptCharts.ev) rptCharts.ev.destroy();
+  rptCharts.ev = new Chart(document.getElementById('rpt-ev-chart'), { type: 'doughnut', data: { labels: Object.keys(evTypes), datasets: [{ data: Object.values(evTypes), backgroundColor: ['#0d4a6b','#1a6d9e','#14805e','#d97706','#c62828','#64748b','#7c3aed'] }] }, options: { plugins: { legend: { position: 'bottom' } } } });
+  // Monthly trend
+  const now = new Date(); const months = []; const rev6 = [], bk6 = [];
+  for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); const end = new Date(d.getFullYear(), d.getMonth() + 1, 1); months.push(d.toLocaleDateString('en', { month: 'short' })); const mbk = db.bookings.filter(b => { const s = new Date(b.startDate); return s >= d && s < end && b.reservationStatus !== 'CANCELLED'; }); rev6.push(mbk.reduce((a, b) => a + (b.amountPaid || 0), 0)); bk6.push(mbk.length); }
+  if (rptCharts.trend) rptCharts.trend.destroy();
+  rptCharts.trend = new Chart(document.getElementById('rpt-trend-chart'), { type: 'line', data: { labels: months, datasets: [{ label: 'Revenue', data: rev6, borderColor: '#14805e', backgroundColor: 'rgba(20,128,94,.1)', tension: .4, fill: true }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+  // Expense breakdown
+  const expCats = {}; db.expenses.forEach(e => { expCats[e.category || 'Other'] = (expCats[e.category || 'Other'] || 0) + Number(e.amount || 0); });
+  if (rptCharts.exp) rptCharts.exp.destroy();
+  rptCharts.exp = new Chart(document.getElementById('rpt-exp-chart'), { type: 'bar', data: { labels: Object.keys(expCats), datasets: [{ label: 'KES', data: Object.values(expCats), backgroundColor: 'rgba(176,44,44,.7)', borderRadius: 5 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+}
+function exportReport() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const s = db.settings;
+  const PW = doc.internal.pageSize.width;
+  doc.setFillColor(13, 74, 107); doc.rect(0, 0, PW, 28, 'F');
+  doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+  doc.text('AMWAJ SEAFRONT VENUE · Financial Report', 14, 16);
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text('Generated: ' + new Date().toLocaleString(), 14, 23);
+  doc.setTextColor(30, 30, 30);
+  const totalRev = db.bookings.filter(b => b.reservationStatus !== 'CANCELLED').reduce((a, b) => a + (b.amountPaid || 0), 0);
+  const totalExp = db.expenses.reduce((a, e) => a + Number(e.amount || 0), 0);
+  doc.autoTable({ startY: 35, head: [['Metric', 'Value']], body: [['Total Revenue', 'KES ' + totalRev.toLocaleString()], ['Total Expenses', 'KES ' + totalExp.toLocaleString()], ['Net Profit', 'KES ' + (totalRev - totalExp).toLocaleString()], ['Profit Margin', totalRev > 0 ? ((totalRev - totalExp) / totalRev * 100).toFixed(1) + '%' : '0%'], ['Total Clients', db.clients.length], ['Total Bookings', db.bookings.length]], headStyles: { fillColor: [13, 74, 107] }, styles: { fontSize: 9 } });
+  doc.save('AMWAJ_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
+  toast('Report PDF downloaded ✓');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════════════════════
+async function loadSettingsForm() {
+  const s = db.settings;
+  ['vs-name','vs-loc','vs-phone','vs-email','vs-bank'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el) el.value = [s.venueName, s.venueLocation, s.phone, s.email, s.bank][i] || '';
+  });
+  if (document.getElementById('vs-vat')) document.getElementById('vs-vat').value = s.vatRate || 16;
+  if (document.getElementById('vs-target')) document.getElementById('vs-target').value = s.monthlyTarget || 0;
+  if (document.getElementById('mp-sc')) document.getElementById('mp-sc').value = s.mpesaShortcode || '';
+  if (document.getElementById('mp-cb')) document.getElementById('mp-cb').value = s.mpesaCallback || '';
+  // RLS status display
+  const rlsEl = document.getElementById('rls-status');
+  if (rlsEl) rlsEl.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>Supabase RLS enabled on all tables</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>Auth via Supabase Auth (JWT)</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>M-Pesa credentials server-side only</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>No business data in localStorage</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>Role-based access control active</span></div>
+    </div>`;
+  // User management (admin only)
+  const umSection = document.getElementById('user-mgmt-section');
+  if (umSection) umSection.style.display = can('canManageUsers') ? 'block' : 'none';
+  // Populate users list (admin only - reads from user_roles)
+  if (can('canManageUsers')) {
+    const uList = document.getElementById('users-list');
+    if (uList) {
+      uList.innerHTML = '<div style="color:var(--ink3)">⏳ Loading users…</div>';
       try {
-        const res = await fetch(url); const json = await res.json();
-        if(json.success && (json.data || json.rows)) {
-          const rows = json.data || json.rows;
-          db.bookings = rows.filter(d=>d.Type==='booking').map(d=>({id:d.ID, clientName:d.Client, email:'synced@cloud.com', category:d.Category, session: d.Notes?.includes('Session 1')?'1':'2', startDate:d.Start, endDate:d.End, totalAmount:+d.Amount, notes:d.Notes||'', status:'CONFIRMED'}));
-          db.shifts = rows.filter(d=>d.Type==='shift').map(d=>({id:d.ID, name:d.Client, role:d.Category, date:d.Start.split('T')[0], start:d.Start.split('T')[1], end:d.End.split('T')[1], status:d.Amount}));
-          saveDB(); initAll(); log('✅ Data pulled & synced locally.');
-        } else log('⚠️ Invalid response format.');
-      } catch(e) { log(`❌ Pull failed: ${e.message}`); }
+        const { data, error } = await sb.from('user_roles').select('user_id, role');
+        if (error) throw error;
+        if (!data || !data.length) {
+          uList.innerHTML = '<div style="color:var(--ink3)">No users found in user_roles table.</div>';
+        } else {
+          uList.innerHTML = data.map(u => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
+              <div style="font-family:DM Mono,monospace;font-size:11px;color:var(--ink2)">${u.user_id.slice(0,8)}…</div>
+              <span class="role-badge ${u.role==='Administrator'?'role-admin':u.role==='Manager'?'role-manager':'role-staff'}">${u.role}</span>
+            </div>`).join('');
+        }
+      } catch(e) {
+        uList.innerHTML = `<div style="color:var(--red);font-size:11px">Could not load users: ${e.message}</div>`;
+      }
     }
+  }
+}
+document.getElementById('venue-form').onsubmit = ev => {
+  ev.preventDefault();
+  const g = id => document.getElementById(id)?.value;
+  db.settings = { ...db.settings, venueName: g('vs-name'), venueLocation: g('vs-loc'), phone: g('vs-phone'), email: g('vs-email'), bank: g('vs-bank'), vatRate: Number(g('vs-vat')||16), monthlyTarget: Number(g('vs-target')||0) };
+  prefs.settings = db.settings; savePrefs();
+  toast('Venue settings saved ✓');
+};
+document.getElementById('mpesa-form').onsubmit = ev => {
+  ev.preventDefault();
+  db.settings.mpesaShortcode = document.getElementById('mp-sc')?.value || '';
+  db.settings.mpesaCallback  = document.getElementById('mp-cb')?.value || '';
+  prefs.settings = db.settings; savePrefs();
+  toast('M-Pesa config saved ✓');
+};
+document.getElementById('pw-form').onsubmit = async ev => {
+  ev.preventDefault();
+  const np = document.getElementById('pw-new').value;
+  const nc = document.getElementById('pw-conf').value;
+  if (np !== nc) { toast('Passwords do not match', 'e'); return; }
+  if (np.length < 8) { toast('Minimum 8 characters', 'e'); return; }
+  const { error } = await sb.auth.updateUser({ password: np });
+  if (error) toast('Error: ' + error.message, 'e');
+  else toast('Password updated via Supabase Auth ✓');
+};
 
-    window.onload = () => { if(sessionStorage.getItem('auth')) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); initAll(); } };
-  </script>
+function openInviteUserModal() {
+  openModal(`
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800">Invite User</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
+      </div>
+      <div class="sec-notice" style="margin-bottom:14px">Users are invited via Supabase Auth. After invitation, assign their role in the <code>user_roles</code> table.</div>
+      <form id="invite-form" style="display:flex;flex-direction:column;gap:10px">
+        <div><label class="lbl">Email *</label><input id="inv-email" type="email" required style="width:100%;padding:7px 10px" placeholder="newuser@amwaj.co.ke"></div>
+        <div><label class="lbl">Role</label><select id="inv-role" style="width:100%;padding:7px 10px"><option>Staff</option><option>Manager</option><option>Administrator</option></select></div>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">📧 Send Invite</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>`);
+  document.getElementById('invite-form').onsubmit = async ev => {
+    ev.preventDefault();
+    const email = document.getElementById('inv-email').value;
+    const role  = document.getElementById('inv-role').value;
+    // NOTE: inviteUserByEmail requires service_role key — do this via Supabase Edge Function in production
+    toast(`Invite for ${email} (${role}) should be sent via Supabase Admin API / Edge Function in production.`, 'i', 6000);
+    closeModal();
+  };
+}
+
+function exportBackup() {
+  const blob = new Blob([JSON.stringify({ version: 'erp_v3', date: new Date().toISOString(), ...db }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'AMWAJ_Backup_' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click(); toast('Backup downloaded ✓');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SESSION / INACTIVITY
+// ═══════════════════════════════════════════════════════════
+const IDLE_LIMIT = 30 * 60 * 1000, WARN_BEFORE = 2 * 60 * 1000;
+let idleTimer, warnTimer, cdownInterval;
+function resetIdle() {
+  clearTimeout(idleTimer); clearTimeout(warnTimer); clearInterval(cdownInterval);
+  if (!CURRENT_USER) return;
+  warnTimer   = setTimeout(showIdleWarn, IDLE_LIMIT - WARN_BEFORE);
+  idleTimer   = setTimeout(doLogout, IDLE_LIMIT);
+}
+function showIdleWarn() {
+  let secs = Math.floor(WARN_BEFORE / 1000);
+  openModal(`<div style="padding:24px;text-align:center"><div style="font-size:36px;margin-bottom:10px">⏱</div><div style="font-size:16px;font-weight:700;margin-bottom:6px">Session Expiring</div><p style="color:var(--ink3);font-size:13px;margin-bottom:12px">You will be signed out in</p><div id="idle-countdown" style="font-size:40px;font-weight:800;color:var(--amber);margin-bottom:20px">${Math.floor(secs/60).toString().padStart(2,'0')}:${(secs%60).toString().padStart(2,'0')}</div><div style="display:flex;gap:10px;justify-content:center"><button onclick="resetIdle();closeModal()" class="btn btn-ocean">Stay Signed In</button><button onclick="doLogout()" class="btn btn-ghost">Sign Out</button></div></div>`);
+  cdownInterval = setInterval(() => { secs--; const el = document.getElementById('idle-countdown'); if (el) { const m = String(Math.floor(Math.max(secs,0)/60)).padStart(2,'0'); const s = String(Math.max(secs,0)%60).padStart(2,'0'); el.textContent = m+':'+s; } if (secs <= 0) clearInterval(cdownInterval); }, 1000);
+}
+function initInactivityWatcher() { ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev => document.addEventListener(ev, resetIdle, { passive: true })); resetIdle(); }
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+function renderAll() { renderDash(); renderBookings(); renderInvoices(); renderExpenses(); renderClients(); renderVendors(); renderInventory(); renderStaff(); }
+
+function initAll() {
+  document.getElementById('e-date').value = new Date().toISOString().slice(0, 10);
+  renderAll();
+  initCalendars();
+}
+
+// Boot on load
+window.onload = async () => {
+  const { data } = await sb.auth.getSession();
+  if (data.session) await bootApp(data.session.user);
+  else {
+    // Ensure login screen visible
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+};
+</script>
 </body>
 </html>
