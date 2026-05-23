@@ -56,18 +56,15 @@
       min-height: 100vh;
       transition: background .3s, color .3s;
     }
-    /* ── SCROLLBAR ── */
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: var(--surface2); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    /* ── CARD ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
       box-shadow: 0 1px 4px var(--shadow);
     }
-    /* ── SIDEBAR ── */
     #sidebar {
       width: 220px; min-height: 100vh; background: var(--ink);
       display: flex; flex-direction: column;
@@ -84,17 +81,14 @@
     .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
     .nav-item.active { background: var(--ocean); color: #fff; }
     .nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
-    /* ── MAIN ── */
     #main-content { margin-left: 220px; min-height: 100vh; transition: margin .3s; }
     #main-content.full { margin-left: 0; }
-    /* ── TOPBAR ── */
     #topbar {
       background: var(--surface); border-bottom: 1px solid var(--border);
       padding: 0 20px; height: 56px;
       display: flex; align-items: center; justify-content: space-between;
       position: sticky; top: 0; z-index: 30;
     }
-    /* ── ROLE BADGE ── */
     .role-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; letter-spacing: .5px; text-transform: uppercase; }
     .role-admin   { background: #e8f0fe; color: #1a56db; }
     .role-manager { background: #e8fdf0; color: #0a6d3a; }
@@ -102,7 +96,6 @@
     .dark .role-admin   { background: #1e2f5c; color: #7baaf7; }
     .dark .role-manager { background: #0f2e1e; color: #6ee7b7; }
     .dark .role-staff   { background: #2e1c04; color: #fcd34d; }
-    /* ── INPUTS ── */
     input, select, textarea {
       background: var(--surface2) !important;
       color: var(--ink) !important;
@@ -116,7 +109,6 @@
       box-shadow: 0 0 0 3px rgba(13,74,107,.12);
     }
     input::placeholder, textarea::placeholder { color: var(--ink3) !important; }
-    /* ── BUTTONS ── */
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
     .btn-ocean { background: var(--ocean); color: #fff; }
     .btn-ocean:hover { background: var(--ocean-lt); }
@@ -126,7 +118,6 @@
     .btn-ghost:hover { background: var(--border); }
     .btn-mpesa { background: var(--mpesa); color: #fff; }
     .btn-sm { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
-    /* ── BADGES ── */
     .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; display: inline-block; }
     .b-reserved  { background: #fff8e1; color: #b45309; border: 1px solid #fcd34d; }
     .b-confirmed { background: #e8f5e9; color: #2e7d32; border: 1px solid #86efac; }
@@ -142,25 +133,20 @@
     .dark .b-unpaid    { background: #2e0a0a; color: #f87171; }
     .dark .b-partial   { background: #3b1f00; color: #fbbf24; }
     .dark .b-paid      { background: #041e10; color: #4ade80; }
-    /* ── STAT CARD ── */
     .stat-card { padding: 18px 20px; border-radius: 14px; }
     .stat-card .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--ink3); }
     .stat-card .value { font-size: 22px; font-weight: 800; line-height: 1.2; margin-top: 4px; }
     .stat-card .sub   { font-size: 11px; color: var(--ink3); margin-top: 3px; }
-    /* ── PAY BAR ── */
     .pay-bar { height: 4px; background: var(--border); border-radius: 3px; overflow: hidden; }
     .pay-fill { height: 100%; border-radius: 3px; transition: width .5s ease; }
-    /* ── TABLE ── */
     .tbl { width: 100%; font-size: 12.5px; border-collapse: collapse; }
     .tbl th { padding: 9px 10px; text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ink3); background: var(--surface2); border-bottom: 1px solid var(--border); white-space: nowrap; }
     .tbl td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .tbl tbody tr:last-child td { border-bottom: none; }
     .tbl tbody tr:hover { background: var(--surface2); }
-    /* ── MODAL ── */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity .2s; }
     .modal-overlay.open { opacity: 1; pointer-events: auto; }
     .modal-box { background: var(--surface); border-radius: 18px; width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-    /* ── TOAST ── */
     #toast-root { position: fixed; top: 16px; right: 16px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
     .toast { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,.2); pointer-events: auto; animation: tIn .25s ease; max-width: 320px; }
     .toast-s { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
@@ -173,18 +159,13 @@
     .dark .toast-i { background: #0e1f3a; color: #93c5fd; }
     @keyframes tIn  { from { opacity:0; transform: translateX(12px); } to { opacity:1; transform: translateX(0); } }
     @keyframes tOut { to   { opacity:0; transform: translateX(12px); } }
-    /* ── SPINNER ── */
     .spin { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--ocean); border-radius: 50%; animation: _spin .7s linear infinite; }
     @keyframes _spin { to { transform: rotate(360deg); } }
-    /* ── CHIP ── */
     .chip { padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--ink2); transition: all .15s; }
     .chip.on { background: var(--ocean); color: #fff; border-color: var(--ocean); }
-    /* ── SECTION HEADER ── */
     .sec-h { font-size: 18px; font-weight: 800; }
-    /* ── SECURITY NOTICE ── */
     .sec-notice { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #7a5c00; }
     .dark .sec-notice { background: #2e2200; color: #fcd34d; border-color: #7a5c00; }
-    /* ── CALENDAR ── */
     .fc .fc-daygrid-day-frame { min-height: 50px; }
     .fc .fc-col-header-cell { background: var(--surface2); color: var(--ink2); font-size: 10px; font-weight: 700; }
     .fc .fc-daygrid-day-number { color: var(--ink2); font-size: 11px; }
@@ -197,12 +178,9 @@
     .fc .fc-button:hover { background: var(--ocean) !important; color: #fff !important; }
     .fc .fc-button-active { background: var(--ocean) !important; color: #fff !important; }
     .fc .fc-daygrid-day.fc-day-today { background: rgba(13,74,107,.06) !important; }
-    /* ── SECTION VISIBILITY ── */
     .view { display: none; }
     .view.active { display: block; }
-    /* ── LOGIN ── */
     #login-screen { position: fixed; inset: 0; background: linear-gradient(145deg, #071424 0%, #0d3a5a 60%, #0a2040 100%); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    /* ── MOBILE ── */
     @media (max-width: 768px) {
       #sidebar { transform: translateX(-220px); }
       #sidebar.open { transform: translateX(0); }
@@ -214,27 +192,19 @@
       form[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
       [style*="grid-column:span 2"] { grid-column: span 1 !important; }
     }
-    /* ── PASSWORD FIELD ── */
     .pw-wrap { position: relative; }
     .pw-wrap input { padding-right: 36px !important; }
     .pw-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none !important; color: var(--ink3); font-size: 14px; padding: 0; }
-    /* ── SEARCH ── */
     .search-input { padding: 7px 12px 7px 34px; background: var(--surface2) !important; position: relative; }
     .search-wrap { position: relative; }
     .search-wrap::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none; }
-    /* ── EMPTY STATE ── */
     .empty-state { text-align: center; padding: 48px 20px; color: var(--ink3); }
     .empty-state .emoji { font-size: 36px; margin-bottom: 10px; }
     .empty-state p { font-size: 13px; }
-    /* ── PROGRESS ── */
     #page-loader { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: var(--ocean); transform-origin: left; transform: scaleX(0); transition: transform .3s; z-index: 9999; }
-    /* ── DIVIDER ── */
     .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
-    /* ── FORM LABEL ── */
     .lbl { font-size: 11px; font-weight: 600; color: var(--ink2); margin-bottom: 4px; display: block; }
-    /* ── ACCENT LINE ── */
     .accent-line { width: 40px; height: 3px; background: var(--coral); border-radius: 2px; margin-top: 4px; }
-    /* ── SIDEBAR LOGO ── */
     #sb-logo-area { padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
   </style>
 </head>
@@ -245,10 +215,9 @@
   <div style="width:100%;max-width:400px;padding:16px">
     <div class="card" style="padding:36px 32px;border-radius:20px">
       <div style="text-align:center;margin-bottom:28px">
-        <div style="width:56px;height:56px;background:var(--ocean);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px"><img src="Amwaj logo.jpg"></div>
+        <div style="width:56px;height:56px;background:var(--ocean);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px">🌊</div>
         <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">AMWAJ SEAFRONT</div>
         <div style="font-size:12px;color:var(--ink3);margin-top:2px">Tudor Creek, Mombasa</div>
-      
       </div>
       <form id="login-form" style="display:flex;flex-direction:column;gap:12px">
         <div><label class="lbl">Email Address</label><input id="l-email" type="email" placeholder="user@gmail.com" required style="width:100%;padding:10px 12px"></div>
@@ -263,25 +232,17 @@
   </div>
 </div>
 
-<!-- PAGE LOADER BAR -->
 <div id="page-loader"></div>
-
-<!-- TOAST -->
 <div id="toast-root"></div>
-
-<!-- MODAL -->
 <div id="modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
   <div id="modal-box" class="modal-box"></div>
 </div>
 
-<!-- APP SHELL (hidden until auth) -->
 <div id="app" style="display:none">
-
-  <!-- SIDEBAR -->
   <nav id="sidebar">
     <div id="sb-logo-area">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:34px;height:34px;background:var(--ocean);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0"><img src="Amwaj logo.jpg"></div>
+        <div style="width:34px;height:34px;background:var(--ocean);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🌊</div>
         <div>
           <div style="font-size:12px;font-weight:800;color:#fff;line-height:1.2">AMWAJ SEAFRONT</div>
         </div>
@@ -315,9 +276,7 @@
     </div>
   </nav>
 
-  <!-- MAIN -->
   <div id="main-content">
-    <!-- TOPBAR -->
     <div id="topbar">
       <div style="display:flex;align-items:center;gap:12px">
         <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:var(--ink2);font-size:18px">☰</button>
@@ -331,30 +290,26 @@
       </div>
     </div>
 
-    <!-- VIEWS CONTAINER -->
     <div id="views" style="padding:20px">
 
-      <!-- ═══════════════════════ DASHBOARD ═══════════════════════ -->
+      <!-- DASHBOARD -->
       <div id="v-dash" class="view active">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h" id="dash-greeting">Good morning 👋</div><div class="accent-line"></div><div style="font-size:12px;color:var(--ink3);margin-top:6px" id="dash-date">Loading…</div></div>
           <button class="btn btn-ocean" onclick="openBookingModal()">+ New Booking</button>
         </div>
-        <!-- KPI ROW -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px">
           <div class="card stat-card"><div class="label">Monthly Revenue</div><div class="value" id="d-rev" style="color:var(--green)">KES 0</div><div class="pay-bar" style="margin-top:8px"><div class="pay-fill" id="d-rev-bar" style="width:0%;background:var(--green)"></div></div><div class="sub" id="d-rev-pct">0% of target</div></div>
           <div class="card stat-card"><div class="label">Pending Balances</div><div class="value" id="d-pend" style="color:var(--amber)">KES 0</div><div class="sub" id="d-pend-c">0 bookings</div></div>
           <div class="card stat-card"><div class="label">Events Next 7 Days</div><div class="value" id="d-upcoming" style="color:var(--ocean)">0</div><div class="sub" id="d-next">—</div></div>
           <div class="card stat-card"><div class="label">Monthly Expenses</div><div class="value" id="d-exp" style="color:var(--red)">KES 0</div><div class="sub" id="d-exp-c">0 entries</div></div>
         </div>
-        <!-- MINI KPI -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px">
           <div class="card" style="padding:12px 14px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase">Confirmed</div><div style="font-size:20px;font-weight:800;color:var(--green);margin-top:2px" id="d-kpi-conf">0</div></div>
           <div class="card" style="padding:12px 14px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase">Avg. Booking</div><div style="font-size:20px;font-weight:800;margin-top:2px" id="d-kpi-avg">KES 0</div></div>
           <div class="card" style="padding:12px 14px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase">Occupancy</div><div style="font-size:20px;font-weight:800;color:var(--ocean-lt);margin-top:2px" id="d-kpi-occ">0%</div></div>
           <div class="card" style="padding:12px 14px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase">M-Pesa Recv</div><div style="font-size:20px;font-weight:800;color:var(--mpesa);margin-top:2px" id="d-kpi-mp">KES 0</div></div>
         </div>
-        <!-- CALENDAR + SIDEBAR -->
         <div style="display:grid;grid-template-columns:1fr 280px;gap:16px" class="hide-mob-grid">
           <div class="card" style="padding:16px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -374,14 +329,13 @@
             </div>
           </div>
         </div>
-        <!-- REVENUE CHART -->
         <div class="card" style="padding:16px;margin-top:16px">
           <div style="font-weight:700;font-size:13px;margin-bottom:12px">📊 Revenue vs Expenses (6 months)</div>
           <canvas id="rev-chart" style="max-height:200px"></canvas>
         </div>
       </div>
 
-      <!-- ═══════════════════════ CALENDAR ═══════════════════════ -->
+      <!-- CALENDAR -->
       <div id="v-calendar" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Booking Calendar</div><div class="accent-line"></div></div>
@@ -418,7 +372,7 @@
         </div>
       </div>
 
-      <!-- ═══════════════════════ BOOKINGS ═══════════════════════ -->
+      <!-- BOOKINGS -->
       <div id="v-bookings" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Bookings & Reservations</div><div class="accent-line"></div></div>
@@ -427,14 +381,12 @@
             <button class="btn btn-ocean" onclick="openBookingModal()">+ New Booking</button>
           </div>
         </div>
-        <!-- Status counts -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
           <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">RESERVED</div><div style="font-size:18px;font-weight:800;color:var(--amber)" id="bk-c-res">0</div></div>
           <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">CONFIRMED</div><div style="font-size:18px;font-weight:800;color:var(--green)" id="bk-c-conf">0</div></div>
           <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">COMPLETED</div><div style="font-size:18px;font-weight:800;color:var(--ocean)" id="bk-c-done">0</div></div>
           <div class="card" style="padding:10px;text-align:center"><div style="font-size:10px;color:var(--ink3);font-weight:600">CANCELLED</div><div style="font-size:18px;font-weight:800;color:var(--ink3)" id="bk-c-canc">0</div></div>
         </div>
-        <!-- Filter chips -->
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
           <span class="chip on" onclick="setBkFilter('all',this)">All</span>
           <span class="chip" onclick="setBkFilter('RESERVED',this)">Reserved</span>
@@ -465,7 +417,7 @@
         </div>
       </div>
 
-      <!-- ═══════════════════════ INVOICES ═══════════════════════ -->
+      <!-- INVOICES -->
       <div id="v-invoices" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Invoices & Payments</div><div class="accent-line"></div></div>
@@ -481,11 +433,11 @@
             <thead><tr><th>Invoice #</th><th>Client</th><th>Issue Date</th><th>Due Date</th><th style="text-align:right">Amount</th><th style="text-align:right">Paid</th><th style="text-align:right">Balance</th><th>Status</th><th style="text-align:center">Actions</th></tr></thead>
             <tbody id="inv-tbody"></tbody>
           </table>
-          <div id="inv-empty" class="empty-state" style="display:none"><div class="emoji">💰</div><p>No invoices yet. Generate from a booking or create manually.</p></div>
+          <div id="inv-empty" class="empty-state" style="display:none"><div class="emoji">💰</div><p>No invoices yet.</p></div>
         </div>
       </div>
 
-      <!-- ═══════════════════════ EXPENSES ═══════════════════════ -->
+      <!-- EXPENSES -->
       <div id="v-expenses" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Expenses & Purchases</div><div class="accent-line"></div></div>
@@ -522,7 +474,7 @@
         </div>
       </div>
 
-      <!-- ═══════════════════════ CLIENTS ═══════════════════════ -->
+      <!-- CLIENTS -->
       <div id="v-clients" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Client CRM</div><div class="accent-line"></div></div>
@@ -536,11 +488,11 @@
             <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th style="text-align:center">Events</th><th style="text-align:right">Total Spent</th><th>Last Contact</th><th style="text-align:center">Actions</th></tr></thead>
             <tbody id="cl-tbody"></tbody>
           </table>
-          <div id="cl-empty" class="empty-state" style="display:none"><div class="emoji">👥</div><p>No clients yet. Add your first client!</p></div>
+          <div id="cl-empty" class="empty-state" style="display:none"><div class="emoji">👥</div><p>No clients yet.</p></div>
         </div>
       </div>
 
-      <!-- ═══════════════════════ VENDORS ═══════════════════════ -->
+      <!-- VENDORS -->
       <div id="v-vendors" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Vendors & Suppliers</div><div class="accent-line"></div></div>
@@ -555,7 +507,7 @@
         </div>
       </div>
 
-      <!-- ═══════════════════════ INVENTORY ═══════════════════════ -->
+      <!-- INVENTORY -->
       <div id="v-inventory" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Equipment & FX Inventory</div><div class="accent-line"></div></div>
@@ -576,7 +528,7 @@
         </div>
       </div>
 
-      <!-- ═══════════════════════ STAFF ═══════════════════════ -->
+      <!-- STAFF -->
       <div id="v-staff" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Staff & Scheduling</div><div class="accent-line"></div></div>
@@ -610,7 +562,7 @@
         </div>
       </div>
 
-      <!-- ═══════════════════════ REPORTS ═══════════════════════ -->
+      <!-- REPORTS -->
       <div id="v-reports" class="view">
         <div style="margin-bottom:16px"><div class="sec-h">Reports & Analytics</div><div class="accent-line"></div></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
@@ -635,12 +587,10 @@
         </div>
       </div>
 
-      <!-- ═══════════════════════ SETTINGS ═══════════════════════ -->
+      <!-- SETTINGS -->
       <div id="v-settings" class="view">
         <div style="margin-bottom:16px"><div class="sec-h">Settings</div><div class="accent-line"></div></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-
-          <!-- Venue Settings -->
           <div class="card" style="padding:20px">
             <div style="font-weight:700;font-size:13px;margin-bottom:14px">🏢 Venue Configuration</div>
             <form id="venue-form" style="display:flex;flex-direction:column;gap:10px">
@@ -656,36 +606,29 @@
               <button type="submit" class="btn btn-ocean" style="width:100%;justify-content:center">💾 Save Venue Settings</button>
             </form>
           </div>
-
-          <!-- M-Pesa -->
           <div class="card" style="padding:20px">
             <div style="font-weight:700;font-size:13px;margin-bottom:6px">📱 M-Pesa Configuration</div>
             <div class="sec-notice" style="margin-bottom:14px">
-              🔐 <strong>Security:</strong> M-Pesa Daraja credentials (Consumer Key, Consumer Secret, Passkey) must be stored on your <strong>backend server</strong>, not in the browser. Configure them in your Supabase Edge Function environment variables. This form only stores the Shortcode and Callback URL which are non-sensitive.
+              🔐 <strong>Security:</strong> M-Pesa Daraja credentials must be stored on your <strong>backend server</strong> as Supabase Edge Function env vars. This form only stores the non-sensitive Shortcode and Callback URL.
             </div>
             <form id="mpesa-form" style="display:flex;flex-direction:column;gap:10px">
               <div><label class="lbl">Shortcode (Paybill/Till)</label><input id="mp-sc" style="width:100%;padding:7px 10px" placeholder="e.g. 174379"></div>
               <div><label class="lbl">Callback URL</label><input id="mp-cb" style="width:100%;padding:7px 10px" placeholder="https://yourproject.supabase.co/functions/v1/mpesa-callback"></div>
               <div style="background:var(--surface2);border-radius:8px;padding:10px;font-size:11px;color:var(--ink3);border:1px solid var(--border)">
-                <div style="font-weight:700;color:var(--ink2);margin-bottom:4px">Backend Required:</div>
                 Store in Supabase Edge Function env vars:<br>
-                <code style="font-family:DM Mono,monospace;color:var(--ocean)">MPESA_CONSUMER_KEY</code><br>
-                <code style="font-family:DM Mono,monospace;color:var(--ocean)">MPESA_CONSUMER_SECRET</code><br>
+                <code style="font-family:DM Mono,monospace;color:var(--ocean)">MPESA_CONSUMER_KEY</code> &nbsp;
+                <code style="font-family:DM Mono,monospace;color:var(--ocean)">MPESA_CONSUMER_SECRET</code> &nbsp;
                 <code style="font-family:DM Mono,monospace;color:var(--ocean)">MPESA_PASSKEY</code>
               </div>
               <button type="submit" class="btn btn-mpesa" style="width:100%;justify-content:center">💾 Save M-Pesa Config</button>
             </form>
           </div>
-
-          <!-- User Management (Admin only) -->
           <div class="card" style="padding:20px" id="user-mgmt-section">
             <div style="font-weight:700;font-size:13px;margin-bottom:14px">👥 User Management <span class="role-badge role-admin" style="vertical-align:middle">Admin Only</span></div>
-            <div class="sec-notice" style="margin-bottom:14px">Users are managed via Supabase Auth + a <code style="font-family:DM Mono,monospace">user_roles</code> table with RLS. Invite users from the Supabase Dashboard and assign roles here.</div>
+            <div class="sec-notice" style="margin-bottom:14px">Users are managed via Supabase Auth + a <code style="font-family:DM Mono,monospace">user_roles</code> table with RLS.</div>
             <div id="users-list" style="font-size:12px;margin-bottom:12px"></div>
             <button class="btn btn-ocean btn-sm" onclick="openInviteUserModal()">+ Invite User</button>
           </div>
-
-          <!-- Change Password -->
           <div class="card" style="padding:20px">
             <div style="font-weight:700;font-size:13px;margin-bottom:14px">🔒 Change Password</div>
             <form id="pw-form" style="display:flex;flex-direction:column;gap:10px">
@@ -700,15 +643,11 @@
               <button type="submit" class="btn btn-ocean" style="width:100%;justify-content:center">🔒 Update Password</button>
             </form>
           </div>
-
-          <!-- Backup -->
           <div class="card" style="padding:20px">
             <div style="font-weight:700;font-size:13px;margin-bottom:10px">💾 Data Backup</div>
-            <p style="font-size:12px;color:var(--ink3);margin-bottom:14px">Export all data as JSON for offline backup. Primary data lives in Supabase PostgreSQL.</p>
+            <p style="font-size:12px;color:var(--ink3);margin-bottom:14px">Export all data as JSON for offline backup.</p>
             <button onclick="exportBackup()" class="btn btn-ghost" style="width:100%;justify-content:center">📥 Download JSON Backup</button>
           </div>
-
-          <!-- RLS Status -->
           <div class="card" style="padding:20px">
             <div style="font-weight:700;font-size:13px;margin-bottom:10px">🛡️ Database Security (RLS)</div>
             <div id="rls-status" style="font-size:12px"></div>
@@ -723,24 +662,21 @@
 <script>
 // ═══════════════════════════════════════════════════════════
 //  SUPABASE INIT
-//  Replace with your project URL and anon key.
-//  In production, inject via /env.js or build-time env var.
+//  ⚠️  Replace SUPA_ANON with your real anon key from
+//  Supabase Dashboard → Project Settings → API
+//  It must start with "eyJ..." (a JWT token), NOT "sb_publishable_..."
 // ═══════════════════════════════════════════════════════════
 const SUPA_URL  = 'https://ccbgqyiiolbjcsahahkk.supabase.co';
-const SUPA_ANON = 'sb_publishable_6jnO41Lkd2FF0XG_u46GXw_ONVXbmDy';
+const SUPA_ANON = 'REPLACE_WITH_YOUR_REAL_ANON_KEY_eyJ...'; // ← FIX THIS
 const sb = window.supabase.createClient(SUPA_URL, SUPA_ANON, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'amwaj-v3-auth' }
 });
 
 // ═══════════════════════════════════════════════════════════
 //  ROLE SYSTEM
-//  Roles: Administrator | Manager | Staff
-//  Stored in Supabase table: user_roles(user_id, role)
-//  with RLS: users can only read their own row.
-//  Admins can read all via service_role in Edge Functions.
 // ═══════════════════════════════════════════════════════════
-let CURRENT_USER = null;  // Supabase auth user
-let CURRENT_ROLE = 'Staff'; // fetched from user_roles table
+let CURRENT_USER = null;
+let CURRENT_ROLE = 'Staff';
 
 const ROLE_PERMS = {
   Administrator: { canCreate: true, canEdit: true, canDelete: true, canViewReports: true, canManageUsers: true, canViewFinancials: true },
@@ -750,20 +686,15 @@ const ROLE_PERMS = {
 function can(perm) { return !!(ROLE_PERMS[CURRENT_ROLE] && ROLE_PERMS[CURRENT_ROLE][perm]); }
 
 async function fetchUserRole(userId) {
-  // Expects a 'user_roles' table with columns: user_id, role
-  // Enable RLS: users can SELECT WHERE user_id = auth.uid()
   try {
     const { data, error } = await sb.from('user_roles').select('role').eq('user_id', userId).single();
-    if (error || !data) return 'Staff'; // default
+    if (error || !data) return 'Staff';
     return data.role;
   } catch { return 'Staff'; }
 }
 
 // ═══════════════════════════════════════════════════════════
-//  IN-MEMORY STATE  (source of truth = Supabase)
-//  localStorage is ONLY used for UI preferences (dark mode,
-//  venue name, M-Pesa shortcode/callback) — never for
-//  business data.
+//  IN-MEMORY STATE
 // ═══════════════════════════════════════════════════════════
 let db = { bookings: [], invoices: [], expenses: [], clients: [], vendors: [], fx: [], staff: [], shifts: [], settings: {} };
 const PREFS_KEY = 'amwaj_v3_prefs';
@@ -772,8 +703,6 @@ function savePrefs() { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); }
 
 // ═══════════════════════════════════════════════════════════
 //  SUPABASE DATA LAYER
-//  All reads/writes go through Supabase.
-//  RLS ensures users only see data they're allowed to see.
 // ═══════════════════════════════════════════════════════════
 async function dbLoad() {
   showLoader();
@@ -796,29 +725,24 @@ async function dbLoad() {
     db.fx        = (fRes.data  || []).map(camelize);
     db.staff     = (stRes.data || []).map(camelize);
     db.shifts    = (shRes.data || []).map(camelize);
-    // Load settings from prefs (non-sensitive UI config)
     db.settings  = prefs.settings || { venueName: 'AMWAJ SEAFRONT VENUE', venueLocation: 'Tudor Creek, Mombasa', phone: '', email: '', bank: '', vatRate: 16, monthlyTarget: 0, mpesaShortcode: '', mpesaCallback: '' };
   } catch(e) {
     toast('Failed to load data: ' + e.message, 'e');
   } finally { hideLoader(); }
 }
 
-// ── Camelizer helpers (Supabase returns snake_case) ──
 function camelize(row) {
   if (!row) return {};
   const out = {};
-  for (const k in row) {
-    out[k.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] = row[k];
-  }
+  for (const k in row) out[k.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] = row[k];
   return out;
 }
 function camelizeBooking(row) {
   const b = camelize(row);
-  // Compute derived fields
   b.grandTotal = b.grandTotal || b.totalAmount || 0;
   b.balance = Math.max(0, b.grandTotal - (b.amountPaid || 0));
   const pct = (b.amountPaid || 0) / (b.grandTotal || 1);
-  if (b.reservationStatus === 'CANCELLED') { b.paymentStatus = 'UNPAID'; }
+  if (b.reservationStatus === 'CANCELLED') b.paymentStatus = 'UNPAID';
   else if (pct <= 0) b.paymentStatus = 'UNPAID';
   else if (pct >= 0.999) b.paymentStatus = 'PAID';
   else b.paymentStatus = 'PARTIAL';
@@ -828,21 +752,15 @@ function camelizeInvoice(row) {
   const i = camelize(row);
   i.balance = Math.max(0, (i.amount || 0) - (i.amountPaid || 0));
   if ((i.amountPaid || 0) >= (i.amount || 0)) i.status = 'Paid';
-  else if (i.status !== 'Cancelled') {
-    const due = new Date(i.dueDate);
-    if (!isNaN(due) && due < new Date()) i.status = 'Overdue';
-  }
+  else if (i.status !== 'Cancelled') { const due = new Date(i.dueDate); if (!isNaN(due) && due < new Date()) i.status = 'Overdue'; }
   return i;
 }
 function snakerize(obj) {
   const out = {};
-  for (const k in obj) {
-    out[k.replace(/([A-Z])/g, '_$1').toLowerCase()] = obj[k];
-  }
+  for (const k in obj) out[k.replace(/([A-Z])/g, '_$1').toLowerCase()] = obj[k];
   return out;
 }
 
-// ── CRUD helpers ──
 async function dbInsert(table, item) {
   const { data, error } = await sb.from(table).insert(snakerize(item)).select().single();
   if (error) throw error;
@@ -889,11 +807,12 @@ async function bootApp(user) {
   const roleClass = { Administrator: 'role-admin', Manager: 'role-manager', Staff: 'role-staff' }[CURRENT_ROLE] || 'role-staff';
   document.getElementById('tb-role').textContent = CURRENT_ROLE;
   document.getElementById('tb-role').className = 'role-badge ' + roleClass;
-  // Hide restricted nav items for Staff
+
+  // ── FIX: Only hide nav items for Staff (not Manager).
+  //    Reports: hidden for Staff only.
+  //    Settings: visible to all; goView() guards access inside.
   if (!can('canViewReports')) document.getElementById('nav-reports').style.display = 'none';
-  // Hide settings nav for non-admins
-if (!can('canManageUsers')) document.getElementById('nav-settings').style.display = 'none';
-  // Show app
+
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   await dbLoad();
@@ -914,14 +833,8 @@ let currentView = 'dash';
 const viewTitles = { dash:'Dashboard', calendar:'Calendar', bookings:'Bookings', invoices:'Invoices', expenses:'Expenses', clients:'Clients', vendors:'Vendors', inventory:'Inventory', staff:'Staff', reports:'Reports', settings:'Settings' };
 
 function goView(v) {
-  if (v === 'settings' && !can('canManageUsers')) {
-    toast('Access denied. Administrators only.', 'e');
-    return;
-  }
-  if (v === 'reports' && !can('canViewReports')) {
-    toast('Access denied.', 'e');
-    return;
-  }
+  if (v === 'settings' && !can('canManageUsers')) { toast('Access denied. Administrators only.', 'e'); return; }
+  if (v === 'reports'  && !can('canViewReports'))  { toast('Access denied.', 'e'); return; }
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const el = document.getElementById('v-' + v);
@@ -930,10 +843,8 @@ function goView(v) {
   if (nav) nav.classList.add('active');
   document.getElementById('tb-title').textContent = viewTitles[v] || v;
   currentView = v;
-  // Lazy-render charts on first visit
-  if (v === 'reports') renderReportCharts();
+  if (v === 'reports')  renderReportCharts();
   if (v === 'settings') loadSettingsForm();
-  // Close sidebar on mobile
   if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
 }
 
@@ -947,11 +858,7 @@ function toggleSidebar() {
 // ═══════════════════════════════════════════════════════════
 //  DARK MODE
 // ═══════════════════════════════════════════════════════════
-function toggleDark() {
-  document.body.classList.toggle('dark');
-  prefs.dark = document.body.classList.contains('dark');
-  savePrefs();
-}
+function toggleDark() { document.body.classList.toggle('dark'); prefs.dark = document.body.classList.contains('dark'); savePrefs(); }
 if (prefs.dark) document.body.classList.add('dark');
 
 // ═══════════════════════════════════════════════════════════
@@ -969,10 +876,7 @@ function toast(msg, type = 's', dur = 3400) {
 // ═══════════════════════════════════════════════════════════
 //  MODAL
 // ═══════════════════════════════════════════════════════════
-function openModal(html) {
-  document.getElementById('modal-box').innerHTML = html;
-  document.getElementById('modal-overlay').classList.add('open');
-}
+function openModal(html) { document.getElementById('modal-box').innerHTML = html; document.getElementById('modal-overlay').classList.add('open'); }
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 
 // ═══════════════════════════════════════════════════════════
@@ -984,16 +888,12 @@ function hideLoader() { document.getElementById('page-loader').style.transform =
 // ═══════════════════════════════════════════════════════════
 //  FORMATTERS
 // ═══════════════════════════════════════════════════════════
-const fmt = n => 'KES ' + Number(n || 0).toLocaleString('en-KE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+const fmt  = n => 'KES ' + Number(n || 0).toLocaleString('en-KE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 const fmtD = s => s ? new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-const fmtDT = s => s ? new Date(s).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
-function rsBadge(s) { const m = { RESERVED: 'b-reserved', CONFIRMED: 'b-confirmed', COMPLETED: 'b-completed', CANCELLED: 'b-cancelled' }; return `<span class="badge ${m[s]||'b-reserved'}">${s||'RESERVED'}</span>`; }
-function psBadge(s) { const m = { UNPAID: 'b-unpaid', PARTIAL: 'b-partial', PAID: 'b-paid' }; return `<span class="badge ${m[s]||'b-unpaid'}">${s||'UNPAID'}</span>`; }
+const fmtDT= s => s ? new Date(s).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+function rsBadge(s) { const m = { RESERVED:'b-reserved', CONFIRMED:'b-confirmed', COMPLETED:'b-completed', CANCELLED:'b-cancelled' }; return `<span class="badge ${m[s]||'b-reserved'}">${s||'RESERVED'}</span>`; }
+function psBadge(s) { const m = { UNPAID:'b-unpaid', PARTIAL:'b-partial', PAID:'b-paid' }; return `<span class="badge ${m[s]||'b-unpaid'}">${s||'UNPAID'}</span>`; }
 function uid() { return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36); }
-
-// ═══════════════════════════════════════════════════════════
-//  PASSWORD TOGGLE
-// ═══════════════════════════════════════════════════════════
 function togglePw(id) { const f = document.getElementById(id); f.type = f.type === 'password' ? 'text' : 'password'; }
 
 // ═══════════════════════════════════════════════════════════
@@ -1025,6 +925,9 @@ function checkAvail() {
 
 // ═══════════════════════════════════════════════════════════
 //  CALENDAR
+//  ── FIX: All calendar init is now inside initCalendars()
+//     which is called from initAll() AFTER the DOM exists.
+//     No calendar code runs at parse time.
 // ═══════════════════════════════════════════════════════════
 let miniCal = null, fullCal = null;
 let calFilters = { res: 'all', pay: 'all' };
@@ -1049,23 +952,37 @@ function setCalF(type, val, el) {
   calFilters[type] = val;
   el.closest('div').querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
   el.classList.add('on');
-  if (fullCal) { fullCal.removeAllEvents(); fullCal.addEventSource(buildCalEvents()); }
+  refreshCalendars();
 }
 
-fullCal = new FullCalendar.Calendar(fullEl, {
-  initialView: 'dayGridMonth', height: 580,
-  headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
-  eventDisplay: 'block',
-  dayMaxEvents: false,
-  events: buildCalEvents(),
-  eventClick: ({ event }) => openBookingDetail(event.extendedProps.booking),
-  dateClick: ({ dateStr }) => openBookingModal(null, dateStr)
-});
+// ── FIX: initCalendars is now a proper named function,
+//    called only from initAll() after the DOM is ready.
+function initCalendars() {
+  // Mini calendar on dashboard
+  const miniEl = document.getElementById('mini-cal');
+  if (miniEl && !miniCal) {
+    miniCal = new FullCalendar.Calendar(miniEl, {
+      initialView: 'dayGridMonth',
+      height: 280,
+      headerToolbar: { left: 'prev,next', center: 'title', right: '' },
+      eventDisplay: 'block',
+      dayMaxEvents: 2,
+      events: buildCalEvents(),
+      eventClick: ({ event }) => openBookingDetail(event.extendedProps.booking),
+      dateClick: ({ dateStr }) => openBookingModal(null, dateStr)
+    });
+    miniCal.render();
+  }
+
+  // Full calendar on calendar view
   const fullEl = document.getElementById('full-cal');
   if (fullEl && !fullCal) {
     fullCal = new FullCalendar.Calendar(fullEl, {
-      initialView: 'dayGridMonth', height: 580,
+      initialView: 'dayGridMonth',
+      height: 580,
       headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
+      eventDisplay: 'block',
+      dayMaxEvents: false,
       events: buildCalEvents(),
       eventClick: ({ event }) => openBookingDetail(event.extendedProps.booking),
       dateClick: ({ dateStr }) => openBookingModal(null, dateStr)
@@ -1073,6 +990,7 @@ fullCal = new FullCalendar.Calendar(fullEl, {
     fullCal.render();
   }
 }
+
 function refreshCalendars() {
   const evs = buildCalEvents();
   [miniCal, fullCal].forEach(c => { if (c) { c.removeAllEvents(); c.addEventSource(evs); } });
@@ -1086,7 +1004,6 @@ function renderDash() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const s = db.settings;
-  // Revenue
   const monthBk = db.bookings.filter(b => new Date(b.startDate) >= monthStart && b.reservationStatus !== 'CANCELLED');
   const monthRev = monthBk.reduce((a, b) => a + (b.amountPaid || 0), 0);
   document.getElementById('d-rev').textContent = fmt(monthRev);
@@ -1094,35 +1011,22 @@ function renderDash() {
   const pct = target > 0 ? Math.min(100, (monthRev / target) * 100) : 0;
   document.getElementById('d-rev-bar').style.width = pct + '%';
   document.getElementById('d-rev-pct').textContent = target > 0 ? pct.toFixed(0) + '% of ' + fmt(target) : 'No target set';
-  // Pending
   const pending = db.bookings.filter(b => b.paymentStatus !== 'PAID' && b.reservationStatus !== 'CANCELLED');
-  const pendAmt = pending.reduce((a, b) => a + (b.balance || 0), 0);
-  document.getElementById('d-pend').textContent = fmt(pendAmt);
+  document.getElementById('d-pend').textContent = fmt(pending.reduce((a, b) => a + (b.balance || 0), 0));
   document.getElementById('d-pend-c').textContent = pending.length + ' booking(s)';
-  // Upcoming
   const in7 = new Date(now.getTime() + 7 * 86400000);
   const upcoming = db.bookings.filter(b => { const d = new Date(b.startDate); return d >= now && d <= in7 && b.reservationStatus !== 'CANCELLED'; });
   document.getElementById('d-upcoming').textContent = upcoming.length;
   document.getElementById('d-next').textContent = upcoming.length ? fmtD(upcoming[0].startDate) + ': ' + upcoming[0].clientName : 'None this week';
-  // Expenses
   const monthExp = db.expenses.filter(e => new Date(e.date) >= monthStart);
-  const expAmt = monthExp.reduce((a, e) => a + Number(e.amount || 0), 0);
-  document.getElementById('d-exp').textContent = fmt(expAmt);
+  document.getElementById('d-exp').textContent = fmt(monthExp.reduce((a, e) => a + Number(e.amount || 0), 0));
   document.getElementById('d-exp-c').textContent = monthExp.length + ' entries';
-  // KPIs
-  const confirmed = db.bookings.filter(b => b.reservationStatus === 'CONFIRMED' && new Date(b.startDate) >= monthStart).length;
-  document.getElementById('d-kpi-conf').textContent = confirmed;
+  document.getElementById('d-kpi-conf').textContent = db.bookings.filter(b => b.reservationStatus === 'CONFIRMED' && new Date(b.startDate) >= monthStart).length;
   const activeBk = db.bookings.filter(b => b.reservationStatus !== 'CANCELLED');
-  const avg = activeBk.length ? activeBk.reduce((a, b) => a + (b.grandTotal || 0), 0) / activeBk.length : 0;
-  document.getElementById('d-kpi-avg').textContent = fmt(avg);
-  // Occupancy (rough: booked sessions / (2 sessions/day * days this month))
+  document.getElementById('d-kpi-avg').textContent = fmt(activeBk.length ? activeBk.reduce((a, b) => a + (b.grandTotal || 0), 0) / activeBk.length : 0);
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const occ = Math.min(100, (monthBk.length / (daysInMonth * 2)) * 100);
-  document.getElementById('d-kpi-occ').textContent = occ.toFixed(0) + '%';
-  // M-Pesa
-  const mpesa = db.bookings.reduce((a, b) => a + (b.mpesaAmount || 0), 0);
-  document.getElementById('d-kpi-mp').textContent = fmt(mpesa);
-  // Alerts
+  document.getElementById('d-kpi-occ').textContent = Math.min(100, (monthBk.length / (daysInMonth * 2)) * 100).toFixed(0) + '%';
+  document.getElementById('d-kpi-mp').textContent = fmt(db.bookings.reduce((a, b) => a + (b.mpesaAmount || 0), 0));
   const alerts = [];
   const overdueInv = db.invoices.filter(i => i.status === 'Overdue');
   if (overdueInv.length) alerts.push(`<div style="color:var(--red);padding:6px 8px;background:#fef2f2;border-radius:6px;margin-bottom:4px">⚠ ${overdueInv.length} overdue invoice(s)</div>`);
@@ -1131,18 +1035,12 @@ function renderDash() {
   const unpaidUpcoming = db.bookings.filter(b => { const d = new Date(b.startDate); return d >= now && d <= in7 && b.paymentStatus === 'UNPAID'; });
   if (unpaidUpcoming.length) alerts.push(`<div style="color:var(--red);padding:6px 8px;background:#fef2f2;border-radius:6px;margin-bottom:4px">💸 ${unpaidUpcoming.length} upcoming booking(s) unpaid</div>`);
   document.getElementById('dash-alerts').innerHTML = alerts.length ? alerts.join('') : '<div style="color:var(--ink3)">✅ No urgent actions</div>';
-  // Timeline
-  const timeline = upcoming.slice(0, 5).map(b => `<div style="padding:6px 8px;border-radius:6px;border-left:3px solid ${getEventColor(b).bg};background:var(--surface2);margin-bottom:5px"><div style="font-weight:600">${b.clientName}</div><div style="color:var(--ink3)">${fmtD(b.startDate)} · ${b.category||'Event'}</div></div>`);
-  document.getElementById('dash-timeline').innerHTML = timeline.length ? timeline.join('') : '<div style="color:var(--ink3)">No upcoming events</div>';
+  document.getElementById('dash-timeline').innerHTML = upcoming.slice(0, 5).map(b => `<div style="padding:6px 8px;border-radius:6px;border-left:3px solid ${getEventColor(b).bg};background:var(--surface2);margin-bottom:5px"><div style="font-weight:600">${b.clientName}</div><div style="color:var(--ink3)">${fmtD(b.startDate)} · ${b.category||'Event'}</div></div>`).join('') || '<div style="color:var(--ink3)">No upcoming events</div>';
   document.getElementById('dash-date').textContent = now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  // Time-aware greeting
   const hr = now.getHours();
-  const greet = hr < 12 ? 'Good morning 👋' : hr < 17 ? 'Good afternoon 👋' : 'Good evening 👋';
   const greetEl = document.getElementById('dash-greeting');
-  if (greetEl) greetEl.textContent = greet;
-  // Revenue chart
-  const months = [];
-  const revData = [], expData = [];
+  if (greetEl) greetEl.textContent = hr < 12 ? 'Good morning 👋' : hr < 17 ? 'Good afternoon 👋' : 'Good evening 👋';
+  const months = [], revData = [], expData = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
@@ -1161,28 +1059,15 @@ function renderDash() {
 let bkFilter = 'all';
 let bkSort = { col: 'startDate', dir: 'desc' };
 
-function setBkFilter(f, el) {
-  bkFilter = f;
-  document.querySelectorAll('#v-bookings .chip').forEach(c => c.classList.remove('on'));
-  el.classList.add('on');
-  renderBookings();
-}
-function sortBk(col) {
-  if (bkSort.col === col) bkSort.dir = bkSort.dir === 'asc' ? 'desc' : 'asc';
-  else { bkSort.col = col; bkSort.dir = 'asc'; }
-  renderBookings();
-}
+function setBkFilter(f, el) { bkFilter = f; document.querySelectorAll('#v-bookings .chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); renderBookings(); }
+function sortBk(col) { if (bkSort.col === col) bkSort.dir = bkSort.dir === 'asc' ? 'desc' : 'asc'; else { bkSort.col = col; bkSort.dir = 'asc'; } renderBookings(); }
+
 function renderBookings() {
   const q = (document.getElementById('bk-search')?.value || '').toLowerCase();
   let bk = [...db.bookings];
   if (bkFilter !== 'all') bk = bk.filter(b => b.reservationStatus === bkFilter || b.paymentStatus === bkFilter);
   if (q) bk = bk.filter(b => (b.clientName || '').toLowerCase().includes(q) || (b.category || '').toLowerCase().includes(q));
-  bk.sort((a, b) => {
-    let av = a[bkSort.col] || '', bv = b[bkSort.col] || '';
-    if (bkSort.col === 'startDate') { av = new Date(av); bv = new Date(bv); }
-    return bkSort.dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
-  });
-  // Counts
+  bk.sort((a, b) => { let av = a[bkSort.col] || '', bv = b[bkSort.col] || ''; if (bkSort.col === 'startDate') { av = new Date(av); bv = new Date(bv); } return bkSort.dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1); });
   document.getElementById('bk-c-res').textContent  = db.bookings.filter(b => b.reservationStatus === 'RESERVED').length;
   document.getElementById('bk-c-conf').textContent = db.bookings.filter(b => b.reservationStatus === 'CONFIRMED').length;
   document.getElementById('bk-c-done').textContent = db.bookings.filter(b => b.reservationStatus === 'COMPLETED').length;
@@ -1244,11 +1129,10 @@ function openBookingDetail(b) {
 function openBookingModal(id, prefillDate) {
   if (!can('canCreate') && !id) { toast('Insufficient permissions', 'e'); return; }
   const b = id ? db.bookings.find(x => x.id === id) : null;
-  const title = b ? 'Edit Booking' : 'New Booking';
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:16px;font-weight:800">${title}</div>
+        <div style="font-size:16px;font-weight:800">${b ? 'Edit Booking' : 'New Booking'}</div>
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink3)">×</button>
       </div>
       <form id="bk-form" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -1266,25 +1150,24 @@ function openBookingModal(id, prefillDate) {
         <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Catering Fee (KES)</label><input id="bk-catering" type="number" value="${b?.cateringFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">FX/Decor Fee (KES)</label><input id="bk-fx" type="number" value="${b?.fxFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Discount (KES)</label><input id="bk-disc" type="number" value="${b?.discount||0}" min="0" step="0.01" style="width:100%;padding:7px 10px" oninput="calcBkTotal()"></div>
+        <div><label class="lbl">Discount (KES)</label><input id="bk-disc" type="number" value="${b?.discount||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Amount Paid (KES)</label><input id="bk-paid" type="number" value="${b?.amountPaid||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Reservation Status</label>
           <select id="bk-rstat" style="width:100%;padding:7px 10px">
             ${['RESERVED','CONFIRMED','COMPLETED','CANCELLED'].map(s => `<option ${b?.reservationStatus===s?'selected':''}>${s}</option>`).join('')}
           </select>
         </div>
-        <div><label class="lbl">Notes</label><textarea id="bk-notes" style="width:100%;padding:7px 10px;height:64px;resize:vertical">${b?.notes||''}</textarea></div>
+        <div style="grid-column:span 2"><label class="lbl">Notes</label><textarea id="bk-notes" style="width:100%;padding:7px 10px;height:64px;resize:vertical">${b?.notes||''}</textarea></div>
         <div style="grid-column:span 2;background:var(--surface2);border-radius:8px;padding:10px;font-size:13px">
           <div style="display:flex;justify-content:space-between"><span style="color:var(--ink3)">Grand Total</span><span id="bk-total-disp" style="font-weight:800;font-size:16px">${fmt(b?.grandTotal||0)}</span></div>
         </div>
-        <div id="bk-conflict-warn" style="grid-column:span 2;display:none" class="sec-notice" style="color:var(--red)"></div>
+        <div id="bk-conflict-warn" style="grid-column:span 2;display:none" class="sec-notice"></div>
         <div style="grid-column:span 2;display:flex;gap:8px">
           <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">💾 Save Booking</button>
           <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
         </div>
       </form>
     </div>`);
-  // Auto-calc on input
   ['bk-venue','bk-catering','bk-fx','bk-disc'].forEach(id => document.getElementById(id)?.addEventListener('input', calcBkTotal));
   calcBkTotal();
   document.getElementById('bk-form').onsubmit = async ev => { ev.preventDefault(); await saveBooking(id); };
@@ -1298,11 +1181,11 @@ function calcBkTotal() {
 async function saveBooking(editId) {
   const v = id => document.getElementById(id)?.value;
   const start = v('bk-start'), end = v('bk-end');
-  // Conflict check
   const cf = checkConflict(start, end, editId);
   if (cf.conflict) {
-    document.getElementById('bk-conflict-warn').style.display = 'block';
-    document.getElementById('bk-conflict-warn').textContent = `⚠ Conflict with ${cf.booking.clientName} (${fmtD(cf.booking.startDate)})`;
+    const w = document.getElementById('bk-conflict-warn');
+    w.style.display = 'block';
+    w.textContent = `⚠ Conflict with ${cf.booking.clientName} (${fmtD(cf.booking.startDate)})`;
     return;
   }
   const g = id => Number(document.getElementById(id)?.value || 0);
@@ -1310,15 +1193,8 @@ async function saveBooking(editId) {
   const grandTotal = venueFee + cateringFee + fxFee - discount;
   const payload = { clientName: v('bk-client'), phone: v('bk-phone'), email: v('bk-email'), category: v('bk-cat'), startDate: start, endDate: end, guestCount: g('bk-guests'), venueFee, cateringFee, fxFee, discount, amountPaid, grandTotal, reservationStatus: v('bk-rstat'), notes: v('bk-notes') };
   try {
-    if (editId) {
-      const updated = await dbUpdate('bookings', editId, payload);
-      db.bookings = db.bookings.map(b => b.id === editId ? camelizeBooking(updated) : b);
-      toast('Booking updated ✓');
-    } else {
-      const created = await dbInsert('bookings', { ...payload, id: uid() });
-      db.bookings.unshift(camelizeBooking(created));
-      toast('Booking created ✓');
-    }
+    if (editId) { const updated = await dbUpdate('bookings', editId, payload); db.bookings = db.bookings.map(b => b.id === editId ? camelizeBooking(updated) : b); toast('Booking updated ✓'); }
+    else { const created = await dbInsert('bookings', { ...payload, id: uid() }); db.bookings.unshift(camelizeBooking(created)); toast('Booking created ✓'); }
     closeModal(); renderBookings(); refreshCalendars(); renderDash();
   } catch(e) { toast('Save failed: ' + e.message, 'e'); }
 }
@@ -1334,21 +1210,12 @@ function sendWhatsApp(bookingId) {
   if (!b || !b.phone) return;
   const s = db.settings;
   const phone = b.phone.replace(/\D/g, '');
-  const msg = encodeURIComponent(
-    `Hello ${b.clientName},\n\nThis is a reminder from ${s.venueName || 'AMWAJ SEAFRONT VENUE'} regarding your upcoming event:\n\n` +
-    `📅 Date: ${fmtD(b.startDate)}\n` +
-    `🎉 Event: ${b.category || 'Event'}\n` +
-    `💰 Balance Due: KES ${Number(b.balance || 0).toLocaleString()}\n\n` +
-    (s.mpesaShortcode ? `Pay via M-Pesa Paybill: ${s.mpesaShortcode}\n\n` : '') +
-    `Thank you for choosing ${s.venueName || 'AMWAJ SEAFRONT VENUE'}! 🌊`
-  );
+  const msg = encodeURIComponent(`Hello ${b.clientName},\n\nReminder from ${s.venueName||'AMWAJ SEAFRONT VENUE'}:\n\n📅 Date: ${fmtD(b.startDate)}\n🎉 Event: ${b.category||'Event'}\n💰 Balance Due: KES ${Number(b.balance||0).toLocaleString()}\n\n${s.mpesaShortcode?`Pay via M-Pesa: ${s.mpesaShortcode}\n\n`:''}Thank you! 🌊`);
   window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
 }
 
 // ═══════════════════════════════════════════════════════════
-//  M-PESA  (Server-side via Supabase Edge Function)
-//  Credentials stay on the server. The UI only collects
-//  phone + amount, then calls the Edge Function.
+//  M-PESA
 // ═══════════════════════════════════════════════════════════
 function initMpesa(bookingId) {
   const b = db.bookings.find(x => x.id === bookingId);
@@ -1359,13 +1226,8 @@ function initMpesa(bookingId) {
         <div style="font-size:16px;font-weight:800">📱 M-Pesa STK Push</div>
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
       </div>
-      <div class="sec-notice" style="margin-bottom:14px">
-        🔒 Payment initiated via secure Supabase Edge Function. Consumer Key & Passkey are <strong>never</strong> exposed to the browser.
-      </div>
-      <div style="font-size:13px;margin-bottom:14px">
-        <div>Client: <strong>${b.clientName}</strong></div>
-        <div style="color:var(--amber)">Balance: <strong>${fmt(b.balance)}</strong></div>
-      </div>
+      <div class="sec-notice" style="margin-bottom:14px">🔒 Payment via secure Supabase Edge Function. Credentials never exposed to browser.</div>
+      <div style="font-size:13px;margin-bottom:14px"><div>Client: <strong>${b.clientName}</strong></div><div style="color:var(--amber)">Balance: <strong>${fmt(b.balance)}</strong></div></div>
       <form id="mpesa-push-form" style="display:flex;flex-direction:column;gap:10px">
         <div><label class="lbl">Phone (Safaricom) *</label><input id="mp-phone" value="${b.phone||''}" placeholder="254712345678" required style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Amount (KES) *</label><input id="mp-amt" type="number" value="${b.balance||0}" min="1" required style="width:100%;padding:7px 10px"></div>
@@ -1380,24 +1242,14 @@ function initMpesa(bookingId) {
     const statusEl = document.getElementById('mp-status');
     statusEl.textContent = '⏳ Sending STK push…';
     try {
-      // Calls Supabase Edge Function: supabase/functions/mpesa-stk/index.ts
-      // That function reads MPESA_CONSUMER_KEY etc. from env vars (not browser)
       const { data: { session } } = await sb.auth.getSession();
-      const res = await fetch(`${SUPA_URL}/functions/v1/mpesa-stk`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session?.access_token },
-        body: JSON.stringify({ phone, amount: Number(amount), bookingId })
-      });
+      const res = await fetch(`${SUPA_URL}/functions/v1/mpesa-stk`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session?.access_token }, body: JSON.stringify({ phone, amount: Number(amount), bookingId }) });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'STK push failed');
       statusEl.textContent = '✅ STK push sent! Ask client to enter M-Pesa PIN.';
       statusEl.style.color = 'var(--green)';
-      // Poll for status
       if (json.checkoutRequestId) pollMpesa(json.checkoutRequestId, bookingId, amount);
-    } catch(e) {
-      statusEl.textContent = '❌ ' + e.message;
-      statusEl.style.color = 'var(--red)';
-    }
+    } catch(e) { statusEl.textContent = '❌ ' + e.message; statusEl.style.color = 'var(--red)'; }
   };
 }
 async function pollMpesa(checkoutId, bookingId, amount, attempts = 0) {
@@ -1407,27 +1259,13 @@ async function pollMpesa(checkoutId, bookingId, amount, attempts = 0) {
     const { data: { session } } = await sb.auth.getSession();
     const res = await fetch(`${SUPA_URL}/functions/v1/mpesa-status/${encodeURIComponent(checkoutId)}`, { headers: { 'Authorization': 'Bearer ' + session?.access_token } });
     const json = await res.json();
-    if (json.status === 'SUCCESS') {
-      // Update booking paid amount + mpesa amount
-      const b = db.bookings.find(x => x.id === bookingId);
-      if (b) {
-        const newPaid = (b.amountPaid || 0) + Number(amount);
-        const newMpesa = (b.mpesaAmount || 0) + Number(amount);
-        await saveBooking_amountPaid(bookingId, newPaid, newMpesa);
-      }
-      toast('M-Pesa payment confirmed! ✅', 's'); closeModal();
-    } else if (json.status === 'FAILED') { toast('M-Pesa payment failed', 'e'); }
+    if (json.status === 'SUCCESS') { const b = db.bookings.find(x => x.id === bookingId); if (b) await saveBooking_amountPaid(bookingId, (b.amountPaid||0)+Number(amount), (b.mpesaAmount||0)+Number(amount)); toast('M-Pesa payment confirmed! ✅'); closeModal(); }
+    else if (json.status === 'FAILED') toast('M-Pesa payment failed', 'e');
     else pollMpesa(checkoutId, bookingId, amount, attempts + 1);
   } catch { /* silent */ }
 }
 async function saveBooking_amountPaid(id, amountPaid, mpesaAmount) {
-  try {
-    const changes = { amountPaid };
-    if (mpesaAmount !== undefined) changes.mpesaAmount = mpesaAmount;
-    const u = await dbUpdate('bookings', id, changes);
-    db.bookings = db.bookings.map(b => b.id === id ? camelizeBooking(u) : b);
-    renderBookings(); renderDash();
-  } catch(e) { console.error(e); }
+  try { const changes = { amountPaid }; if (mpesaAmount !== undefined) changes.mpesaAmount = mpesaAmount; const u = await dbUpdate('bookings', id, changes); db.bookings = db.bookings.map(b => b.id === id ? camelizeBooking(u) : b); renderBookings(); renderDash(); } catch(e) { console.error(e); }
 }
 
 function printBookingReceipt(bookingId) {
@@ -1437,85 +1275,33 @@ function printBookingReceipt(bookingId) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a5' });
   const PW = doc.internal.pageSize.width;
-  // Header band
-  doc.setFillColor(13, 74, 107);
-  doc.rect(0, 0, PW, 30, 'F');
+  doc.setFillColor(13, 74, 107); doc.rect(0, 0, PW, 30, 'F');
   doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
   doc.text(s.venueName || 'AMWAJ SEAFRONT VENUE', 10, 13);
   doc.setFontSize(7); doc.setFont('helvetica', 'normal');
   doc.text((s.venueLocation || 'Tudor Creek, Mombasa') + (s.phone ? '  ·  ' + s.phone : ''), 10, 19);
-  doc.text((s.email || ''), 10, 24);
-  // Title
-  doc.setTextColor(30, 30, 30);
-  doc.setFontSize(12); doc.setFont('helvetica', 'bold');
+  if (s.email) doc.text(s.email, 10, 24);
+  doc.setTextColor(30, 30, 30); doc.setFontSize(12); doc.setFont('helvetica', 'bold');
   doc.text('BOOKING RECEIPT', PW / 2, 38, { align: 'center' });
   doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100);
   doc.text('Generated: ' + new Date().toLocaleString('en-GB'), PW / 2, 43, { align: 'center' });
-  // Client info
   let y = 52;
-  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30);
-  doc.text('Client Details', 10, y);
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30); doc.text('Client Details', 10, y);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
   y += 5; doc.text('Name:   ' + (b.clientName || '—'), 10, y);
   y += 4; doc.text('Phone:  ' + (b.phone || '—'), 10, y);
   if (b.email) { y += 4; doc.text('Email:  ' + b.email, 10, y); }
-  // Event details table
   y += 8;
-  doc.autoTable({
-    startY: y,
-    head: [['Event Details', '']],
-    body: [
-      ['Event Type', b.category || '—'],
-      ['Start', fmtDT(b.startDate)],
-      ['End', fmtDT(b.endDate)],
-      ['Guests', String(b.guestCount || '—')],
-      ['Status', b.reservationStatus || '—'],
-    ],
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [13, 74, 107] },
-    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } },
-    margin: { left: 10, right: 10 }
-  });
+  doc.autoTable({ startY: y, head: [['Event Details', '']], body: [['Event Type', b.category||'—'],['Start', fmtDT(b.startDate)],['End', fmtDT(b.endDate)],['Guests', String(b.guestCount||'—')],['Status', b.reservationStatus||'—']], styles: { fontSize: 8 }, headStyles: { fillColor: [13, 74, 107] }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }, margin: { left: 10, right: 10 } });
   y = doc.lastAutoTable.finalY + 6;
-  // Financial summary
-  doc.autoTable({
-    startY: y,
-    head: [['Payment Summary', 'KES']],
-    body: [
-      ['Venue Fee', Number(b.venueFee || 0).toLocaleString()],
-      ['Catering Fee', Number(b.cateringFee || 0).toLocaleString()],
-      ['FX / Decor', Number(b.fxFee || 0).toLocaleString()],
-      ['Discount', '(' + Number(b.discount || 0).toLocaleString() + ')'],
-      ['Grand Total', Number(b.grandTotal || 0).toLocaleString()],
-      ['Amount Paid', Number(b.amountPaid || 0).toLocaleString()],
-      ['Balance Due', Number(b.balance || 0).toLocaleString()],
-    ],
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [20, 128, 94] },
-    columnStyles: { 1: { halign: 'right' } },
-    didParseCell: (data) => {
-      if (data.row.index === 6) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181, 42, 42] : [20, 128, 94]; }
-      if (data.row.index === 4) { data.cell.styles.fontStyle = 'bold'; }
-    },
-    margin: { left: 10, right: 10 }
-  });
+  doc.autoTable({ startY: y, head: [['Payment Summary', 'KES']], body: [['Venue Fee', Number(b.venueFee||0).toLocaleString()],['Catering Fee', Number(b.cateringFee||0).toLocaleString()],['FX / Decor', Number(b.fxFee||0).toLocaleString()],['Discount', '('+Number(b.discount||0).toLocaleString()+')'],['Grand Total', Number(b.grandTotal||0).toLocaleString()],['Amount Paid', Number(b.amountPaid||0).toLocaleString()],['Balance Due', Number(b.balance||0).toLocaleString()]], styles: { fontSize: 8 }, headStyles: { fillColor: [20, 128, 94] }, columnStyles: { 1: { halign: 'right' } }, didParseCell: (data) => { if (data.row.index === 6) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181,42,42] : [20,128,94]; } if (data.row.index === 4) data.cell.styles.fontStyle = 'bold'; }, margin: { left: 10, right: 10 } });
   y = doc.lastAutoTable.finalY + 8;
-  // Payment method
-  if (b.mpesaAmount > 0) {
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 166, 81);
-    doc.text('📱 M-Pesa: KES ' + Number(b.mpesaAmount).toLocaleString() + ' received', 10, y);
-    y += 5;
-  }
-  // Bank details
-  if (s.bank) {
-    doc.setFontSize(7); doc.setFont('helvetica', 'italic'); doc.setTextColor(120, 120, 120);
-    doc.text('Bank: ' + s.bank, 10, y); y += 4;
-  }
-  // Footer
+  if (b.mpesaAmount > 0) { doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(0,166,81); doc.text('📱 M-Pesa: KES ' + Number(b.mpesaAmount).toLocaleString() + ' received', 10, y); y += 5; }
+  if (s.bank) { doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(120,120,120); doc.text('Bank: ' + s.bank, 10, y); }
   const PH = doc.internal.pageSize.height;
-  doc.setFontSize(7); doc.setTextColor(150, 150, 150);
-  doc.text('Thank you for choosing ' + (s.venueName || 'AMWAJ SEAFRONT VENUE') + '!', PW / 2, PH - 8, { align: 'center' });
-  doc.save('Receipt_' + (b.clientName || 'Booking').replace(/\W/g, '_') + '_' + (b.startDate || '').slice(0, 10) + '.pdf');
+  doc.setFontSize(7); doc.setTextColor(150,150,150);
+  doc.text('Thank you for choosing ' + (s.venueName||'AMWAJ SEAFRONT VENUE') + '!', PW/2, PH-8, { align: 'center' });
+  doc.save('Receipt_' + (b.clientName||'Booking').replace(/\W/g,'_') + '_' + (b.startDate||'').slice(0,10) + '.pdf');
   toast('Receipt PDF downloaded ✓');
 }
 
@@ -1524,15 +1310,13 @@ function printBookingReceipt(bookingId) {
 // ═══════════════════════════════════════════════════════════
 function renderInvoices() {
   const invs = db.invoices;
-  const total = invs.reduce((a, i) => a + (i.amount || 0), 0);
-  const paid  = invs.reduce((a, i) => a + (i.amountPaid || 0), 0);
-  document.getElementById('inv-total').textContent = fmt(total);
-  document.getElementById('inv-paid').textContent  = fmt(paid);
-  document.getElementById('inv-out').textContent   = fmt(total - paid);
+  document.getElementById('inv-total').textContent = fmt(invs.reduce((a,i)=>a+(i.amount||0),0));
+  document.getElementById('inv-paid').textContent  = fmt(invs.reduce((a,i)=>a+(i.amountPaid||0),0));
+  document.getElementById('inv-out').textContent   = fmt(invs.reduce((a,i)=>a+(i.balance||0),0));
   const tbody = document.getElementById('inv-tbody');
   const empty = document.getElementById('inv-empty');
-  if (!invs.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
+  if (!invs.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
   tbody.innerHTML = invs.map(i => `
     <tr>
       <td style="font-family:DM Mono,monospace;font-size:11px">${i.invNumber||'—'}</td>
@@ -1544,19 +1328,19 @@ function renderInvoices() {
       <td style="text-align:right;color:var(--amber)">${fmt(i.balance)}</td>
       <td><span class="badge ${{'Paid':'b-paid','Overdue':'b-unpaid','Cancelled':'b-cancelled'}[i.status]||'b-partial'}">${i.status||'Pending'}</span></td>
       <td style="text-align:center;white-space:nowrap">
-        ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openInvoiceModal('${i.id}')">✏️</button>` : ''}
+        ${can('canEdit')?`<button class="btn btn-ghost btn-sm" onclick="openInvoiceModal('${i.id}')">✏️</button>`:''}
         <button class="btn btn-ghost btn-sm" onclick="printInvoicePDF('${i.id}')">📄</button>
-        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteInvoice('${i.id}')">🗑</button>` : ''}
+        ${can('canDelete')?`<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteInvoice('${i.id}')">🗑</button>`:''}
       </td>
     </tr>`).join('');
 }
 function openInvoiceModal(id) {
-  const inv = id ? db.invoices.find(x => x.id === id) : null;
-  const nextNum = 'INV-' + String(db.invoices.length + 1).padStart(4, '0');
+  const inv = id ? db.invoices.find(x=>x.id===id) : null;
+  const nextNum = 'INV-' + String(db.invoices.length+1).padStart(4,'0');
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:16px;font-weight:800">${inv ? 'Edit Invoice' : 'New Invoice'}</div>
+        <div style="font-size:16px;font-weight:800">${inv?'Edit Invoice':'New Invoice'}</div>
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
       </div>
       <form id="inv-form" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -1582,59 +1366,43 @@ async function saveInvoice(editId) {
   const payload = { invNumber: v('inv-num'), clientName: v('inv-client'), issueDate: v('inv-issue'), dueDate: v('inv-due'), amount: Number(v('inv-amt')||0), amountPaid: Number(v('inv-paid')||0), status: v('inv-stat'), bookingId: v('inv-bk')||null, notes: v('inv-notes') };
   payload.balance = Math.max(0, payload.amount - payload.amountPaid);
   try {
-    if (editId) { const u = await dbUpdate('invoices', editId, payload); db.invoices = db.invoices.map(i => i.id === editId ? camelizeInvoice(u) : i); toast('Invoice updated ✓'); }
-    else { const c = await dbInsert('invoices', { ...payload, id: uid() }); db.invoices.unshift(camelizeInvoice(c)); toast('Invoice created ✓'); }
+    if (editId) { const u = await dbUpdate('invoices', editId, payload); db.invoices = db.invoices.map(i=>i.id===editId?camelizeInvoice(u):i); toast('Invoice updated ✓'); }
+    else { const c = await dbInsert('invoices', {...payload, id: uid()}); db.invoices.unshift(camelizeInvoice(c)); toast('Invoice created ✓'); }
     closeModal(); renderInvoices();
   } catch(e) { toast('Save failed: ' + e.message, 'e'); }
 }
 async function deleteInvoice(id) {
-  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!can('canDelete')) { toast('Admin only','e'); return; }
   if (!confirm('Delete invoice?')) return;
-  try { await dbDelete('invoices', id); db.invoices = db.invoices.filter(i => i.id !== id); renderInvoices(); toast('Invoice deleted'); }
-  catch(e) { toast('Delete failed: ' + e.message, 'e'); }
+  try { await dbDelete('invoices',id); db.invoices=db.invoices.filter(i=>i.id!==id); renderInvoices(); toast('Invoice deleted'); }
+  catch(e) { toast('Delete failed: '+e.message,'e'); }
 }
 function generateInvoiceFromBooking(bookingId) {
-  const b = db.bookings.find(x => x.id === bookingId);
+  const b = db.bookings.find(x=>x.id===bookingId);
   if (!b) return;
   closeModal();
-  setTimeout(() => {
-    openInvoiceModal();
-    setTimeout(() => {
-      document.getElementById('inv-client').value = b.clientName || '';
-      document.getElementById('inv-amt').value = b.grandTotal || 0;
-      document.getElementById('inv-paid').value = b.amountPaid || 0;
-      document.getElementById('inv-bk').value = b.id;
-    }, 100);
-  }, 150);
+  setTimeout(() => { openInvoiceModal(); setTimeout(() => { document.getElementById('inv-client').value=b.clientName||''; document.getElementById('inv-amt').value=b.grandTotal||0; document.getElementById('inv-paid').value=b.amountPaid||0; document.getElementById('inv-bk').value=b.id; }, 100); }, 150);
 }
 function printInvoicePDF(invId) {
-  const inv = db.invoices.find(i => i.id === invId);
+  const inv = db.invoices.find(i=>i.id===invId);
   if (!inv) return;
   const s = db.settings;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const PW = doc.internal.pageSize.width;
-  doc.setFillColor(13, 74, 107);
-  doc.rect(0, 0, PW, 30, 'F');
-  doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
-  doc.text(s.venueName || 'AMWAJ SEAFRONT VENUE', 14, 14);
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-  doc.text(s.venueLocation || 'Tudor Creek, Mombasa', 14, 22);
-  doc.setTextColor(50, 50, 50);
-  doc.setFontSize(20); doc.setFont('helvetica', 'bold');
-  doc.text('INVOICE', PW - 14, 18, { align: 'right' });
-  doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-  doc.text(inv.invNumber || '', PW - 14, 25, { align: 'right' });
-  let y = 42;
-  doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.text('Bill To:', 14, y);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-  doc.text(inv.clientName || '', 14, y + 6);
-  doc.text('Issue: ' + fmtD(inv.issueDate), PW - 14, y, { align: 'right' });
-  doc.text('Due:   ' + fmtD(inv.dueDate), PW - 14, y + 6, { align: 'right' });
-  y += 20;
-  doc.autoTable({ startY: y, head: [['Description', 'Amount']], body: [['Venue Services', 'KES ' + Number(inv.amount).toLocaleString()], ['Amount Paid', 'KES ' + Number(inv.amountPaid||0).toLocaleString()], ['Balance Due', 'KES ' + Number(inv.balance||0).toLocaleString()]], styles: { fontSize: 9 }, headStyles: { fillColor: [13, 74, 107] } });
-  if (inv.notes) { const ny = doc.lastAutoTable.finalY + 8; doc.setFontSize(8); doc.setFont('helvetica', 'italic'); doc.text('Notes: ' + inv.notes, 14, ny); }
-  doc.save((inv.invNumber || 'INV') + '_' + (inv.clientName || '').replace(/\W/g,'_') + '.pdf');
+  doc.setFillColor(13,74,107); doc.rect(0,0,PW,30,'F');
+  doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+  doc.text(s.venueName||'AMWAJ SEAFRONT VENUE',14,14);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text(s.venueLocation||'Tudor Creek, Mombasa',14,22);
+  doc.setTextColor(50,50,50); doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.text('INVOICE',PW-14,18,{align:'right'});
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text(inv.invNumber||'',PW-14,25,{align:'right'});
+  let y=42; doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.text('Bill To:',14,y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(inv.clientName||'',14,y+6);
+  doc.text('Issue: '+fmtD(inv.issueDate),PW-14,y,{align:'right'}); doc.text('Due:   '+fmtD(inv.dueDate),PW-14,y+6,{align:'right'});
+  y+=20;
+  doc.autoTable({startY:y,head:[['Description','Amount']],body:[['Venue Services','KES '+Number(inv.amount).toLocaleString()],['Amount Paid','KES '+Number(inv.amountPaid||0).toLocaleString()],['Balance Due','KES '+Number(inv.balance||0).toLocaleString()]],styles:{fontSize:9},headStyles:{fillColor:[13,74,107]}});
+  if (inv.notes) { const ny=doc.lastAutoTable.finalY+8; doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.text('Notes: '+inv.notes,14,ny); }
+  doc.save((inv.invNumber||'INV')+'_'+(inv.clientName||'').replace(/\W/g,'_')+'.pdf');
   toast('Invoice PDF downloaded ✓');
 }
 
@@ -1642,87 +1410,72 @@ function printInvoicePDF(invId) {
 //  EXPENSES
 // ═══════════════════════════════════════════════════════════
 let expFilter = 'today';
-function setExpF(f, el) { expFilter = f; document.querySelectorAll('#v-expenses .chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); renderExpenses(); }
+function setExpF(f, el) { expFilter=f; document.querySelectorAll('#v-expenses .chip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); renderExpenses(); }
 function renderExpenses() {
   const now = new Date();
   let exps = [...db.expenses];
-  if (expFilter === 'today') { const d = now.toISOString().slice(0,10); exps = exps.filter(e => (e.date||'').slice(0,10) === d); }
-  else if (expFilter === 'month') { const ms = new Date(now.getFullYear(), now.getMonth(), 1); exps = exps.filter(e => new Date(e.date) >= ms); }
-  const total = exps.reduce((a, e) => a + Number(e.amount || 0), 0);
-  document.getElementById('exp-total').textContent = fmt(total);
-  const tbody = document.getElementById('exp-tbody');
-  const empty = document.getElementById('exp-empty');
-  if (!exps.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  // Populate vendor dropdown
-  const vSel = document.getElementById('e-vendor');
-  if (vSel) { vSel.innerHTML = '<option value="">-- No vendor --</option>' + db.vendors.map(v => `<option value="${v.id}">${v.company||v.name}</option>`).join(''); }
-  tbody.innerHTML = exps.map(e => `
+  if (expFilter==='today') { const d=now.toISOString().slice(0,10); exps=exps.filter(e=>(e.date||'').slice(0,10)===d); }
+  else if (expFilter==='month') { const ms=new Date(now.getFullYear(),now.getMonth(),1); exps=exps.filter(e=>new Date(e.date)>=ms); }
+  document.getElementById('exp-total').textContent = fmt(exps.reduce((a,e)=>a+Number(e.amount||0),0));
+  const tbody=document.getElementById('exp-tbody'); const empty=document.getElementById('exp-empty');
+  const vSel=document.getElementById('e-vendor');
+  if (vSel) vSel.innerHTML='<option value="">-- No vendor --</option>'+db.vendors.map(v=>`<option value="${v.id}">${v.company||v.name}</option>`).join('');
+  if (!exps.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=exps.map(e=>`
     <tr>
-      <td>${fmtD(e.date)}</td>
-      <td>${e.category||'—'}</td>
-      <td>${e.item||e.description||'—'}</td>
+      <td>${fmtD(e.date)}</td><td>${e.category||'—'}</td><td>${e.item||e.description||'—'}</td>
       <td style="text-align:right;font-weight:600;color:var(--red)">${fmt(e.amount)}</td>
       <td>${db.vendors.find(v=>v.id===e.vendorId)?.company||e.vendorId||'—'}</td>
-      <td style="text-align:center">
-        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteExpense('${e.id}')">🗑</button>` : ''}
-      </td>
+      <td style="text-align:center">${can('canDelete')?`<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteExpense('${e.id}')">🗑</button>`:''}</td>
     </tr>`).join('');
 }
 document.getElementById('exp-form').onsubmit = async ev => {
   ev.preventDefault();
-  const v = id => document.getElementById(id)?.value;
-  const payload = { date: v('e-date'), category: v('e-cat'), item: v('e-item'), amount: Number(v('e-amt')||0), vendorId: v('e-vendor')||null, notes: v('e-notes') };
-  try {
-    const c = await dbInsert('expenses', { ...payload, id: uid() });
-    db.expenses.unshift(camelize(c));
-    document.getElementById('exp-form').reset();
-    document.getElementById('e-date').value = new Date().toISOString().slice(0,10);
-    renderExpenses(); renderDash(); toast('Expense logged ✓');
-  } catch(e) { toast('Save failed: ' + e.message, 'e'); }
+  const v=id=>document.getElementById(id)?.value;
+  const payload={date:v('e-date'),category:v('e-cat'),item:v('e-item'),amount:Number(v('e-amt')||0),vendorId:v('e-vendor')||null,notes:v('e-notes')};
+  try { const c=await dbInsert('expenses',{...payload,id:uid()}); db.expenses.unshift(camelize(c)); document.getElementById('exp-form').reset(); document.getElementById('e-date').value=new Date().toISOString().slice(0,10); renderExpenses(); renderDash(); toast('Expense logged ✓'); }
+  catch(e) { toast('Save failed: '+e.message,'e'); }
 };
 async function deleteExpense(id) {
-  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!can('canDelete')) { toast('Admin only','e'); return; }
   if (!confirm('Delete expense?')) return;
-  try { await dbDelete('expenses', id); db.expenses = db.expenses.filter(e => e.id !== id); renderExpenses(); renderDash(); toast('Deleted'); }
-  catch(e) { toast(e.message, 'e'); }
+  try { await dbDelete('expenses',id); db.expenses=db.expenses.filter(e=>e.id!==id); renderExpenses(); renderDash(); toast('Deleted'); }
+  catch(e) { toast(e.message,'e'); }
 }
-function openExpenseModal() { document.getElementById('e-date').value = new Date().toISOString().slice(0,10); goView('expenses'); }
+function openExpenseModal() { document.getElementById('e-date').value=new Date().toISOString().slice(0,10); goView('expenses'); }
 
 // ═══════════════════════════════════════════════════════════
 //  CLIENTS
 // ═══════════════════════════════════════════════════════════
 function renderClients() {
-  const q = (document.getElementById('cl-search')?.value || '').toLowerCase();
-  let cls = [...db.clients];
-  if (q) cls = cls.filter(c => (c.name||'').toLowerCase().includes(q) || (c.email||'').toLowerCase().includes(q));
-  const tbody = document.getElementById('cl-tbody');
-  const empty = document.getElementById('cl-empty');
-  if (!cls.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  tbody.innerHTML = cls.map(c => {
-    const evCount = db.bookings.filter(b => b.clientName === c.name || b.clientId === c.id).length;
-    const totalSpent = db.bookings.filter(b => b.clientName === c.name || b.clientId === c.id).reduce((a, b) => a + (b.amountPaid || 0), 0);
+  const q=(document.getElementById('cl-search')?.value||'').toLowerCase();
+  let cls=[...db.clients]; if (q) cls=cls.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.email||'').toLowerCase().includes(q));
+  const tbody=document.getElementById('cl-tbody'); const empty=document.getElementById('cl-empty');
+  if (!cls.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=cls.map(c=>{
+    const evCount=db.bookings.filter(b=>b.clientName===c.name||b.clientId===c.id).length;
+    const totalSpent=db.bookings.filter(b=>b.clientName===c.name||b.clientId===c.id).reduce((a,b)=>a+(b.amountPaid||0),0);
     return `<tr>
       <td><div style="font-weight:600">${c.name||'—'}</div></td>
-      <td>${c.email||'—'}</td>
-      <td>${c.phone||'—'}</td>
+      <td>${c.email||'—'}</td><td>${c.phone||'—'}</td>
       <td style="text-align:center">${evCount}</td>
       <td style="text-align:right;font-weight:600">${fmt(totalSpent)}</td>
       <td>${fmtD(c.lastContact)}</td>
       <td style="text-align:center;white-space:nowrap">
-        ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openClientModal('${c.id}')">✏️</button>` : ''}
-        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteClient('${c.id}')">🗑</button>` : ''}
+        ${can('canEdit')?`<button class="btn btn-ghost btn-sm" onclick="openClientModal('${c.id}')">✏️</button>`:''}
+        ${can('canDelete')?`<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteClient('${c.id}')">🗑</button>`:''}
       </td>
     </tr>`;
   }).join('');
 }
 function openClientModal(id) {
-  const c = id ? db.clients.find(x => x.id === id) : null;
+  const c=id?db.clients.find(x=>x.id===id):null;
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:16px;font-weight:800">${c ? 'Edit Client' : 'Add Client'}</div>
+        <div style="font-size:16px;font-weight:800">${c?'Edit Client':'Add Client'}</div>
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
       </div>
       <form id="cl-form" style="display:flex;flex-direction:column;gap:10px">
@@ -1737,51 +1490,48 @@ function openClientModal(id) {
         </div>
       </form>
     </div>`);
-  document.getElementById('cl-form').onsubmit = async ev => {
+  document.getElementById('cl-form').onsubmit=async ev=>{
     ev.preventDefault();
-    const v = id => document.getElementById(id)?.value;
-    const payload = { name: v('cl-name'), email: v('cl-email'), phone: v('cl-phone'), company: v('cl-company'), notes: v('cl-notes'), lastContact: new Date().toISOString().slice(0,10) };
+    const v=id=>document.getElementById(id)?.value;
+    const payload={name:v('cl-name'),email:v('cl-email'),phone:v('cl-phone'),company:v('cl-company'),notes:v('cl-notes'),lastContact:new Date().toISOString().slice(0,10)};
     try {
-      if (id) { const u = await dbUpdate('clients', id, payload); db.clients = db.clients.map(c => c.id === id ? camelize(u) : c); toast('Client updated ✓'); }
-      else { const cr = await dbInsert('clients', { ...payload, id: uid() }); db.clients.push(camelize(cr)); toast('Client added ✓'); }
+      if (id) { const u=await dbUpdate('clients',id,payload); db.clients=db.clients.map(c=>c.id===id?camelize(u):c); toast('Client updated ✓'); }
+      else { const cr=await dbInsert('clients',{...payload,id:uid()}); db.clients.push(camelize(cr)); toast('Client added ✓'); }
       closeModal(); renderClients();
-    } catch(e) { toast(e.message, 'e'); }
+    } catch(e) { toast(e.message,'e'); }
   };
 }
 async function deleteClient(id) {
-  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!can('canDelete')) { toast('Admin only','e'); return; }
   if (!confirm('Delete client?')) return;
-  try { await dbDelete('clients', id); db.clients = db.clients.filter(c => c.id !== id); renderClients(); toast('Deleted'); }
-  catch(e) { toast(e.message, 'e'); }
+  try { await dbDelete('clients',id); db.clients=db.clients.filter(c=>c.id!==id); renderClients(); toast('Deleted'); }
+  catch(e) { toast(e.message,'e'); }
 }
 
 // ═══════════════════════════════════════════════════════════
 //  VENDORS
 // ═══════════════════════════════════════════════════════════
 function renderVendors() {
-  const tbody = document.getElementById('vd-tbody');
-  const empty = document.getElementById('vd-empty');
-  if (!db.vendors.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  tbody.innerHTML = db.vendors.map(v => `
+  const tbody=document.getElementById('vd-tbody'); const empty=document.getElementById('vd-empty');
+  if (!db.vendors.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=db.vendors.map(v=>`
     <tr>
       <td><div style="font-weight:600">${v.company||v.name||'—'}</div></td>
-      <td>${v.contactName||'—'}</td>
-      <td>${v.phone||'—'}</td>
-      <td>${v.category||'—'}</td>
+      <td>${v.contactName||'—'}</td><td>${v.phone||'—'}</td><td>${v.category||'—'}</td>
       <td><span class="badge ${v.status==='Active'?'b-confirmed':'b-cancelled'}">${v.status||'Active'}</span></td>
       <td style="text-align:center;white-space:nowrap">
-        ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openVendorModal('${v.id}')">✏️</button>` : ''}
-        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteVendor('${v.id}')">🗑</button>` : ''}
+        ${can('canEdit')?`<button class="btn btn-ghost btn-sm" onclick="openVendorModal('${v.id}')">✏️</button>`:''}
+        ${can('canDelete')?`<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteVendor('${v.id}')">🗑</button>`:''}
       </td>
     </tr>`).join('');
 }
 function openVendorModal(id) {
-  const v = id ? db.vendors.find(x => x.id === id) : null;
+  const v=id?db.vendors.find(x=>x.id===id):null;
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:16px;font-weight:800">${v ? 'Edit Vendor' : 'Add Vendor'}</div>
+        <div style="font-size:16px;font-weight:800">${v?'Edit Vendor':'Add Vendor'}</div>
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
       </div>
       <form id="vd-form" style="display:flex;flex-direction:column;gap:10px">
@@ -1796,40 +1546,38 @@ function openVendorModal(id) {
         </div>
       </form>
     </div>`);
-  document.getElementById('vd-form').onsubmit = async ev => {
+  document.getElementById('vd-form').onsubmit=async ev=>{
     ev.preventDefault();
-    const g = i => document.getElementById(i)?.value;
-    const payload = { company: g('vd-co'), contactName: g('vd-cn'), phone: g('vd-ph'), category: g('vd-cat'), status: g('vd-stat') };
+    const g=i=>document.getElementById(i)?.value;
+    const payload={company:g('vd-co'),contactName:g('vd-cn'),phone:g('vd-ph'),category:g('vd-cat'),status:g('vd-stat')};
     try {
-      if (id) { const u = await dbUpdate('vendors', id, payload); db.vendors = db.vendors.map(vd => vd.id === id ? camelize(u) : vd); toast('Vendor updated ✓'); }
-      else { const cr = await dbInsert('vendors', { ...payload, id: uid() }); db.vendors.push(camelize(cr)); toast('Vendor added ✓'); }
+      if (id) { const u=await dbUpdate('vendors',id,payload); db.vendors=db.vendors.map(vd=>vd.id===id?camelize(u):vd); toast('Vendor updated ✓'); }
+      else { const cr=await dbInsert('vendors',{...payload,id:uid()}); db.vendors.push(camelize(cr)); toast('Vendor added ✓'); }
       closeModal(); renderVendors();
-    } catch(e) { toast(e.message, 'e'); }
+    } catch(e) { toast(e.message,'e'); }
   };
 }
 async function deleteVendor(id) {
-  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!can('canDelete')) { toast('Admin only','e'); return; }
   if (!confirm('Delete vendor?')) return;
-  try { await dbDelete('vendors', id); db.vendors = db.vendors.filter(v => v.id !== id); renderVendors(); toast('Deleted'); }
-  catch(e) { toast(e.message, 'e'); }
+  try { await dbDelete('vendors',id); db.vendors=db.vendors.filter(v=>v.id!==id); renderVendors(); toast('Deleted'); }
+  catch(e) { toast(e.message,'e'); }
 }
 
 // ═══════════════════════════════════════════════════════════
-//  INVENTORY (FX)
+//  INVENTORY
 // ═══════════════════════════════════════════════════════════
 function renderInventory() {
-  const counts = { Available: 0, Booked: 0, 'Under Maintenance': 0 };
-  let totalVal = 0;
-  db.fx.forEach(f => { counts[f.status] = (counts[f.status] || 0) + (f.qty || 1); totalVal += (f.rentalPrice || 0) * (f.qty || 1); });
-  document.getElementById('fx-avail').textContent  = counts.Available || 0;
-  document.getElementById('fx-booked').textContent = counts.Booked || 0;
-  document.getElementById('fx-maint').textContent  = counts['Under Maintenance'] || 0;
-  document.getElementById('fx-val').textContent    = fmt(totalVal);
-  const tbody = document.getElementById('fx-tbody');
-  const empty = document.getElementById('fx-empty');
-  if (!db.fx.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  tbody.innerHTML = db.fx.map(f => `
+  const counts={'Available':0,'Booked':0,'Under Maintenance':0}; let totalVal=0;
+  db.fx.forEach(f=>{counts[f.status]=(counts[f.status]||0)+(f.qty||1); totalVal+=(f.rentalPrice||0)*(f.qty||1);});
+  document.getElementById('fx-avail').textContent=counts.Available||0;
+  document.getElementById('fx-booked').textContent=counts.Booked||0;
+  document.getElementById('fx-maint').textContent=counts['Under Maintenance']||0;
+  document.getElementById('fx-val').textContent=fmt(totalVal);
+  const tbody=document.getElementById('fx-tbody'); const empty=document.getElementById('fx-empty');
+  if (!db.fx.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML=db.fx.map(f=>`
     <tr>
       <td><div style="font-weight:600">${f.name||'—'}</div></td>
       <td style="font-family:DM Mono,monospace;font-size:11px">${f.serial||'—'}</td>
@@ -1838,17 +1586,17 @@ function renderInventory() {
       <td><span class="badge ${f.status==='Available'?'b-confirmed':f.status==='Booked'?'b-partial':'b-unpaid'}">${f.status||'Available'}</span></td>
       <td>${f.assignedTo||'—'}</td>
       <td style="text-align:center;white-space:nowrap">
-        ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openFXModal('${f.id}')">✏️</button>` : ''}
-        ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteFX('${f.id}')">🗑</button>` : ''}
+        ${can('canEdit')?`<button class="btn btn-ghost btn-sm" onclick="openFXModal('${f.id}')">✏️</button>`:''}
+        ${can('canDelete')?`<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteFX('${f.id}')">🗑</button>`:''}
       </td>
     </tr>`).join('');
 }
 function openFXModal(id) {
-  const f = id ? db.fx.find(x => x.id === id) : null;
+  const f=id?db.fx.find(x=>x.id===id):null;
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:16px;font-weight:800">${f ? 'Edit Item' : 'Add Inventory Item'}</div>
+        <div style="font-size:16px;font-weight:800">${f?'Edit Item':'Add Inventory Item'}</div>
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
       </div>
       <form id="fx-form" style="display:flex;flex-direction:column;gap:10px">
@@ -1866,63 +1614,59 @@ function openFXModal(id) {
         </div>
       </form>
     </div>`);
-  document.getElementById('fx-form').onsubmit = async ev => {
+  document.getElementById('fx-form').onsubmit=async ev=>{
     ev.preventDefault();
-    const g = i => document.getElementById(i)?.value;
-    const payload = { name: g('fx-name'), serial: g('fx-serial'), qty: Number(g('fx-qty')||1), rentalPrice: Number(g('fx-price')||0), status: g('fx-stat'), assignedTo: g('fx-assigned') };
+    const g=i=>document.getElementById(i)?.value;
+    const payload={name:g('fx-name'),serial:g('fx-serial'),qty:Number(g('fx-qty')||1),rentalPrice:Number(g('fx-price')||0),status:g('fx-stat'),assignedTo:g('fx-assigned')};
     try {
-      if (id) { const u = await dbUpdate('inventory', id, payload); db.fx = db.fx.map(x => x.id === id ? camelize(u) : x); toast('Item updated ✓'); }
-      else { const cr = await dbInsert('inventory', { ...payload, id: uid() }); db.fx.push(camelize(cr)); toast('Item added ✓'); }
+      if (id) { const u=await dbUpdate('inventory',id,payload); db.fx=db.fx.map(x=>x.id===id?camelize(u):x); toast('Item updated ✓'); }
+      else { const cr=await dbInsert('inventory',{...payload,id:uid()}); db.fx.push(camelize(cr)); toast('Item added ✓'); }
       closeModal(); renderInventory();
-    } catch(e) { toast(e.message, 'e'); }
+    } catch(e) { toast(e.message,'e'); }
   };
 }
 async function deleteFX(id) {
-  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!can('canDelete')) { toast('Admin only','e'); return; }
   if (!confirm('Delete item?')) return;
-  try { await dbDelete('inventory', id); db.fx = db.fx.filter(x => x.id !== id); renderInventory(); toast('Deleted'); }
-  catch(e) { toast(e.message, 'e'); }
+  try { await dbDelete('inventory',id); db.fx=db.fx.filter(x=>x.id!==id); renderInventory(); toast('Deleted'); }
+  catch(e) { toast(e.message,'e'); }
 }
 
 // ═══════════════════════════════════════════════════════════
 //  STAFF
 // ═══════════════════════════════════════════════════════════
 function renderStaff() {
-  const tbody = document.getElementById('st-tbody');
-  const empty = document.getElementById('st-empty');
-  // Populate shift staff dropdown
-  const shSel = document.getElementById('sh-staff');
-  if (shSel) { shSel.innerHTML = '<option value="">-- Select --</option>' + db.staff.map(s => `<option value="${s.id}">${s.name}</option>`).join(''); }
-  if (!db.staff.length) { tbody.innerHTML = ''; empty.style.display = 'block'; }
+  const tbody=document.getElementById('st-tbody'); const empty=document.getElementById('st-empty');
+  const shSel=document.getElementById('sh-staff');
+  if (shSel) shSel.innerHTML='<option value="">-- Select --</option>'+db.staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  if (!db.staff.length) { tbody.innerHTML=''; empty.style.display='block'; }
   else {
-    empty.style.display = 'none';
-    tbody.innerHTML = db.staff.map(s => `
+    empty.style.display='none';
+    tbody.innerHTML=db.staff.map(s=>`
       <tr>
         <td><div style="font-weight:600">${s.name||'—'}</div></td>
-        <td>${s.role||'—'}</td>
-        <td>${s.phone||'—'}</td>
+        <td>${s.role||'—'}</td><td>${s.phone||'—'}</td>
         <td>${fmt(s.dailyRate)}</td>
         <td><span class="badge ${s.status==='Active'?'b-confirmed':'b-cancelled'}">${s.status||'Active'}</span></td>
         <td style="text-align:center;white-space:nowrap">
-          ${can('canEdit') ? `<button class="btn btn-ghost btn-sm" onclick="openStaffModal('${s.id}')">✏️</button>` : ''}
-          ${can('canDelete') ? `<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteStaff('${s.id}')">🗑</button>` : ''}
+          ${can('canEdit')?`<button class="btn btn-ghost btn-sm" onclick="openStaffModal('${s.id}')">✏️</button>`:''}
+          ${can('canDelete')?`<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteStaff('${s.id}')">🗑</button>`:''}
         </td>
       </tr>`).join('');
   }
-  // Shifts
-  const now = new Date();
-  const upcoming = db.shifts.filter(sh => new Date(sh.date) >= now).slice(0, 10);
-  document.getElementById('shifts-list').innerHTML = upcoming.length ? upcoming.map(sh => {
-    const staffMember = db.staff.find(s => s.id === sh.staffId);
-    return `<div style="padding:6px 8px;border-radius:6px;background:var(--surface2);margin-bottom:4px"><div style="font-weight:600">${staffMember?.name||sh.staffId}</div><div style="color:var(--ink3)">${fmtD(sh.date)} · ${sh.startTime||''}–${sh.endTime||''}</div></div>`;
-  }).join('') : '<div style="color:var(--ink3)">No upcoming shifts</div>';
+  const now=new Date();
+  const upcoming=db.shifts.filter(sh=>new Date(sh.date)>=now).slice(0,10);
+  document.getElementById('shifts-list').innerHTML=upcoming.length?upcoming.map(sh=>{
+    const sm=db.staff.find(s=>s.id===sh.staffId);
+    return `<div style="padding:6px 8px;border-radius:6px;background:var(--surface2);margin-bottom:4px"><div style="font-weight:600">${sm?.name||sh.staffId}</div><div style="color:var(--ink3)">${fmtD(sh.date)} · ${sh.startTime||''}–${sh.endTime||''}</div></div>`;
+  }).join(''):'<div style="color:var(--ink3)">No upcoming shifts</div>';
 }
 function openStaffModal(id) {
-  const s = id ? db.staff.find(x => x.id === id) : null;
+  const s=id?db.staff.find(x=>x.id===id):null;
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:16px;font-weight:800">${s ? 'Edit Staff' : 'Add Staff Member'}</div>
+        <div style="font-size:16px;font-weight:800">${s?'Edit Staff':'Add Staff Member'}</div>
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px">×</button>
       </div>
       <form id="st-form" style="display:flex;flex-direction:column;gap:10px">
@@ -1937,76 +1681,68 @@ function openStaffModal(id) {
         </div>
       </form>
     </div>`);
-  document.getElementById('st-form').onsubmit = async ev => {
+  document.getElementById('st-form').onsubmit=async ev=>{
     ev.preventDefault();
-    const g = i => document.getElementById(i)?.value;
-    const payload = { name: g('st-name'), role: g('st-role'), phone: g('st-phone'), dailyRate: Number(g('st-rate')||0), status: g('st-stat') };
+    const g=i=>document.getElementById(i)?.value;
+    const payload={name:g('st-name'),role:g('st-role'),phone:g('st-phone'),dailyRate:Number(g('st-rate')||0),status:g('st-stat')};
     try {
-      if (id) { const u = await dbUpdate('staff', id, payload); db.staff = db.staff.map(x => x.id === id ? camelize(u) : x); toast('Staff updated ✓'); }
-      else { const cr = await dbInsert('staff', { ...payload, id: uid() }); db.staff.push(camelize(cr)); toast('Staff added ✓'); }
+      if (id) { const u=await dbUpdate('staff',id,payload); db.staff=db.staff.map(x=>x.id===id?camelize(u):x); toast('Staff updated ✓'); }
+      else { const cr=await dbInsert('staff',{...payload,id:uid()}); db.staff.push(camelize(cr)); toast('Staff added ✓'); }
       closeModal(); renderStaff();
-    } catch(e) { toast(e.message, 'e'); }
+    } catch(e) { toast(e.message,'e'); }
   };
 }
-document.getElementById('shift-form').onsubmit = async ev => {
+document.getElementById('shift-form').onsubmit=async ev=>{
   ev.preventDefault();
-  const g = id => document.getElementById(id)?.value;
-  const payload = { staffId: g('sh-staff'), linkedEvent: g('sh-event'), date: g('sh-date'), startTime: g('sh-start'), endTime: g('sh-end'), status: g('sh-status') };
-  try { const cr = await dbInsert('shifts', { ...payload, id: uid() }); db.shifts.unshift(camelize(cr)); document.getElementById('shift-form').reset(); renderStaff(); toast('Shift assigned ✓'); }
-  catch(e) { toast(e.message, 'e'); }
+  const g=id=>document.getElementById(id)?.value;
+  const payload={staffId:g('sh-staff'),linkedEvent:g('sh-event'),date:g('sh-date'),startTime:g('sh-start'),endTime:g('sh-end'),status:g('sh-status')};
+  try { const cr=await dbInsert('shifts',{...payload,id:uid()}); db.shifts.unshift(camelize(cr)); document.getElementById('shift-form').reset(); renderStaff(); toast('Shift assigned ✓'); }
+  catch(e) { toast(e.message,'e'); }
 };
 async function deleteStaff(id) {
-  if (!can('canDelete')) { toast('Admin only', 'e'); return; }
+  if (!can('canDelete')) { toast('Admin only','e'); return; }
   if (!confirm('Delete staff member?')) return;
-  try { await dbDelete('staff', id); db.staff = db.staff.filter(s => s.id !== id); renderStaff(); toast('Deleted'); }
-  catch(e) { toast(e.message, 'e'); }
+  try { await dbDelete('staff',id); db.staff=db.staff.filter(s=>s.id!==id); renderStaff(); toast('Deleted'); }
+  catch(e) { toast(e.message,'e'); }
 }
 
 // ═══════════════════════════════════════════════════════════
 //  REPORTS
 // ═══════════════════════════════════════════════════════════
-let rptCharts = {};
+let rptCharts={};
 function renderReportCharts() {
-  // Financial summary
-  const totalRev = db.bookings.filter(b => b.reservationStatus !== 'CANCELLED').reduce((a, b) => a + (b.amountPaid || 0), 0);
-  const totalExp = db.expenses.reduce((a, e) => a + Number(e.amount || 0), 0);
-  document.getElementById('rpt-rev').textContent    = fmt(totalRev);
-  document.getElementById('rpt-exp').textContent    = fmt(totalExp);
-  document.getElementById('rpt-profit').textContent = fmt(totalRev - totalExp);
-  document.getElementById('rpt-margin').textContent = totalRev > 0 ? ((totalRev - totalExp) / totalRev * 100).toFixed(1) + '%' : '0%';
-  document.getElementById('rpt-clients').textContent = db.clients.length;
-  const activeBk = db.bookings.filter(b => b.reservationStatus !== 'CANCELLED');
-  document.getElementById('rpt-avg').textContent = fmt(activeBk.length ? activeBk.reduce((a, b) => a + (b.grandTotal || 0), 0) / activeBk.length : 0);
-  document.getElementById('rpt-mp').textContent = db.bookings.filter(b => b.mpesaAmount > 0).length;
-  // Revenue by event type chart
-  const evTypes = {}; db.bookings.filter(b => b.reservationStatus !== 'CANCELLED').forEach(b => { evTypes[b.category || 'Other'] = (evTypes[b.category || 'Other'] || 0) + (b.amountPaid || 0); });
+  const totalRev=db.bookings.filter(b=>b.reservationStatus!=='CANCELLED').reduce((a,b)=>a+(b.amountPaid||0),0);
+  const totalExp=db.expenses.reduce((a,e)=>a+Number(e.amount||0),0);
+  document.getElementById('rpt-rev').textContent=fmt(totalRev);
+  document.getElementById('rpt-exp').textContent=fmt(totalExp);
+  document.getElementById('rpt-profit').textContent=fmt(totalRev-totalExp);
+  document.getElementById('rpt-margin').textContent=totalRev>0?((totalRev-totalExp)/totalRev*100).toFixed(1)+'%':'0%';
+  document.getElementById('rpt-clients').textContent=db.clients.length;
+  const activeBk=db.bookings.filter(b=>b.reservationStatus!=='CANCELLED');
+  document.getElementById('rpt-avg').textContent=fmt(activeBk.length?activeBk.reduce((a,b)=>a+(b.grandTotal||0),0)/activeBk.length:0);
+  document.getElementById('rpt-mp').textContent=db.bookings.filter(b=>b.mpesaAmount>0).length;
+  const evTypes={}; db.bookings.filter(b=>b.reservationStatus!=='CANCELLED').forEach(b=>{evTypes[b.category||'Other']=(evTypes[b.category||'Other']||0)+(b.amountPaid||0);});
   if (rptCharts.ev) rptCharts.ev.destroy();
-  rptCharts.ev = new Chart(document.getElementById('rpt-ev-chart'), { type: 'doughnut', data: { labels: Object.keys(evTypes), datasets: [{ data: Object.values(evTypes), backgroundColor: ['#0d4a6b','#1a6d9e','#14805e','#d97706','#c62828','#64748b','#7c3aed'] }] }, options: { plugins: { legend: { position: 'bottom' } } } });
-  // Monthly trend
-  const now = new Date(); const months = []; const rev6 = [], bk6 = [];
-  for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth() - i, 1); const end = new Date(d.getFullYear(), d.getMonth() + 1, 1); months.push(d.toLocaleDateString('en', { month: 'short' })); const mbk = db.bookings.filter(b => { const s = new Date(b.startDate); return s >= d && s < end && b.reservationStatus !== 'CANCELLED'; }); rev6.push(mbk.reduce((a, b) => a + (b.amountPaid || 0), 0)); bk6.push(mbk.length); }
+  rptCharts.ev=new Chart(document.getElementById('rpt-ev-chart'),{type:'doughnut',data:{labels:Object.keys(evTypes),datasets:[{data:Object.values(evTypes),backgroundColor:['#0d4a6b','#1a6d9e','#14805e','#d97706','#c62828','#64748b','#7c3aed']}]},options:{plugins:{legend:{position:'bottom'}}}});
+  const now=new Date(); const months=[]; const rev6=[],bk6=[];
+  for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); const end=new Date(d.getFullYear(),d.getMonth()+1,1); months.push(d.toLocaleDateString('en',{month:'short'})); const mbk=db.bookings.filter(b=>{const s=new Date(b.startDate);return s>=d&&s<end&&b.reservationStatus!=='CANCELLED';}); rev6.push(mbk.reduce((a,b)=>a+(b.amountPaid||0),0)); bk6.push(mbk.length); }
   if (rptCharts.trend) rptCharts.trend.destroy();
-  rptCharts.trend = new Chart(document.getElementById('rpt-trend-chart'), { type: 'line', data: { labels: months, datasets: [{ label: 'Revenue', data: rev6, borderColor: '#14805e', backgroundColor: 'rgba(20,128,94,.1)', tension: .4, fill: true }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
-  // Expense breakdown
-  const expCats = {}; db.expenses.forEach(e => { expCats[e.category || 'Other'] = (expCats[e.category || 'Other'] || 0) + Number(e.amount || 0); });
+  rptCharts.trend=new Chart(document.getElementById('rpt-trend-chart'),{type:'line',data:{labels:months,datasets:[{label:'Revenue',data:rev6,borderColor:'#14805e',backgroundColor:'rgba(20,128,94,.1)',tension:.4,fill:true}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  const expCats={}; db.expenses.forEach(e=>{expCats[e.category||'Other']=(expCats[e.category||'Other']||0)+Number(e.amount||0);});
   if (rptCharts.exp) rptCharts.exp.destroy();
-  rptCharts.exp = new Chart(document.getElementById('rpt-exp-chart'), { type: 'bar', data: { labels: Object.keys(expCats), datasets: [{ label: 'KES', data: Object.values(expCats), backgroundColor: 'rgba(176,44,44,.7)', borderRadius: 5 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+  rptCharts.exp=new Chart(document.getElementById('rpt-exp-chart'),{type:'bar',data:{labels:Object.keys(expCats),datasets:[{label:'KES',data:Object.values(expCats),backgroundColor:'rgba(176,44,44,.7)',borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
 }
 function exportReport() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const s = db.settings;
-  const PW = doc.internal.pageSize.width;
-  doc.setFillColor(13, 74, 107); doc.rect(0, 0, PW, 28, 'F');
-  doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
-  doc.text('AMWAJ SEAFRONT VENUE · Financial Report', 14, 16);
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-  doc.text('Generated: ' + new Date().toLocaleString(), 14, 23);
-  doc.setTextColor(30, 30, 30);
-  const totalRev = db.bookings.filter(b => b.reservationStatus !== 'CANCELLED').reduce((a, b) => a + (b.amountPaid || 0), 0);
-  const totalExp = db.expenses.reduce((a, e) => a + Number(e.amount || 0), 0);
-  doc.autoTable({ startY: 35, head: [['Metric', 'Value']], body: [['Total Revenue', 'KES ' + totalRev.toLocaleString()], ['Total Expenses', 'KES ' + totalExp.toLocaleString()], ['Net Profit', 'KES ' + (totalRev - totalExp).toLocaleString()], ['Profit Margin', totalRev > 0 ? ((totalRev - totalExp) / totalRev * 100).toFixed(1) + '%' : '0%'], ['Total Clients', db.clients.length], ['Total Bookings', db.bookings.length]], headStyles: { fillColor: [13, 74, 107] }, styles: { fontSize: 9 } });
-  doc.save('AMWAJ_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
+  const {jsPDF}=window.jspdf; const doc=new jsPDF(); const PW=doc.internal.pageSize.width;
+  doc.setFillColor(13,74,107); doc.rect(0,0,PW,28,'F');
+  doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+  doc.text('AMWAJ SEAFRONT VENUE · Financial Report',14,16);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text('Generated: '+new Date().toLocaleString(),14,23);
+  doc.setTextColor(30,30,30);
+  const totalRev=db.bookings.filter(b=>b.reservationStatus!=='CANCELLED').reduce((a,b)=>a+(b.amountPaid||0),0);
+  const totalExp=db.expenses.reduce((a,e)=>a+Number(e.amount||0),0);
+  doc.autoTable({startY:35,head:[['Metric','Value']],body:[['Total Revenue','KES '+totalRev.toLocaleString()],['Total Expenses','KES '+totalExp.toLocaleString()],['Net Profit','KES '+(totalRev-totalExp).toLocaleString()],['Profit Margin',totalRev>0?((totalRev-totalExp)/totalRev*100).toFixed(1)+'%':'0%'],['Total Clients',db.clients.length],['Total Bookings',db.bookings.length]],headStyles:{fillColor:[13,74,107]},styles:{fontSize:9}});
+  doc.save('AMWAJ_Report_'+new Date().toISOString().slice(0,10)+'.pdf');
   toast('Report PDF downloaded ✓');
 }
 
@@ -2014,76 +1750,55 @@ function exportReport() {
 //  SETTINGS
 // ═══════════════════════════════════════════════════════════
 async function loadSettingsForm() {
-  const s = db.settings;
-  ['vs-name','vs-loc','vs-phone','vs-email','vs-bank'].forEach((id, i) => {
-    const el = document.getElementById(id);
-    if (el) el.value = [s.venueName, s.venueLocation, s.phone, s.email, s.bank][i] || '';
-  });
-  if (document.getElementById('vs-vat')) document.getElementById('vs-vat').value = s.vatRate || 16;
-  if (document.getElementById('vs-target')) document.getElementById('vs-target').value = s.monthlyTarget || 0;
-  if (document.getElementById('mp-sc')) document.getElementById('mp-sc').value = s.mpesaShortcode || '';
-  if (document.getElementById('mp-cb')) document.getElementById('mp-cb').value = s.mpesaCallback || '';
-  // RLS status display
-  const rlsEl = document.getElementById('rls-status');
-  if (rlsEl) rlsEl.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:6px">
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>Supabase RLS enabled on all tables</span></div>
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>Auth via Supabase Auth (JWT)</span></div>
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>M-Pesa credentials server-side only</span></div>
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>No business data in localStorage</span></div>
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>Role-based access control active</span></div>
-    </div>`;
-  // User management (admin only)
-  const umSection = document.getElementById('user-mgmt-section');
-  if (umSection) umSection.style.display = can('canManageUsers') ? 'block' : 'none';
-  // Populate users list (admin only - reads from user_roles)
+  const s=db.settings;
+  ['vs-name','vs-loc','vs-phone','vs-email','vs-bank'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.value=[s.venueName,s.venueLocation,s.phone,s.email,s.bank][i]||'';});
+  if (document.getElementById('vs-vat')) document.getElementById('vs-vat').value=s.vatRate||16;
+  if (document.getElementById('vs-target')) document.getElementById('vs-target').value=s.monthlyTarget||0;
+  if (document.getElementById('mp-sc')) document.getElementById('mp-sc').value=s.mpesaShortcode||'';
+  if (document.getElementById('mp-cb')) document.getElementById('mp-cb').value=s.mpesaCallback||'';
+  const rlsEl=document.getElementById('rls-status');
+  if (rlsEl) rlsEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px">
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>Supabase RLS enabled on all tables</span></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>Auth via Supabase Auth (JWT)</span></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>M-Pesa credentials server-side only</span></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>No business data in localStorage</span></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#f0fdf4;border-radius:6px"><span>✅</span><span>Role-based access control active</span></div>
+  </div>`;
+  const umSection=document.getElementById('user-mgmt-section');
+  if (umSection) umSection.style.display=can('canManageUsers')?'block':'none';
   if (can('canManageUsers')) {
-    const uList = document.getElementById('users-list');
+    const uList=document.getElementById('users-list');
     if (uList) {
-      uList.innerHTML = '<div style="color:var(--ink3)">⏳ Loading users…</div>';
+      uList.innerHTML='<div style="color:var(--ink3)">⏳ Loading users…</div>';
       try {
-        const { data, error } = await sb.from('user_roles').select('user_id, role');
+        const {data,error}=await sb.from('user_roles').select('user_id, role');
         if (error) throw error;
-        if (!data || !data.length) {
-          uList.innerHTML = '<div style="color:var(--ink3)">No users found in user_roles table.</div>';
-        } else {
-          uList.innerHTML = data.map(u => `
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px">
-              <div style="font-family:DM Mono,monospace;font-size:11px;color:var(--ink2)">${u.user_id.slice(0,8)}…</div>
-              <span class="role-badge ${u.role==='Administrator'?'role-admin':u.role==='Manager'?'role-manager':'role-staff'}">${u.role}</span>
-            </div>`).join('');
-        }
-      } catch(e) {
-        uList.innerHTML = `<div style="color:var(--red);font-size:11px">Could not load users: ${e.message}</div>`;
-      }
+        uList.innerHTML=(!data||!data.length)?'<div style="color:var(--ink3)">No users found in user_roles table.</div>':data.map(u=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px"><div style="font-family:DM Mono,monospace;font-size:11px;color:var(--ink2)">${u.user_id.slice(0,8)}…</div><span class="role-badge ${u.role==='Administrator'?'role-admin':u.role==='Manager'?'role-manager':'role-staff'}">${u.role}</span></div>`).join('');
+      } catch(e) { uList.innerHTML=`<div style="color:var(--red);font-size:11px">Could not load users: ${e.message}</div>`; }
     }
   }
 }
-document.getElementById('venue-form').onsubmit = ev => {
+document.getElementById('venue-form').onsubmit=ev=>{
   ev.preventDefault();
-  const g = id => document.getElementById(id)?.value;
-  db.settings = { ...db.settings, venueName: g('vs-name'), venueLocation: g('vs-loc'), phone: g('vs-phone'), email: g('vs-email'), bank: g('vs-bank'), vatRate: Number(g('vs-vat')||16), monthlyTarget: Number(g('vs-target')||0) };
-  prefs.settings = db.settings; savePrefs();
-  toast('Venue settings saved ✓');
+  const g=id=>document.getElementById(id)?.value;
+  db.settings={...db.settings,venueName:g('vs-name'),venueLocation:g('vs-loc'),phone:g('vs-phone'),email:g('vs-email'),bank:g('vs-bank'),vatRate:Number(g('vs-vat')||16),monthlyTarget:Number(g('vs-target')||0)};
+  prefs.settings=db.settings; savePrefs(); toast('Venue settings saved ✓');
 };
-document.getElementById('mpesa-form').onsubmit = ev => {
+document.getElementById('mpesa-form').onsubmit=ev=>{
   ev.preventDefault();
-  db.settings.mpesaShortcode = document.getElementById('mp-sc')?.value || '';
-  db.settings.mpesaCallback  = document.getElementById('mp-cb')?.value || '';
-  prefs.settings = db.settings; savePrefs();
-  toast('M-Pesa config saved ✓');
+  db.settings.mpesaShortcode=document.getElementById('mp-sc')?.value||'';
+  db.settings.mpesaCallback=document.getElementById('mp-cb')?.value||'';
+  prefs.settings=db.settings; savePrefs(); toast('M-Pesa config saved ✓');
 };
-document.getElementById('pw-form').onsubmit = async ev => {
+document.getElementById('pw-form').onsubmit=async ev=>{
   ev.preventDefault();
-  const np = document.getElementById('pw-new').value;
-  const nc = document.getElementById('pw-conf').value;
-  if (np !== nc) { toast('Passwords do not match', 'e'); return; }
-  if (np.length < 8) { toast('Minimum 8 characters', 'e'); return; }
-  const { error } = await sb.auth.updateUser({ password: np });
-  if (error) toast('Error: ' + error.message, 'e');
-  else toast('Password updated via Supabase Auth ✓');
+  const np=document.getElementById('pw-new').value;
+  const nc=document.getElementById('pw-conf').value;
+  if (np!==nc) { toast('Passwords do not match','e'); return; }
+  if (np.length<8) { toast('Minimum 8 characters','e'); return; }
+  const {error}=await sb.auth.updateUser({password:np});
+  if (error) toast('Error: '+error.message,'e'); else toast('Password updated ✓');
 };
-
 function openInviteUserModal() {
   openModal(`
     <div style="padding:20px">
@@ -2101,60 +1816,60 @@ function openInviteUserModal() {
         </div>
       </form>
     </div>`);
-  document.getElementById('invite-form').onsubmit = async ev => {
+  document.getElementById('invite-form').onsubmit=async ev=>{
     ev.preventDefault();
-    const email = document.getElementById('inv-email').value;
-    const role  = document.getElementById('inv-role').value;
-    // NOTE: inviteUserByEmail requires service_role key — do this via Supabase Edge Function in production
-    toast(`Invite for ${email} (${role}) should be sent via Supabase Admin API / Edge Function in production.`, 'i', 6000);
+    const email=document.getElementById('inv-email').value;
+    const role=document.getElementById('inv-role').value;
+    toast(`Invite for ${email} (${role}) — use Supabase Admin API / Edge Function in production.`,'i',6000);
     closeModal();
   };
 }
-
 function exportBackup() {
-  const blob = new Blob([JSON.stringify({ version: 'erp_v3', date: new Date().toISOString(), ...db }, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'AMWAJ_Backup_' + new Date().toISOString().slice(0, 10) + '.json';
+  const blob=new Blob([JSON.stringify({version:'erp_v4',date:new Date().toISOString(),...db},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='AMWAJ_Backup_'+new Date().toISOString().slice(0,10)+'.json';
   a.click(); toast('Backup downloaded ✓');
 }
 
 // ═══════════════════════════════════════════════════════════
 //  SESSION / INACTIVITY
 // ═══════════════════════════════════════════════════════════
-const IDLE_LIMIT = 30 * 60 * 1000, WARN_BEFORE = 2 * 60 * 1000;
-let idleTimer, warnTimer, cdownInterval;
+const IDLE_LIMIT=30*60*1000, WARN_BEFORE=2*60*1000;
+let idleTimer,warnTimer,cdownInterval;
 function resetIdle() {
   clearTimeout(idleTimer); clearTimeout(warnTimer); clearInterval(cdownInterval);
   if (!CURRENT_USER) return;
-  warnTimer   = setTimeout(showIdleWarn, IDLE_LIMIT - WARN_BEFORE);
-  idleTimer   = setTimeout(doLogout, IDLE_LIMIT);
+  warnTimer=setTimeout(showIdleWarn,IDLE_LIMIT-WARN_BEFORE);
+  idleTimer=setTimeout(doLogout,IDLE_LIMIT);
 }
 function showIdleWarn() {
-  let secs = Math.floor(WARN_BEFORE / 1000);
+  let secs=Math.floor(WARN_BEFORE/1000);
   openModal(`<div style="padding:24px;text-align:center"><div style="font-size:36px;margin-bottom:10px">⏱</div><div style="font-size:16px;font-weight:700;margin-bottom:6px">Session Expiring</div><p style="color:var(--ink3);font-size:13px;margin-bottom:12px">You will be signed out in</p><div id="idle-countdown" style="font-size:40px;font-weight:800;color:var(--amber);margin-bottom:20px">${Math.floor(secs/60).toString().padStart(2,'0')}:${(secs%60).toString().padStart(2,'0')}</div><div style="display:flex;gap:10px;justify-content:center"><button onclick="resetIdle();closeModal()" class="btn btn-ocean">Stay Signed In</button><button onclick="doLogout()" class="btn btn-ghost">Sign Out</button></div></div>`);
-  cdownInterval = setInterval(() => { secs--; const el = document.getElementById('idle-countdown'); if (el) { const m = String(Math.floor(Math.max(secs,0)/60)).padStart(2,'0'); const s = String(Math.max(secs,0)%60).padStart(2,'0'); el.textContent = m+':'+s; } if (secs <= 0) clearInterval(cdownInterval); }, 1000);
+  cdownInterval=setInterval(()=>{secs--;const el=document.getElementById('idle-countdown');if(el){const m=String(Math.floor(Math.max(secs,0)/60)).padStart(2,'0');const s=String(Math.max(secs,0)%60).padStart(2,'0');el.textContent=m+':'+s;}if(secs<=0)clearInterval(cdownInterval);},1000);
 }
-function initInactivityWatcher() { ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev => document.addEventListener(ev, resetIdle, { passive: true })); resetIdle(); }
+function initInactivityWatcher() { ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true})); resetIdle(); }
 
 // ═══════════════════════════════════════════════════════════
 //  INIT
+//  ── FIX: renderAll() and initCalendars() are called here,
+//     inside initAll(), which runs only after bootApp()
+//     confirms the user is authenticated and the DOM is ready.
 // ═══════════════════════════════════════════════════════════
 function renderAll() { renderDash(); renderBookings(); renderInvoices(); renderExpenses(); renderClients(); renderVendors(); renderInventory(); renderStaff(); }
 
 function initAll() {
-  document.getElementById('e-date').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('e-date').value = new Date().toISOString().slice(0,10);
   renderAll();
-  initCalendars();
+  initCalendars(); // ← now properly defined above
 }
 
-// Boot on load
+// ── Boot on page load ──
 window.onload = async () => {
   const { data } = await sb.auth.getSession();
-  if (data.session) await bootApp(data.session.user);
-  else {
-    // Ensure login screen visible
-    document.getElementById('login-screen').style.display = 'flex';
+  if (data.session) {
+    await bootApp(data.session.user);
   }
+  // If no session, login-screen is already visible — nothing else needed.
 };
 </script>
 </body>
