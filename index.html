@@ -888,6 +888,8 @@ async function bootApp(user) {
   document.getElementById('tb-role').className = 'role-badge ' + roleClass;
   // Hide restricted nav items for Staff
   if (!can('canViewReports')) document.getElementById('nav-reports').style.display = 'none';
+  // Hide settings nav for non-admins
+if (!can('canManageUsers')) document.getElementById('nav-settings').style.display = 'none';
   // Show app
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
@@ -909,6 +911,14 @@ let currentView = 'dash';
 const viewTitles = { dash:'Dashboard', calendar:'Calendar', bookings:'Bookings', invoices:'Invoices', expenses:'Expenses', clients:'Clients', vendors:'Vendors', inventory:'Inventory', staff:'Staff', reports:'Reports', settings:'Settings' };
 
 function goView(v) {
+  if (v === 'settings' && !can('canManageUsers')) {
+    toast('Access denied. Administrators only.', 'e');
+    return;
+  }
+  if (v === 'reports' && !can('canViewReports')) {
+    toast('Access denied.', 'e');
+    return;
+  }
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const el = document.getElementById('v-' + v);
