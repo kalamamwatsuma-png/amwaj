@@ -662,12 +662,9 @@
 <script>
 // ═══════════════════════════════════════════════════════════
 //  SUPABASE INIT
-//  ⚠️  Replace SUPA_ANON with your real anon key from
-//  Supabase Dashboard → Project Settings → API
-//  It must start with "eyJ..." (a JWT token), NOT "sb_publishable_..."
 // ═══════════════════════════════════════════════════════════
 const SUPA_URL  = 'https://ccbgqyiiolbjcsahahkk.supabase.co';
-const SUPA_ANON = 'REPLACE_WITH_YOUR_REAL_ANON_KEY_eyJ...'; // ← FIX THIS
+const SUPA_ANON = 'sb_publishable_6jnO41Lkd2FF0XG_u46GXw_ONVXbmDy';
 const sb = window.supabase.createClient(SUPA_URL, SUPA_ANON, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'amwaj-v3-auth' }
 });
