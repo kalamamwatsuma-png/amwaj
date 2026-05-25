@@ -1228,13 +1228,38 @@ function openBookingModal(id, prefillDate) {
           <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
         </div>
       </form>
-    </div>`);
+    </div>`)
+    
+    <div style="grid-column:span 2">
+  <label class="lbl">Select FX Inventory Items</label>
+  <div id="bk-fx-items" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;background:var(--surface2);padding:10px;border-radius:8px;max-height:180px;overflow-y:auto">
+    ${db.fx.filter(f => f.status === 'Available').map(f => {
+      const checked = (b?.fxItems || []).includes(f.id) ? 'checked' : '';
+      return `
+        <label style="display:flex;align-items:center;justify-content:space-between;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" class="bk-fx-item" value="${f.id}" ${checked}>
+            <div>
+              <div style="font-weight:600;font-size:12px">${f.name}</div>
+              <div style="font-size:11px;color:var(--ink3)">${fmt(f.rentalPrice || 0)}</div>
+            </div>
+          </div>
+        </label>
+      `;
+    }).join('')}
+  </div>
+</div>;
 
   // Populate FX items selector
   buildFXItemsSelector(b);
 
-  ['bk-venue','bk-catering','bk-disc-pct'].forEach(id => document.getElementById(id)?.addEventListener('input', calcBkTotal));
-  calcBkTotal();
+ ['bk-venue','bk-catering','bk-fx','bk-disc'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', calcBkTotal);
+});
+
+document.querySelectorAll('.bk-fx-item').forEach(el => {
+  el.addEventListener('change', calcBkTotal);
+});
   document.getElementById('bk-form').onsubmit = async ev => { ev.preventDefault(); await saveBooking(id); };
 }
 function buildFXItemsSelector(booking) {
@@ -1287,21 +1312,29 @@ function getFXItemsSelected() {
 }
 function calcBkTotal() {
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const venueFee = g('bk-venue'), cateringFee = g('bk-catering');
-  const fxItems = getFXItemsSelected();
-  const fxTotal = fxItems.reduce((a, i) => a + i.customPrice, 0);
-  const subtotalEl = document.getElementById('bk-subtotal-disp');
-  const fxSubEl = document.getElementById('bk-fx-subtotal');
-  const discEl = document.getElementById('bk-discount-disp');
-  const totalEl = document.getElementById('bk-total-disp');
-  const subtotal = venueFee + cateringFee + fxTotal;
-  const discPct = g('bk-disc-pct');
-  const discAmt = Math.round(subtotal * discPct / 100 * 100) / 100;
-  const grand = Math.max(0, subtotal - discAmt);
-  if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
-  if (fxSubEl) fxSubEl.textContent = fmt(fxTotal);
-  if (discEl) discEl.textContent = '– ' + fmt(discAmt);
-  if (totalEl) totalEl.textContent = fmt(grand);
+
+  const selectedFxIds = [...document.querySelectorAll('.bk-fx-item:checked')]
+    .map(el => el.value);
+
+  const fxInventoryTotal = selectedFxIds.reduce((sum, id) => {
+    const item = db.fx.find(f => f.id === id);
+    return sum + Number(item?.rentalPrice || 0);
+  }, 0);
+
+  const manualFxFee = g('bk-fx');
+
+  const total =
+    g('bk-venue') +
+    g('bk-catering') +
+    manualFxFee +
+    fxInventoryTotal -
+    g('bk-disc');
+
+  const el = document.getElementById('bk-total-disp');
+
+  if (el) {
+    el.textCont = fmt(total);
+  }
 }
 async function saveBooking(editId) {
   const v = id => document.getElementById(id)?.value;
@@ -1314,9 +1347,39 @@ async function saveBooking(editId) {
     return;
   }
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const venueFee = g('bk-venue'), cateringFee = g('bk-catering'), fxFee = g('bk-fx'), discount = g('bk-disc'), amountPaid = g('bk-paid');
-  const grandTotal = venueFee + cateringFee + fxFee - discount;
-  const payload = { clientName: v('bk-client'), phone: v('bk-phone'), email: v('bk-email'), category: v('bk-cat'), startDate: start, endDate: end, guestCount: g('bk-guests'), venueFee, cateringFee, fxFee, discount, amountPaid, grandTotal, reservationStatus: v('bk-rstat'), notes: v('bk-notes') };
+  const selectedFxIds = [...document.querySelectorAll('.bk-fx-item:checked')]
+  .map(el => el.value);
+
+const fxInventoryTotal = selectedFxIds.reduce((sum, id) => {
+  const item = db.fx.find(f => f.id === id);
+  return sum + Number(item?.rentalPrice || 0);
+}, 0);
+
+const venueFee = g('bk-venue');
+const cateringFee = g('bk-catering');
+const manualFxFee = g('bk-fx');
+const fxFee = manualFxFee + fxInventoryTotal;
+const discount = g('bk-disc');
+const amountPaid = g('bk-paid');
+
+const grandTotal = venueFee + cateringFee + fxFee - discount;const payload = {
+  clientName: v('bk-client'),
+  phone: v('bk-phone'),
+  email: v('bk-email'),
+  category: v('bk-cat'),
+  startDate: start,
+  endDate: end,
+  guestCount: g('bk-guests'),
+  venueFee,
+  cateringFee,
+  fxFee,
+  fxItems: selectedFxIds,
+  discount,
+  amountPaid,
+  grandTotal,
+  reservationStatus: v('bk-rstat'),
+  notes: v('bk-notes')
+};
   try {
     if (editId) { const updated = await dbUpdate('bookings', editId, payload); db.bookings = db.bookings.map(b => b.id === editId ? camelizeBooking(updated) : b); toast('Booking updated ✓'); }
     else { const created = await dbInsert('bookings', { ...payload, id: uid() }); db.bookings.unshift(camelizeBooking(created)); toast('Booking created ✓'); }
