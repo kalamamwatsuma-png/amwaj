@@ -723,9 +723,27 @@ async function dbLoad() {
     db.staff     = (stRes.data || []).map(camelize);
     db.shifts    = (shRes.data || []).map(camelize);
     db.settings  = prefs.settings || { venueName: 'AMWAJ SEAFRONT VENUE', venueLocation: 'Tudor Creek, Mombasa', phone: '', email: '', bank: '', vatRate: 16, monthlyTarget: 0, mpesaShortcode: '', mpesaCallback: '' };
+    await seedFXDefaults();
   } catch(e) {
     toast('Failed to load data: ' + e.message, 'e');
   } finally { hideLoader(); }
+}
+
+async function seedFXDefaults() {
+  const defaults = [
+    { name: 'Smoke Ice Machine',        rentalPrice: 0,     status: 'Available', qty: 1 },
+    { name: 'Pyro Machine',             rentalPrice: 3500,  status: 'Available', qty: 1 },
+    { name: 'Moving Headlight',         rentalPrice: 3500,  status: 'Available', qty: 1 },
+    { name: 'Laser Projection Mapping', rentalPrice: 70000, status: 'Available', qty: 1 },
+  ];
+  const existing = new Set(db.fx.map(f => (f.name || '').toLowerCase().trim()));
+  for (const item of defaults) {
+    if (existing.has(item.name.toLowerCase())) continue;
+    try {
+      const cr = await dbInsert('inventory', { ...item, id: uid() });
+      db.fx.push(camelize(cr));
+    } catch (e) { /* ignore — likely permission or duplicate */ }
+  }
 }
 
 function camelize(row) {
@@ -1149,6 +1167,7 @@ function openBookingDetail(b) {
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">End</div><div style="font-weight:600;margin-top:2px">${fmtDT(b.endDate)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Reservation</div><div style="margin-top:2px">${rsBadge(b.reservationStatus)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Payment</div><div style="margin-top:2px">${psBadge(b.paymentStatus)}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Discount</div><div style="font-weight:600;margin-top:2px">${Number(b.discount||0)}%</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Total</div><div style="font-weight:800;font-size:16px;color:var(--ocean);margin-top:2px">${fmt(b.grandTotal)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Balance</div><div style="font-weight:800;font-size:16px;color:var(--amber);margin-top:2px">${fmt(b.balance)}</div></div>
       </div>
@@ -1186,7 +1205,7 @@ function openBookingModal(id, prefillDate) {
         <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Catering Fee (KES)</label><input id="bk-catering" type="number" value="${b?.cateringFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">FX/Decor Fee (KES)</label><input id="bk-fx" type="number" value="${b?.fxFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Discount (KES)</label><input id="bk-disc" type="number" value="${b?.discount||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Discount (%)</label><input id="bk-disc" type="number" value="${b?.discount||0}" min="0" max="100" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Amount Paid (KES)</label><input id="bk-paid" type="number" value="${b?.amountPaid||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Reservation Status</label>
           <select id="bk-rstat" style="width:100%;padding:7px 10px">
@@ -1210,7 +1229,7 @@ function openBookingModal(id, prefillDate) {
 }
 function calcBkTotal() {
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const total = g('bk-venue') + g('bk-catering') + g('bk-fx') - g('bk-disc');
+  const subtotal = g('bk-venue') + g('bk-catering') + g('bk-fx'); const total = subtotal * (1 - Math.min(100, Math.max(0, g('bk-disc')))/100);
   const el = document.getElementById('bk-total-disp');
   if (el) el.textContent = fmt(total);
 }
@@ -1225,8 +1244,10 @@ async function saveBooking(editId) {
     return;
   }
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const venueFee = g('bk-venue'), cateringFee = g('bk-catering'), fxFee = g('bk-fx'), discount = g('bk-disc'), amountPaid = g('bk-paid');
-  const grandTotal = venueFee + cateringFee + fxFee - discount;
+  const venueFee = g('bk-venue'), cateringFee = g('bk-catering'), fxFee = g('bk-fx'), amountPaid = g('bk-paid');
+  const discount = Math.min(100, Math.max(0, g('bk-disc')));
+  const subtotal = venueFee + cateringFee + fxFee;
+  const grandTotal = subtotal * (1 - discount/100);
   const payload = { clientName: v('bk-client'), phone: v('bk-phone'), email: v('bk-email'), category: v('bk-cat'), startDate: start, endDate: end, guestCount: g('bk-guests'), venueFee, cateringFee, fxFee, discount, amountPaid, grandTotal, reservationStatus: v('bk-rstat'), notes: v('bk-notes') };
   try {
     if (editId) { const updated = await dbUpdate('bookings', editId, payload); db.bookings = db.bookings.map(b => b.id === editId ? camelizeBooking(updated) : b); toast('Booking updated ✓'); }
@@ -1329,7 +1350,9 @@ function printBookingReceipt(bookingId) {
   y += 8;
   doc.autoTable({ startY: y, head: [['Event Details', '']], body: [['Event Type', b.category||'—'],['Start', fmtDT(b.startDate)],['End', fmtDT(b.endDate)],['Guests', String(b.guestCount||'—')],['Status', b.reservationStatus||'—']], styles: { fontSize: 8 }, headStyles: { fillColor: [13, 74, 107] }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }, margin: { left: 10, right: 10 } });
   y = doc.lastAutoTable.finalY + 6;
-  doc.autoTable({ startY: y, head: [['Payment Summary', 'KES']], body: [['Venue Fee', Number(b.venueFee||0).toLocaleString()],['Catering Fee', Number(b.cateringFee||0).toLocaleString()],['FX / Decor', Number(b.fxFee||0).toLocaleString()],['Discount', '('+Number(b.discount||0).toLocaleString()+')'],['Grand Total', Number(b.grandTotal||0).toLocaleString()],['Amount Paid', Number(b.amountPaid||0).toLocaleString()],['Balance Due', Number(b.balance||0).toLocaleString()]], styles: { fontSize: 8 }, headStyles: { fillColor: [20, 128, 94] }, columnStyles: { 1: { halign: 'right' } }, didParseCell: (data) => { if (data.row.index === 6) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181,42,42] : [20,128,94]; } if (data.row.index === 4) data.cell.styles.fontStyle = 'bold'; }, margin: { left: 10, right: 10 } });
+  const _sub = Number(b.venueFee||0) + Number(b.cateringFee||0) + Number(b.fxFee||0);
+  const _discAmt = _sub * (Number(b.discount||0)/100);
+  doc.autoTable({ startY: y, head: [['Payment Summary', 'KES']], body: [['Venue Fee', Number(b.venueFee||0).toLocaleString()],['Catering Fee', Number(b.cateringFee||0).toLocaleString()],['FX / Decor', Number(b.fxFee||0).toLocaleString()],['Subtotal', _sub.toLocaleString()],['Discount ('+Number(b.discount||0)+'%)', '('+_discAmt.toLocaleString(undefined,{maximumFractionDigits:2})+')'],['Grand Total', Number(b.grandTotal||0).toLocaleString()],['Amount Paid', Number(b.amountPaid||0).toLocaleString()],['Balance Due', Number(b.balance||0).toLocaleString()]], styles: { fontSize: 8 }, headStyles: { fillColor: [20, 128, 94] }, columnStyles: { 1: { halign: 'right' } }, didParseCell: (data) => { if (data.row.index === 7) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181,42,42] : [20,128,94]; } if (data.row.index === 5) data.cell.styles.fontStyle = 'bold'; }, margin: { left: 10, right: 10 } });
   y = doc.lastAutoTable.finalY + 8;
   if (b.mpesaAmount > 0) { doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(0,166,81); doc.text('📱 M-Pesa: KES ' + Number(b.mpesaAmount).toLocaleString() + ' received', 10, y); y += 5; }
   if (s.bank) { doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(120,120,120); doc.text('Bank: ' + s.bank, 10, y); }
