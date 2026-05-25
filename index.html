@@ -925,8 +925,8 @@ function hideLoader() { document.getElementById('page-loader').style.transform =
 //  FORMATTERS
 // ═══════════════════════════════════════════════════════════
 const fmt  = n => 'KES ' + Number(n || 0).toLocaleString('en-KE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-const fmtD = s => { if (!s) return '—'; const d = new Date(s); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(2)}`; };
-const fmtDT= s => { if (!s) return '—'; const d = new Date(s); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(2)} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
+const fmtD = s => s ? new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDT= s => s ? new Date(s).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 function rsBadge(s) { const m = { RESERVED:'b-reserved', CONFIRMED:'b-confirmed', COMPLETED:'b-completed', CANCELLED:'b-cancelled' }; return `<span class="badge ${m[s]||'b-reserved'}">${s||'RESERVED'}</span>`; }
 function psBadge(s) { const m = { UNPAID:'b-unpaid', PARTIAL:'b-partial', PAID:'b-paid' }; return `<span class="badge ${m[s]||'b-unpaid'}">${s||'UNPAID'}</span>`; }
 function uid() { return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36); }
