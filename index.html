@@ -521,7 +521,7 @@
         </div>
         <div class="card" style="overflow-x:auto">
           <table class="tbl">
-            <thead><tr><th>Item</th><th>Serial</th><th style="text-align:center">Qty</th><th>Rental Price</th><th>Status</th><th>Assigned To</th><th style="text-align:center">Actions</th></tr></thead>
+            <thead><tr><th>Item</th><th>Serial</th><th style="text-align:center">Qty</th><th>Rental Price</th><th>Price Type</th><th>Status</th><th>Assigned To</th><th style="text-align:center">Actions</th></tr></thead>
             <tbody id="fx-tbody"></tbody>
           </table>
           <div id="fx-empty" class="empty-state" style="display:none"><div class="emoji">📦</div><p>No inventory items.</p></div>
@@ -723,27 +723,23 @@ async function dbLoad() {
     db.staff     = (stRes.data || []).map(camelize);
     db.shifts    = (shRes.data || []).map(camelize);
     db.settings  = prefs.settings || { venueName: 'AMWAJ SEAFRONT VENUE', venueLocation: 'Tudor Creek, Mombasa', phone: '', email: '', bank: '', vatRate: 16, monthlyTarget: 0, mpesaShortcode: '', mpesaCallback: '' };
-    await seedFXDefaults();
+
+    // Seed default FX items if inventory is empty
+    if (!db.fx.length) {
+      const fxSeeds = [
+        { id: uid(), name: 'Smoke Ice Machine',  serial: '', qty: 1, rentalPrice: 0,      status: 'Available', assignedTo: '', editablePerBooking: true  },
+        { id: uid(), name: 'Pyro Machine',        serial: '', qty: 1, rentalPrice: 3500,   status: 'Available', assignedTo: '', editablePerBooking: false },
+        { id: uid(), name: 'Moving Headlight',    serial: '', qty: 1, rentalPrice: 3500,   status: 'Available', assignedTo: '', editablePerBooking: false },
+        { id: uid(), name: 'Laser Projection',    serial: '', qty: 1, rentalPrice: 0,      status: 'Available', assignedTo: '', editablePerBooking: true  },
+        { id: uid(), name: 'Mapping',             serial: '', qty: 1, rentalPrice: 70000,  status: 'Available', assignedTo: '', editablePerBooking: false },
+      ];
+      db.fx = fxSeeds;
+      // Persist seeds to Supabase silently
+      fxSeeds.forEach(item => dbInsert('inventory', item).then(r => { const idx = db.fx.findIndex(x => x.name === item.name && !x._persisted); if (idx > -1) { db.fx[idx] = {...camelize(r), editablePerBooking: item.editablePerBooking}; db.fx[idx]._persisted = true; } }).catch(() => {}));
+    }
   } catch(e) {
     toast('Failed to load data: ' + e.message, 'e');
   } finally { hideLoader(); }
-}
-
-async function seedFXDefaults() {
-  const defaults = [
-    { name: 'Smoke Ice Machine',        rentalPrice: 0,     status: 'Available', qty: 1 },
-    { name: 'Pyro Machine',             rentalPrice: 3500,  status: 'Available', qty: 1 },
-    { name: 'Moving Headlight',         rentalPrice: 3500,  status: 'Available', qty: 1 },
-    { name: 'Laser Projection Mapping', rentalPrice: 70000, status: 'Available', qty: 1 },
-  ];
-  const existing = new Set(db.fx.map(f => (f.name || '').toLowerCase().trim()));
-  for (const item of defaults) {
-    if (existing.has(item.name.toLowerCase())) continue;
-    try {
-      const cr = await dbInsert('inventory', { ...item, id: uid() });
-      db.fx.push(camelize(cr));
-    } catch (e) { /* ignore — likely permission or duplicate */ }
-  }
 }
 
 function camelize(row) {
@@ -1167,7 +1163,6 @@ function openBookingDetail(b) {
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">End</div><div style="font-weight:600;margin-top:2px">${fmtDT(b.endDate)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Reservation</div><div style="margin-top:2px">${rsBadge(b.reservationStatus)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Payment</div><div style="margin-top:2px">${psBadge(b.paymentStatus)}</div></div>
-        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Discount</div><div style="font-weight:600;margin-top:2px">${Number(b.discount||0)}%</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Total</div><div style="font-weight:800;font-size:16px;color:var(--ocean);margin-top:2px">${fmt(b.grandTotal)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Balance</div><div style="font-weight:800;font-size:16px;color:var(--amber);margin-top:2px">${fmt(b.balance)}</div></div>
       </div>
@@ -1204,22 +1199,17 @@ function openBookingModal(id, prefillDate) {
         <div><label class="lbl">Guest Count</label><input id="bk-guests" type="number" value="${b?.guestCount||''}" min="0" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Catering Fee (KES)</label><input id="bk-catering" type="number" value="${b?.cateringFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-         <div><label class="lbl">FX/Decor Fee (KES) <span style="color:var(--ink3);font-weight:400">— auto from items below</span></label><input id="bk-fx" type="number" value="${b?.fxFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px;background:var(--surface2)" readonly></div>
+        <div><label class="lbl">Discount (%)</label><input id="bk-disc-pct" type="number" value="${b?.discountPct||0}" min="0" max="100" step="0.1" placeholder="0" style="width:100%;padding:7px 10px"></div>
         <div style="grid-column:span 2">
-          <label class="lbl">FX / Equipment Items</label>
-          <div id="bk-fx-items" style="border:1px solid var(--border);border-radius:8px;padding:8px;max-height:200px;overflow:auto;background:var(--surface2)">
-            ${(db.fx||[]).length ? (db.fx||[]).map(f => {
-              const sel = (b?.fxItems||[]).find(x => x.id === f.id);
-              return `<div style="display:grid;grid-template-columns:auto 1fr 70px 110px;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">
-                <input type="checkbox" class="bk-fx-chk" data-id="${f.id}" ${sel?'checked':''}>
-                <div style="font-size:12px"><b>${f.name}</b><div style="color:var(--ink3);font-size:10px">${f.rentalPrice>0?'KES '+Number(f.rentalPrice).toLocaleString():'Open price'}</div></div>
-                <input type="number" class="bk-fx-qty" data-id="${f.id}" min="1" value="${sel?.qty||1}" style="padding:4px 6px;font-size:12px" placeholder="Qty">
-                <input type="number" class="bk-fx-price" data-id="${f.id}" min="0" step="0.01" value="${sel?.price ?? f.rentalPrice ?? 0}" style="padding:4px 6px;font-size:12px" placeholder="Price">
-              </div>`;
-            }).join('') : '<div style="color:var(--ink3);font-size:12px;text-align:center;padding:8px">No FX items in inventory.</div>'}
+          <label class="lbl">FX / Decor Items</label>
+          <div id="bk-fx-items" style="display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+            <div style="font-size:11px;color:var(--ink3)">Loading items…</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:6px;font-size:12px">
+            <span style="color:var(--ink2);font-weight:600">FX / Decor Subtotal:</span>
+            <span id="bk-fx-subtotal" style="font-weight:800;color:var(--ocean)">KES 0</span>
           </div>
         </div>
-        <div><label class="lbl">Discount (%)</label><input id="bk-disc" type="number" value="${b?.discount||0}" min="0" max="100" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Amount Paid (KES)</label><input id="bk-paid" type="number" value="${b?.amountPaid||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Reservation Status</label>
           <select id="bk-rstat" style="width:100%;padding:7px 10px">
@@ -1228,7 +1218,9 @@ function openBookingModal(id, prefillDate) {
         </div>
         <div style="grid-column:span 2"><label class="lbl">Notes</label><textarea id="bk-notes" style="width:100%;padding:7px 10px;height:64px;resize:vertical">${b?.notes||''}</textarea></div>
         <div style="grid-column:span 2;background:var(--surface2);border-radius:8px;padding:10px;font-size:13px">
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink3)">Grand Total</span><span id="bk-total-disp" style="font-weight:800;font-size:16px">${fmt(b?.grandTotal||0)}</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--ink3)">Subtotal</span><span id="bk-subtotal-disp" style="font-weight:600">KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--red)">Discount</span><span id="bk-discount-disp" style="font-weight:600;color:var(--red)">– KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border)"><span style="font-weight:700">Grand Total</span><span id="bk-total-disp" style="font-weight:800;font-size:16px">${fmt(b?.grandTotal||0)}</span></div>
         </div>
         <div id="bk-conflict-warn" style="grid-column:span 2;display:none" class="sec-notice"></div>
         <div style="grid-column:span 2;display:flex;gap:8px">
@@ -1237,35 +1229,79 @@ function openBookingModal(id, prefillDate) {
         </div>
       </form>
     </div>`);
-  ['bk-venue','bk-catering','bk-disc'].forEach(id => document.getElementById(id)?.addEventListener('input', calcBkTotal));
-  document.querySelectorAll('#bk-fx-items input').forEach(el => el.addEventListener('input', recalcFxFromItems));
-  recalcFxFromItems();
+
+  // Populate FX items selector
+  buildFXItemsSelector(b);
+
+  ['bk-venue','bk-catering','bk-disc-pct'].forEach(id => document.getElementById(id)?.addEventListener('input', calcBkTotal));
+  calcBkTotal();
   document.getElementById('bk-form').onsubmit = async ev => { ev.preventDefault(); await saveBooking(id); };
 }
-function collectFxItems() {
-  const out = [];
-  document.querySelectorAll('#bk-fx-items .bk-fx-chk').forEach(chk => {
-    if (!chk.checked) return;
-    const fid = chk.dataset.id;
-    const qty = Number(document.querySelector(`.bk-fx-qty[data-id="${fid}"]`)?.value || 1);
-    const price = Number(document.querySelector(`.bk-fx-price[data-id="${fid}"]`)?.value || 0);
-    const item = db.fx.find(f => f.id === fid);
-    out.push({ id: fid, name: item?.name || '', qty, price });
-  });
-  return out;
-}
-function recalcFxFromItems() {
-  const items = collectFxItems();
-  const sum = items.reduce((s, x) => s + (Number(x.qty)||0) * (Number(x.price)||0), 0);
-  const fx = document.getElementById('bk-fx');
-  if (fx) fx.value = sum || '';
+function buildFXItemsSelector(booking) {
+  const container = document.getElementById('bk-fx-items');
+  if (!container) return;
+  const savedItems = (booking?.fxItems) || [];
+  if (!db.fx.length) { container.innerHTML = '<div style="font-size:11px;color:var(--ink3)">No FX/Decor items in inventory.</div>'; return; }
+  container.innerHTML = db.fx.map(item => {
+    const saved = savedItems.find(s => s.id === item.id);
+    const checked = !!saved;
+    const customPrice = saved?.customPrice ?? item.rentalPrice;
+    return `<div class="fx-item-row" data-id="${item.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--border)">
+      <input type="checkbox" class="fx-item-chk" data-id="${item.id}" ${checked?'checked':''} onchange="onFXItemToggle(this)" style="width:15px;height:15px;flex-shrink:0;cursor:pointer">
+      <div style="flex:1;font-size:12px;font-weight:600">${item.name}</div>
+      ${item.editablePerBooking
+        ? `<div style="display:flex;align-items:center;gap:4px">
+            <span style="font-size:11px;color:var(--ink3)">KES</span>
+            <input type="number" class="fx-item-price" data-id="${item.id}" value="${customPrice}" min="0" step="100" ${!checked?'disabled':''} onchange="onFXPriceChange(this)" style="width:90px;padding:4px 6px;font-size:12px;border-radius:6px" placeholder="Custom price">
+           </div>`
+        : `<span class="fx-item-price-label" data-id="${item.id}" style="font-size:12px;font-weight:700;color:var(--ocean);white-space:nowrap">${fmt(item.rentalPrice)}</span>`
+      }
+    </div>`;
+  }).join('');
   calcBkTotal();
+}
+function onFXItemToggle(chk) {
+  const id = chk.getAttribute('data-id');
+  const priceInput = document.querySelector(`.fx-item-price[data-id="${id}"]`);
+  if (priceInput) priceInput.disabled = !chk.checked;
+  calcBkTotal();
+}
+function onFXPriceChange() { calcBkTotal(); }
+function getFXItemsSelected() {
+  const rows = document.querySelectorAll('.fx-item-row');
+  const result = [];
+  rows.forEach(row => {
+    const id = row.getAttribute('data-id');
+    const chk = row.querySelector('.fx-item-chk');
+    if (!chk?.checked) return;
+    const fxItem = db.fx.find(x => x.id === id);
+    if (!fxItem) return;
+    let price = fxItem.rentalPrice;
+    if (fxItem.editablePerBooking) {
+      const inp = row.querySelector('.fx-item-price');
+      price = Number(inp?.value || 0);
+    }
+    result.push({ id, name: fxItem.name, customPrice: price });
+  });
+  return result;
 }
 function calcBkTotal() {
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const subtotal = g('bk-venue') + g('bk-catering') + g('bk-fx'); const total = subtotal * (1 - Math.min(100, Math.max(0, g('bk-disc')))/100);
-  const el = document.getElementById('bk-total-disp');
-  if (el) el.textContent = fmt(total);
+  const venueFee = g('bk-venue'), cateringFee = g('bk-catering');
+  const fxItems = getFXItemsSelected();
+  const fxTotal = fxItems.reduce((a, i) => a + i.customPrice, 0);
+  const subtotalEl = document.getElementById('bk-subtotal-disp');
+  const fxSubEl = document.getElementById('bk-fx-subtotal');
+  const discEl = document.getElementById('bk-discount-disp');
+  const totalEl = document.getElementById('bk-total-disp');
+  const subtotal = venueFee + cateringFee + fxTotal;
+  const discPct = g('bk-disc-pct');
+  const discAmt = Math.round(subtotal * discPct / 100 * 100) / 100;
+  const grand = Math.max(0, subtotal - discAmt);
+  if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
+  if (fxSubEl) fxSubEl.textContent = fmt(fxTotal);
+  if (discEl) discEl.textContent = '– ' + fmt(discAmt);
+  if (totalEl) totalEl.textContent = fmt(grand);
 }
 async function saveBooking(editId) {
   const v = id => document.getElementById(id)?.value;
@@ -1278,11 +1314,8 @@ async function saveBooking(editId) {
     return;
   }
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const fxItems = collectFxItems();
-  const venueFee = g('bk-venue'), cateringFee = g('bk-catering'), fxFee = g('bk-fx'), amountPaid = g('bk-paid');
-  const discount = Math.min(100, Math.max(0, g('bk-disc')));
-  const subtotal = venueFee + cateringFee + fxFee;
-  const grandTotal = subtotal * (1 - discount/100);
+  const venueFee = g('bk-venue'), cateringFee = g('bk-catering'), fxFee = g('bk-fx'), discount = g('bk-disc'), amountPaid = g('bk-paid');
+  const grandTotal = venueFee + cateringFee + fxFee - discount;
   const payload = { clientName: v('bk-client'), phone: v('bk-phone'), email: v('bk-email'), category: v('bk-cat'), startDate: start, endDate: end, guestCount: g('bk-guests'), venueFee, cateringFee, fxFee, discount, amountPaid, grandTotal, reservationStatus: v('bk-rstat'), notes: v('bk-notes') };
   try {
     if (editId) { const updated = await dbUpdate('bookings', editId, payload); db.bookings = db.bookings.map(b => b.id === editId ? camelizeBooking(updated) : b); toast('Booking updated ✓'); }
@@ -1385,9 +1418,7 @@ function printBookingReceipt(bookingId) {
   y += 8;
   doc.autoTable({ startY: y, head: [['Event Details', '']], body: [['Event Type', b.category||'—'],['Start', fmtDT(b.startDate)],['End', fmtDT(b.endDate)],['Guests', String(b.guestCount||'—')],['Status', b.reservationStatus||'—']], styles: { fontSize: 8 }, headStyles: { fillColor: [13, 74, 107] }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }, margin: { left: 10, right: 10 } });
   y = doc.lastAutoTable.finalY + 6;
-  const _sub = Number(b.venueFee||0) + Number(b.cateringFee||0) + Number(b.fxFee||0);
-  const _discAmt = _sub * (Number(b.discount||0)/100);
-  doc.autoTable({ startY: y, head: [['Payment Summary', 'KES']], body: [['Venue Fee', Number(b.venueFee||0).toLocaleString()],['Catering Fee', Number(b.cateringFee||0).toLocaleString()],['FX / Decor', Number(b.fxFee||0).toLocaleString()],['Subtotal', _sub.toLocaleString()],['Discount ('+Number(b.discount||0)+'%)', '('+_discAmt.toLocaleString(undefined,{maximumFractionDigits:2})+')'],['Grand Total', Number(b.grandTotal||0).toLocaleString()],['Amount Paid', Number(b.amountPaid||0).toLocaleString()],['Balance Due', Number(b.balance||0).toLocaleString()]], styles: { fontSize: 8 }, headStyles: { fillColor: [20, 128, 94] }, columnStyles: { 1: { halign: 'right' } }, didParseCell: (data) => { if (data.row.index === 7) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181,42,42] : [20,128,94]; } if (data.row.index === 5) data.cell.styles.fontStyle = 'bold'; }, margin: { left: 10, right: 10 } });
+  doc.autoTable({ startY: y, head: [['Payment Summary', 'KES']], body: [['Venue Fee', Number(b.venueFee||0).toLocaleString()],['Catering Fee', Number(b.cateringFee||0).toLocaleString()],['FX / Decor', Number(b.fxFee||0).toLocaleString()],['Discount', '('+Number(b.discount||0).toLocaleString()+')'],['Grand Total', Number(b.grandTotal||0).toLocaleString()],['Amount Paid', Number(b.amountPaid||0).toLocaleString()],['Balance Due', Number(b.balance||0).toLocaleString()]], styles: { fontSize: 8 }, headStyles: { fillColor: [20, 128, 94] }, columnStyles: { 1: { halign: 'right' } }, didParseCell: (data) => { if (data.row.index === 6) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181,42,42] : [20,128,94]; } if (data.row.index === 4) data.cell.styles.fontStyle = 'bold'; }, margin: { left: 10, right: 10 } });
   y = doc.lastAutoTable.finalY + 8;
   if (b.mpesaAmount > 0) { doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(0,166,81); doc.text('📱 M-Pesa: KES ' + Number(b.mpesaAmount).toLocaleString() + ' received', 10, y); y += 5; }
   if (s.bank) { doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(120,120,120); doc.text('Bank: ' + s.bank, 10, y); }
@@ -1675,7 +1706,8 @@ function renderInventory() {
       <td><div style="font-weight:600">${f.name||'—'}</div></td>
       <td style="font-family:DM Mono,monospace;font-size:11px">${f.serial||'—'}</td>
       <td style="text-align:center">${f.qty||1}</td>
-      <td>${fmt(f.rentalPrice)}</td>
+      <td>${f.editablePerBooking ? '<span style="color:var(--ink3);font-style:italic">Per booking</span>' : fmt(f.rentalPrice)}</td>
+      <td><span class="badge" style="background:${f.editablePerBooking?'#eff6ff':'#f0fdf4'};color:${f.editablePerBooking?'#1e40af':'#166534'};border:1px solid ${f.editablePerBooking?'#93c5fd':'#86efac'}">${f.editablePerBooking?'✏️ Custom':'🔒 Fixed'}</span></td>
       <td><span class="badge ${f.status==='Available'?'b-confirmed':f.status==='Booked'?'b-partial':'b-unpaid'}">${f.status||'Available'}</span></td>
       <td>${f.assignedTo||'—'}</td>
       <td style="text-align:center;white-space:nowrap">
@@ -1699,6 +1731,10 @@ function openFXModal(id) {
           <div><label class="lbl">Quantity</label><input id="fx-qty" type="number" value="${f?.qty||1}" min="1" style="width:100%;padding:7px 10px"></div>
           <div><label class="lbl">Rental Price/Day (KES)</label><input id="fx-price" type="number" value="${f?.rentalPrice||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         </div>
+        <div style="padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="fx-editable" ${f?.editablePerBooking?'checked':''} style="width:16px;height:16px;cursor:pointer;border-radius:4px !important">
+          <div><label class="lbl" for="fx-editable" style="cursor:pointer;margin:0">Price editable per booking</label><div style="font-size:11px;color:var(--ink3)">When checked, staff enter a custom price when booking this item (e.g. Smoke Ice Machine, Laser Projection)</div></div>
+        </div>
         <div><label class="lbl">Status</label><select id="fx-stat" style="width:100%;padding:7px 10px"><option ${f?.status==='Available'?'selected':''}>Available</option><option ${f?.status==='Booked'?'selected':''}>Booked</option><option ${f?.status==='Under Maintenance'?'selected':''}>Under Maintenance</option></select></div>
         <div><label class="lbl">Assigned To</label><input id="fx-assigned" value="${f?.assignedTo||''}" style="width:100%;padding:7px 10px" placeholder="Booking / event name"></div>
         <div style="display:flex;gap:8px">
@@ -1710,7 +1746,7 @@ function openFXModal(id) {
   document.getElementById('fx-form').onsubmit=async ev=>{
     ev.preventDefault();
     const g=i=>document.getElementById(i)?.value;
-    const payload={name:g('fx-name'),serial:g('fx-serial'),qty:Number(g('fx-qty')||1),rentalPrice:Number(g('fx-price')||0),status:g('fx-stat'),assignedTo:g('fx-assigned')};
+    const payload={name:g('fx-name'),serial:g('fx-serial'),qty:Number(g('fx-qty')||1),rentalPrice:Number(g('fx-price')||0),status:g('fx-stat'),assignedTo:g('fx-assigned'),editablePerBooking:document.getElementById('fx-editable')?.checked||false};
     try {
       if (id) { const u=await dbUpdate('inventory',id,payload); db.fx=db.fx.map(x=>x.id===id?camelize(u):x); toast('Item updated ✓'); }
       else { const cr=await dbInsert('inventory',{...payload,id:uid()}); db.fx.push(camelize(cr)); toast('Item added ✓'); }
@@ -1942,12 +1978,6 @@ function showIdleWarn() {
 }
 function initInactivityWatcher() { ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true})); resetIdle(); }
 
-// ═══════════════════════════════════════════════════════════
-//  INIT
-//  ── FIX: renderAll() and initCalendars() are called here,
-//     inside initAll(), which runs only after bootApp()
-//     confirms the user is authenticated and the DOM is ready.
-// ═══════════════════════════════════════════════════════════
 function renderAll() { renderDash(); renderBookings(); renderInvoices(); renderExpenses(); renderClients(); renderVendors(); renderInventory(); renderStaff(); }
 
 function initAll() {
