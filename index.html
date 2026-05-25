@@ -829,22 +829,61 @@ async function doLogout() {
 let currentView = 'dash';
 const viewTitles = { dash:'Dashboard', calendar:'Calendar', bookings:'Bookings', invoices:'Invoices', expenses:'Expenses', clients:'Clients', vendors:'Vendors', inventory:'Inventory', staff:'Staff', reports:'Reports', settings:'Settings' };
 
-function goView(v) {
-  if (v === 'settings' && !can('canManageUsers')) { toast('Access denied. Administrators only.', 'e'); return; }
-  if (v === 'reports'  && !can('canViewReports'))  { toast('Access denied.', 'e'); return; }
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const el = document.getElementById('v-' + v);
-  if (el) el.classList.add('active');
-  const nav = document.getElementById('nav-' + v);
-  if (nav) nav.classList.add('active');
-  document.getElementById('tb-title').textContent = viewTitles[v] || v;
-  currentView = v;
-  if (v === 'reports')  renderReportCharts();
-  if (v === 'settings') loadSettingsForm();
-  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
-}
+function goView(v, skipPersist = false) {
+  if (v === 'settings' && !can('canManageUsers')) {
+    toast('Access denied. Administrators only.', 'e');
+    return;
+  }
 
+  if (v === 'reports' && !can('canViewReports')) {
+    toast('Access denied.', 'e');
+    return;
+  }
+
+  document.querySelectorAll('.view')
+    .forEach(el => el.classList.remove('active'));
+
+  document.querySelectorAll('.nav-item')
+    .forEach(el => el.classList.remove('active'));
+
+  const viewEl = document.getElementById('v-' + v);
+  if (viewEl) viewEl.classList.add('active');
+
+  const navEl = document.getElementById('nav-' + v);
+  if (navEl) navEl.classList.add('active');
+
+  document.getElementById('tb-title').textContent =
+    viewTitles[v] || v;
+
+  currentView = v;
+
+  // Persist active view
+  if (!skipPersist) {
+    prefs.lastView = v;
+    savePrefs();
+  }
+
+  // FullCalendar must resize AFTER the view becomes visible
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      if (v === 'dash' && miniCal) {
+        miniCal.updateSize();
+      }
+
+      if (v === 'calendar' && fullCal) {
+        fullCal.updateSize();
+      }
+    }, 50);
+  });
+
+  if (v === 'reports') renderReportCharts();
+  if (v === 'settings') loadSettingsForm();
+
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar')
+      .classList.remove('open');
+  }
+}
 function toggleSidebar() {
   const sb_ = document.getElementById('sidebar');
   if (window.innerWidth <= 768) sb_.classList.toggle('open');
@@ -1855,19 +1894,21 @@ function initInactivityWatcher() { ['mousemove','mousedown','keydown','touchstar
 function renderAll() { renderDash(); renderBookings(); renderInvoices(); renderExpenses(); renderClients(); renderVendors(); renderInventory(); renderStaff(); }
 
 function initAll() {
-  document.getElementById('e-date').value = new Date().toISOString().slice(0,10);
-  renderAll();
-  initCalendars(); // ← now properly defined above
-}
+  document.getElementById('e-date').value =
+    new Date().toISOString().slice(0,10);
 
-// ── Boot on page load ──
-window.onload = async () => {
-  const { data } = await sb.auth.getSession();
-  if (data.session) {
-    await bootApp(data.session.user);
-  }
-  // If no session, login-screen is already visible — nothing else needed.
-};
+  renderAll();
+
+  initCalendars();
+
+  // Restore last opened view
+  const savedView = prefs.lastView || 'dash';
+
+  // Run after calendars are initialized/rendered
+  requestAnimationFrame(() => {
+    goView(savedView, true);
+  });
+}
 </script>
 </body>
 </html>
