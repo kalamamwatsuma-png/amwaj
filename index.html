@@ -1249,7 +1249,6 @@ function sendWhatsApp(bookingId) {
   const msg = encodeURIComponent(`Hello ${b.clientName},\n\nReminder from ${s.venueName||'AMWAJ SEAFRONT VENUE'}:\n\n📅 Date: ${fmtD(b.startDate)}\n🎉 Event: ${b.category||'Event'}\n💰 Balance Due: KES ${Number(b.balance||0).toLocaleString()}\n\n${s.mpesaShortcode?`Pay via M-Pesa: ${s.mpesaShortcode}\n\n`:''}Thank you! 🌊`);
   window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
 }
-
 // ═══════════════════════════════════════════════════════════
 //  M-PESA
 // ═══════════════════════════════════════════════════════════
