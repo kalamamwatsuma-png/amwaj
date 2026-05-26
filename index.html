@@ -1625,28 +1625,86 @@ function generateInvoiceFromBooking(bookingId) {
   setTimeout(() => { openInvoiceModal(); setTimeout(() => { document.getElementById('inv-client').value=b.clientName||''; document.getElementById('inv-amt').value=b.grandTotal||0; document.getElementById('inv-paid').value=b.amountPaid||0; document.getElementById('inv-bk').value=b.id; }, 100); }, 150);
 }
 function printInvoicePDF(invId) {
-  const inv = db.invoices.find(i=>i.id===invId);
+  const inv = db.invoices.find(i => i.id === invId);
   if (!inv) return;
-  const s = db.settings;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const PW = doc.internal.pageSize.width;
-  doc.setFillColor(13,74,107); doc.rect(0,0,PW,28,'F');
-  doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
-  doc.text(s.venueName||'AMWAJ SEAFRONT VENUE',14,14);
-  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text(s.venueLocation||'Tudor Creek, Mombasa',14,22);
-  doc.setTextColor(50,50,50); doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.text('INVOICE',PW-14,18,{align:'right'});
-  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text(inv.invNumber||'',PW-14,25,{align:'right'});
-  let y=42; doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.text('Bill To:',14,y);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(inv.clientName||'',14,y+6);
-  doc.text('Issue: '+fmtD(inv.issueDate),PW-14,y,{align:'right'}); doc.text('Due:   '+fmtD(inv.dueDate),PW-14,y+6,{align:'right'});
-  y+=20;
-  doc.autoTable({startY:y,head:[['Description','Amount']],body:[['Venue Services','KES '+Number(inv.amount).toLocaleString()],['Amount Paid','KES '+Number(inv.amountPaid||0).toLocaleString()],['Balance Due','KES '+Number(inv.balance||0).toLocaleString()]],styles:{fontSize:9},headStyles:{fillColor:[13,74,107]}});
-  if (inv.notes) { const ny=doc.lastAutoTable.finalY+8; doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.text('Notes: '+inv.notes,14,ny); }
-  doc.save((inv.invNumber||'INV')+'_'+(inv.clientName||'').replace(/\W/g,'_')+'.pdf');
+
+  let y = drawLetterhead(doc, false);
+
+  // Invoice title & number
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.setTextColor(13, 74, 107);
+  doc.text('INVOICE', PW - 14, y + 5, { align: 'right' });
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100);
+  doc.text(inv.invNumber || '', PW - 14, y + 11, { align: 'right' });
+  y += 16;
+
+  // Bill To block
+  doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(13, 74, 107);
+  doc.text('BILL TO', 14, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(50, 50, 50);
+  doc.text(inv.clientName || '', 14, y + 6);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Issue Date: ' + fmtD(inv.issueDate), PW - 14, y,     { align: 'right' });
+  doc.text('Due Date:   ' + fmtD(inv.dueDate),   PW - 14, y + 6, { align: 'right' });
+  y += 18;
+
+  // Divider
+  doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
+  doc.line(14, y, PW - 14, y); y += 5;
+
+  // Invoice line items table
+  doc.autoTable({
+    startY: y,
+    head: [['Description', 'Amount']],
+    body: [
+      ['Venue & Event Services', 'KES ' + Number(inv.amount).toLocaleString()],
+      ['Amount Paid',            'KES ' + Number(inv.amountPaid || 0).toLocaleString()],
+      ['BALANCE DUE',            'KES ' + Number(inv.balance   || 0).toLocaleString()]
+    ],
+    styles: { fontSize: 9, cellPadding: 3.5 },
+    headStyles: { fillColor: [13, 74, 107], fontStyle: 'bold', textColor: 255 },
+    columnStyles: { 1: { halign: 'right' } },
+    didParseCell: data => {
+      if (data.row.index === 2) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fontSize = 10;
+        data.cell.styles.textColor = (inv.balance || 0) > 0 ? [181, 42, 42] : [20, 128, 94];
+      }
+    },
+    margin: { left: 14, right: 14 }
+  });
+  y = doc.lastAutoTable.finalY + 8;
+
+  // Notes
+  if (inv.notes) {
+    doc.setFontSize(8); doc.setFont('helvetica', 'italic'); doc.setTextColor(100, 100, 100);
+    doc.text('Notes: ' + inv.notes, 14, y); y += 7;
+  }
+
+  // Payment instructions box
+  doc.setFillColor(242, 247, 250);
+  doc.setDrawColor(200, 215, 225);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(14, y, PW - 28, 14, 2, 2, 'FD');
+  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(13, 74, 107);
+  doc.text('Payment Instructions', 18, y + 5);
+  doc.setFont('helvetica', 'normal'); doc.setTextColor(60, 60, 60);
+  doc.text('M-Pesa / Bank Transfer  ·  Contact: 0742 400 400 / 0748 400 400', 18, y + 10);
+
+  // Footer
+  const PH = doc.internal.pageSize.height;
+  doc.setDrawColor(224, 92, 58); doc.setLineWidth(0.5);
+  doc.line(14, PH - 16, PW - 14, PH - 16);
+  doc.setFontSize(7); doc.setTextColor(130, 130, 130); doc.setFont('helvetica', 'italic');
+  doc.text('Amwaj Seafront Venue  ·  Off Tom Mboya Road, Mombasa, Kenya  ·  info@amwajseafrontvenue.com  ·  0742 400 400', PW / 2, PH - 10, { align: 'center' });
+  doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100);
+  doc.text('Thank you for your business!', PW / 2, PH - 5, { align: 'center' });
+
+  doc.save((inv.invNumber || 'INV') + '_' + (inv.clientName || '').replace(/\W/g, '_') + '.pdf');
   toast('Invoice PDF downloaded ✓');
 }
-
 // ═══════════════════════════════════════════════════════════
 //  EXPENSES
 // ═══════════════════════════════════════════════════════════
