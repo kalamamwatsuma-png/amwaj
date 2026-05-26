@@ -206,6 +206,14 @@
     .lbl { font-size: 11px; font-weight: 600; color: var(--ink2); margin-bottom: 4px; display: block; }
     .accent-line { width: 40px; height: 3px; background: var(--coral); border-radius: 2px; margin-top: 4px; }
     #sb-logo-area { padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+
+    /* ── FX Item Selector Styles ── */
+    .fx-item-row { transition: background .15s, border-color .15s; }
+    .fx-item-row:hover { background: var(--surface2) !important; }
+    .fx-item-row.fx-selected { background: rgba(13,74,107,.06) !important; border-color: var(--ocean-lt) !important; }
+    .fx-item-chk { accent-color: var(--ocean); }
+    .fx-price-tag { font-size: 12px; font-weight: 700; color: var(--ocean); white-space: nowrap; min-width: 70px; text-align: right; }
+    .fx-price-input { width: 100px !important; padding: 4px 8px !important; font-size: 12px !important; border-radius: 6px !important; }
   </style>
 </head>
 <body>
@@ -724,7 +732,6 @@ async function dbLoad() {
     db.shifts    = (shRes.data || []).map(camelize);
     db.settings  = prefs.settings || { venueName: 'AMWAJ SEAFRONT VENUE', venueLocation: 'Tudor Creek, Mombasa', phone: '', email: '', bank: '', vatRate: 16, monthlyTarget: 0, mpesaShortcode: '', mpesaCallback: '' };
 
-    // Seed default FX items if inventory is empty
     if (!db.fx.length) {
       const fxSeeds = [
         { id: uid(), name: 'Smoke Ice Machine',  serial: '', qty: 1, rentalPrice: 0,      status: 'Available', assignedTo: '', editablePerBooking: true  },
@@ -734,8 +741,7 @@ async function dbLoad() {
         { id: uid(), name: 'Mapping',             serial: '', qty: 1, rentalPrice: 70000,  status: 'Available', assignedTo: '', editablePerBooking: false },
       ];
       db.fx = fxSeeds;
-      // Persist seeds to Supabase silently
-      fxSeeds.forEach(item => dbInsert('inventory', item).then(r => { const idx = db.fx.findIndex(x => x.name === item.name && !x._persisted); if (idx > -1) { db.fx[idx] = {...camelize(r), editablePerBooking: item.editablePerBooking}; db.fx[idx]._persisted = true; } }).catch(() => {}));
+      fxSeeds.forEach(item => dbInsert('inventory', item).catch(() => {}));
     }
   } catch(e) {
     toast('Failed to load data: ' + e.message, 'e');
@@ -748,10 +754,18 @@ function camelize(row) {
   for (const k in row) out[k.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] = row[k];
   return out;
 }
+
 function camelizeBooking(row) {
   const b = camelize(row);
   b.grandTotal = b.grandTotal || b.totalAmount || 0;
   b.balance = Math.max(0, b.grandTotal - (b.amountPaid || 0));
+
+  // ── FIX: Parse fxItems from JSON string if stored as text ──
+  if (typeof b.fxItems === 'string') {
+    try { b.fxItems = JSON.parse(b.fxItems); } catch { b.fxItems = []; }
+  }
+  if (!Array.isArray(b.fxItems)) b.fxItems = [];
+
   const pct = (b.amountPaid || 0) / (b.grandTotal || 1);
   if (b.reservationStatus === 'CANCELLED') b.paymentStatus = 'UNPAID';
   else if (pct <= 0) b.paymentStatus = 'UNPAID';
@@ -759,6 +773,7 @@ function camelizeBooking(row) {
   else b.paymentStatus = 'PARTIAL';
   return b;
 }
+
 function camelizeInvoice(row) {
   const i = camelize(row);
   i.balance = Math.max(0, (i.amount || 0) - (i.amountPaid || 0));
@@ -766,6 +781,7 @@ function camelizeInvoice(row) {
   else if (i.status !== 'Cancelled') { const due = new Date(i.dueDate); if (!isNaN(due) && due < new Date()) i.status = 'Overdue'; }
   return i;
 }
+
 function snakerize(obj) {
   const out = {};
   for (const k in obj) out[k.replace(/([A-Z])/g, '_$1').toLowerCase()] = obj[k];
@@ -818,12 +834,7 @@ async function bootApp(user) {
   const roleClass = { Administrator: 'role-admin', Manager: 'role-manager', Staff: 'role-staff' }[CURRENT_ROLE] || 'role-staff';
   document.getElementById('tb-role').textContent = CURRENT_ROLE;
   document.getElementById('tb-role').className = 'role-badge ' + roleClass;
-
-  // ── FIX: Only hide nav items for Staff (not Manager).
-  //    Reports: hidden for Staff only.
-  //    Settings: visible to all; goView() guards access inside.
   if (!can('canViewReports')) document.getElementById('nav-reports').style.display = 'none';
-
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   await dbLoad();
@@ -844,59 +855,26 @@ let currentView = 'dash';
 const viewTitles = { dash:'Dashboard', calendar:'Calendar', bookings:'Bookings', invoices:'Invoices', expenses:'Expenses', clients:'Clients', vendors:'Vendors', inventory:'Inventory', staff:'Staff', reports:'Reports', settings:'Settings' };
 
 function goView(v, skipPersist = false) {
-  if (v === 'settings' && !can('canManageUsers')) {
-    toast('Access denied. Administrators only.', 'e');
-    return;
-  }
-
-  if (v === 'reports' && !can('canViewReports')) {
-    toast('Access denied.', 'e');
-    return;
-  }
-
-  document.querySelectorAll('.view')
-    .forEach(el => el.classList.remove('active'));
-
-  document.querySelectorAll('.nav-item')
-    .forEach(el => el.classList.remove('active'));
-
+  if (v === 'settings' && !can('canManageUsers')) { toast('Access denied. Administrators only.', 'e'); return; }
+  if (v === 'reports' && !can('canViewReports')) { toast('Access denied.', 'e'); return; }
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const viewEl = document.getElementById('v-' + v);
   if (viewEl) viewEl.classList.add('active');
-
   const navEl = document.getElementById('nav-' + v);
   if (navEl) navEl.classList.add('active');
-
-  document.getElementById('tb-title').textContent =
-    viewTitles[v] || v;
-
+  document.getElementById('tb-title').textContent = viewTitles[v] || v;
   currentView = v;
-
-  // Persist active view
-  if (!skipPersist) {
-    prefs.lastView = v;
-    savePrefs();
-  }
-
-  // FullCalendar must resize AFTER the view becomes visible
+  if (!skipPersist) { prefs.lastView = v; savePrefs(); }
   requestAnimationFrame(() => {
     setTimeout(() => {
-      if (v === 'dash' && miniCal) {
-        miniCal.updateSize();
-      }
-
-      if (v === 'calendar' && fullCal) {
-        fullCal.updateSize();
-      }
+      if (v === 'dash' && miniCal) miniCal.updateSize();
+      if (v === 'calendar' && fullCal) fullCal.updateSize();
     }, 50);
   });
-
   if (v === 'reports') renderReportCharts();
   if (v === 'settings') loadSettingsForm();
-
-  if (window.innerWidth <= 768) {
-    document.getElementById('sidebar')
-      .classList.remove('open');
-  }
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
 }
 function toggleSidebar() {
   const sb_ = document.getElementById('sidebar');
@@ -975,9 +953,6 @@ function checkAvail() {
 
 // ═══════════════════════════════════════════════════════════
 //  CALENDAR
-//  ── FIX: All calendar init is now inside initCalendars()
-//     which is called from initAll() AFTER the DOM exists.
-//     No calendar code runs at parse time.
 // ═══════════════════════════════════════════════════════════
 let miniCal = null, fullCal = null;
 let calFilters = { res: 'all', pay: 'all' };
@@ -1004,35 +979,25 @@ function setCalF(type, val, el) {
   el.classList.add('on');
   refreshCalendars();
 }
-
-// ── FIX: initCalendars is now a proper named function,
-//    called only from initAll() after the DOM is ready.
 function initCalendars() {
-  // Mini calendar on dashboard
   const miniEl = document.getElementById('mini-cal');
   if (miniEl && !miniCal) {
     miniCal = new FullCalendar.Calendar(miniEl, {
-      initialView: 'dayGridMonth',
-      height: 280,
+      initialView: 'dayGridMonth', height: 280,
       headerToolbar: { left: 'prev,next', center: 'title', right: '' },
-      eventDisplay: 'block',
-      dayMaxEvents: 2,
+      eventDisplay: 'block', dayMaxEvents: 2,
       events: buildCalEvents(),
       eventClick: ({ event }) => openBookingDetail(event.extendedProps.booking),
       dateClick: ({ dateStr }) => openBookingModal(null, dateStr)
     });
     miniCal.render();
   }
-
-  // Full calendar on calendar view
   const fullEl = document.getElementById('full-cal');
   if (fullEl && !fullCal) {
     fullCal = new FullCalendar.Calendar(fullEl, {
-      initialView: 'dayGridMonth',
-      height: 580,
+      initialView: 'dayGridMonth', height: 580,
       headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
-      eventDisplay: 'block',
-      dayMaxEvents: false,
+      eventDisplay: 'block', dayMaxEvents: false,
       events: buildCalEvents(),
       eventClick: ({ event }) => openBookingDetail(event.extendedProps.booking),
       dateClick: ({ dateStr }) => openBookingModal(null, dateStr)
@@ -1040,7 +1005,6 @@ function initCalendars() {
     fullCal.render();
   }
 }
-
 function refreshCalendars() {
   const evs = buildCalEvents();
   [miniCal, fullCal].forEach(c => { if (c) { c.removeAllEvents(); c.addEventSource(evs); } });
@@ -1148,6 +1112,13 @@ function renderBookings() {
 
 function openBookingDetail(b) {
   if (!b) return;
+  // Build FX breakdown if any items are stored
+  const fxLines = (b.fxItems || []).map(i =>
+    `<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0">
+      <span style="color:var(--ink2)">🎛 ${i.name}</span>
+      <span style="font-weight:600">${fmt(i.customPrice)}</span>
+    </div>`
+  ).join('');
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -1166,7 +1137,8 @@ function openBookingDetail(b) {
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Total</div><div style="font-weight:800;font-size:16px;color:var(--ocean);margin-top:2px">${fmt(b.grandTotal)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Balance</div><div style="font-weight:800;font-size:16px;color:var(--amber);margin-top:2px">${fmt(b.balance)}</div></div>
       </div>
-      ${b.notes ? `<div style="margin-top:14px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--ink2)">${b.notes}</div>` : ''}
+      ${fxLines ? `<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px"><div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px">🎛 FX / Decor Items</div>${fxLines}</div>` : ''}
+      ${b.notes ? `<div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--ink2)">${b.notes}</div>` : ''}
       <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
         ${can('canEdit') ? `<button class="btn btn-ocean" onclick="closeModal();openBookingModal('${b.id}')">✏️ Edit</button>` : ''}
         <button class="btn btn-ghost" onclick="generateInvoiceFromBooking('${b.id}')">📄 Generate Invoice</button>
@@ -1176,9 +1148,13 @@ function openBookingDetail(b) {
     </div>`);
 }
 
+// ──────────────────────────────────────────────────────────
+//  BOOKING MODAL  (with corrected FX selector)
+// ──────────────────────────────────────────────────────────
 function openBookingModal(id, prefillDate) {
   if (!can('canCreate') && !id) { toast('Insufficient permissions', 'e'); return; }
   const b = id ? db.bookings.find(x => x.id === id) : null;
+
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -1186,43 +1162,69 @@ function openBookingModal(id, prefillDate) {
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink3)">×</button>
       </div>
       <form id="bk-form" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
         <div><label class="lbl">Client Name *</label><input id="bk-client" value="${b?.clientName||''}" required style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Phone</label><input id="bk-phone" value="${b?.phone||''}" style="width:100%;padding:7px 10px" placeholder="+254…"></div>
         <div><label class="lbl">Email</label><input id="bk-email" value="${b?.email||''}" type="email" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Event Type *</label>
+
+        <div>
+          <label class="lbl" for="bk-cat">Event Type *</label>
           <select id="bk-cat" style="width:100%;padding:7px 10px">
             ${['Wedding','Birthday','Conference','Corporate','Graduation','Anniversary','Other'].map(o => `<option ${b?.category===o?'selected':''}>${o}</option>`).join('')}
           </select>
         </div>
+
         <div><label class="lbl">Start Date & Time *</label><input id="bk-start" type="datetime-local" value="${b?.startDate?.slice(0,16)||prefillDate||''}" required style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">End Date & Time *</label><input id="bk-end" type="datetime-local" value="${b?.endDate?.slice(0,16)||''}" required style="width:100%;padding:7px 10px"></div>
+
         <div><label class="lbl">Guest Count</label><input id="bk-guests" type="number" value="${b?.guestCount||''}" min="0" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Catering Fee (KES)</label><input id="bk-catering" type="number" value="${b?.cateringFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Discount (%)</label><input id="bk-disc-pct" type="number" value="${b?.discountPct||0}" min="0" max="100" step="0.1" placeholder="0" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||0}" min="0" step="0.01" style="width:100%;padding:7px 10px" oninput="calcBkTotal()"></div>
+
         <div style="grid-column:span 2">
-          <label class="lbl">FX / Decor Items</label>
-          <div id="bk-fx-items" style="display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
-            <div style="font-size:11px;color:var(--ink3)">Loading items…</div>
+          <label class="lbl">Catering Fee (KES)</label>
+          <input id="bk-catering" type="number" value="${b?.cateringFee||0}" min="0" step="0.01" style="width:100%;padding:7px 10px" oninput="calcBkTotal()">
+        </div>
+
+        <!-- ── FX / DECOR ITEMS SELECTOR ── -->
+        <div style="grid-column:span 2">
+          <label class="lbl">🎛 FX &amp; Decor Items</label>
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:6px">
+            Select items included in this booking. Tick the checkbox to include; items with a custom price field let you enter the agreed rate.
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding:6px 10px;background:var(--surface2);border-radius:6px;font-size:12px">
+          <div id="bk-fx-items" style="display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;max-height:240px;overflow-y:auto">
+            <div style="font-size:11px;color:var(--ink3)">Loading FX items…</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px">
             <span style="color:var(--ink2);font-weight:600">FX / Decor Subtotal:</span>
             <span id="bk-fx-subtotal" style="font-weight:800;color:var(--ocean)">KES 0</span>
           </div>
         </div>
+
+        <div><label class="lbl">Discount (%)</label><input id="bk-disc-pct" type="number" value="${b?.discountPct||0}" min="0" max="100" step="0.1" placeholder="0" style="width:100%;padding:7px 10px" oninput="calcBkTotal()"></div>
         <div><label class="lbl">Amount Paid (KES)</label><input id="bk-paid" type="number" value="${b?.amountPaid||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Reservation Status</label>
+
+        <div style="grid-column:span 2">
+          <label class="lbl" for="bk-rstat">Reservation Status</label>
           <select id="bk-rstat" style="width:100%;padding:7px 10px">
             ${['RESERVED','CONFIRMED','COMPLETED','CANCELLED'].map(s => `<option ${b?.reservationStatus===s?'selected':''}>${s}</option>`).join('')}
           </select>
         </div>
+
         <div style="grid-column:span 2"><label class="lbl">Notes</label><textarea id="bk-notes" style="width:100%;padding:7px 10px;height:64px;resize:vertical">${b?.notes||''}</textarea></div>
-        <div style="grid-column:span 2;background:var(--surface2);border-radius:8px;padding:10px;font-size:13px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--ink3)">Subtotal</span><span id="bk-subtotal-disp" style="font-weight:600">KES 0</span></div>
+
+        <!-- ── LIVE TOTAL BREAKDOWN ── -->
+        <div style="grid-column:span 2;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:8px">💰 Booking Total Breakdown</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--ink3)">Venue Fee</span><span id="bk-venue-disp" style="font-weight:600">KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--ink3)">Catering Fee</span><span id="bk-catering-disp" style="font-weight:600">KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--ink3)">FX / Decor</span><span id="bk-fx-disp" style="font-weight:600">KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;padding-top:6px;border-top:1px dashed var(--border)"><span style="color:var(--ink3)">Subtotal</span><span id="bk-subtotal-disp" style="font-weight:600">KES 0</span></div>
           <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--red)">Discount</span><span id="bk-discount-disp" style="font-weight:600;color:var(--red)">– KES 0</span></div>
-          <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border)"><span style="font-weight:700">Grand Total</span><span id="bk-total-disp" style="font-weight:800;font-size:16px">${fmt(b?.grandTotal||0)}</span></div>
+          <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:2px solid var(--border)"><span style="font-weight:700;font-size:14px">Grand Total</span><span id="bk-total-disp" style="font-weight:800;font-size:18px;color:var(--ocean)">KES 0</span></div>
         </div>
+
         <div id="bk-conflict-warn" style="grid-column:span 2;display:none" class="sec-notice"></div>
+
         <div style="grid-column:span 2;display:flex;gap:8px">
           <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">💾 Save Booking</button>
           <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
@@ -1230,52 +1232,96 @@ function openBookingModal(id, prefillDate) {
       </form>
     </div>`);
 
-  // Populate FX items selector
+  // Populate FX items selector AFTER modal is in DOM
   buildFXItemsSelector(b);
-
-  ['bk-venue','bk-catering','bk-disc-pct'].forEach(id => document.getElementById(id)?.addEventListener('input', calcBkTotal));
   calcBkTotal();
+
   document.getElementById('bk-form').onsubmit = async ev => { ev.preventDefault(); await saveBooking(id); };
 }
+
+// ──────────────────────────────────────────────────────────
+//  FX ITEMS SELECTOR  — renders checkbox rows for each
+//  inventory item and wires up live price recalculation
+// ──────────────────────────────────────────────────────────
 function buildFXItemsSelector(booking) {
   const container = document.getElementById('bk-fx-items');
   if (!container) return;
-  const savedItems = (booking?.fxItems) || [];
-  if (!db.fx.length) { container.innerHTML = '<div style="font-size:11px;color:var(--ink3)">No FX/Decor items in inventory.</div>'; return; }
+
+  const savedItems = Array.isArray(booking?.fxItems) ? booking.fxItems : [];
+
+  if (!db.fx.length) {
+    container.innerHTML = '<div style="font-size:11px;color:var(--ink3);padding:4px">No FX/Decor items in inventory. Add items via the Inventory section.</div>';
+    return;
+  }
+
   container.innerHTML = db.fx.map(item => {
-    const saved = savedItems.find(s => s.id === item.id);
-    const checked = !!saved;
+    const saved       = savedItems.find(s => s.id === item.id);
+    const isChecked   = !!saved;
     const customPrice = saved?.customPrice ?? item.rentalPrice;
-    return `<div class="fx-item-row" data-id="${item.id}" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--surface);border:1px solid var(--border)">
-      <input type="checkbox" class="fx-item-chk" data-id="${item.id}" ${checked?'checked':''} onchange="onFXItemToggle(this)" style="width:15px;height:15px;flex-shrink:0;cursor:pointer">
-      <div style="flex:1;font-size:12px;font-weight:600">${item.name}</div>
-      ${item.editablePerBooking
-        ? `<div style="display:flex;align-items:center;gap:4px">
-            <span style="font-size:11px;color:var(--ink3)">KES</span>
-            <input type="number" class="fx-item-price" data-id="${item.id}" value="${customPrice}" min="0" step="100" ${!checked?'disabled':''} onchange="onFXPriceChange(this)" style="width:90px;padding:4px 6px;font-size:12px;border-radius:6px" placeholder="Custom price">
-           </div>`
-        : `<span class="fx-item-price-label" data-id="${item.id}" style="font-size:12px;font-weight:700;color:var(--ocean);white-space:nowrap">${fmt(item.rentalPrice)}</span>`
-      }
+
+    // Price cell: editable input (if editablePerBooking) or fixed label
+    const priceCell = item.editablePerBooking
+      ? `<label style="font-size:11px;color:var(--ink3);margin-right:2px">KES</label>
+         <input type="number"
+                class="fx-item-price fx-price-input"
+                data-id="${item.id}"
+                value="${customPrice}"
+                min="0" step="100"
+                ${!isChecked ? 'disabled' : ''}
+                oninput="calcBkTotal()"
+                placeholder="Enter price">`
+      : `<span class="fx-price-tag">${fmt(item.rentalPrice)}</span>`;
+
+    return `<div class="fx-item-row ${isChecked ? 'fx-selected' : ''}"
+                 data-id="${item.id}"
+                 style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;background:var(--surface);border:1px solid var(--border)">
+      <input type="checkbox"
+             class="fx-item-chk"
+             data-id="${item.id}"
+             ${isChecked ? 'checked' : ''}
+             onchange="onFXItemToggle(this)"
+             style="width:15px;height:15px;flex-shrink:0;cursor:pointer;accent-color:var(--ocean)">
+      <label style="flex:1;font-size:12px;font-weight:600;cursor:pointer;user-select:none"
+             onclick="this.previousElementSibling.click()">
+        ${item.name}
+        ${item.editablePerBooking
+          ? '<span style="font-size:10px;font-weight:400;color:var(--ink3);margin-left:4px">(custom price)</span>'
+          : ''}
+      </label>
+      <div style="display:flex;align-items:center;gap:4px">${priceCell}</div>
     </div>`;
   }).join('');
+
   calcBkTotal();
 }
+
+// Toggle: enable/disable price input & highlight row when checkbox changes
 function onFXItemToggle(chk) {
-  const id = chk.getAttribute('data-id');
+  const id    = chk.getAttribute('data-id');
+  const row   = chk.closest('.fx-item-row');
   const priceInput = document.querySelector(`.fx-item-price[data-id="${id}"]`);
-  if (priceInput) priceInput.disabled = !chk.checked;
+
+  if (chk.checked) {
+    row.classList.add('fx-selected');
+    if (priceInput) priceInput.disabled = false;
+  } else {
+    row.classList.remove('fx-selected');
+    if (priceInput) priceInput.disabled = true;
+  }
   calcBkTotal();
 }
-function onFXPriceChange() { calcBkTotal(); }
+
+// Collect all currently-selected FX items with their prices
 function getFXItemsSelected() {
-  const rows = document.querySelectorAll('.fx-item-row');
   const result = [];
-  rows.forEach(row => {
-    const id = row.getAttribute('data-id');
+  document.querySelectorAll('.fx-item-row').forEach(row => {
+    const id  = row.getAttribute('data-id');
     const chk = row.querySelector('.fx-item-chk');
     if (!chk?.checked) return;
+
     const fxItem = db.fx.find(x => x.id === id);
     if (!fxItem) return;
+
     let price = fxItem.rentalPrice;
     if (fxItem.editablePerBooking) {
       const inp = row.querySelector('.fx-item-price');
@@ -1285,27 +1331,38 @@ function getFXItemsSelected() {
   });
   return result;
 }
+
+// ── LIVE TOTAL RECALCULATION ──
 function calcBkTotal() {
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const venueFee = g('bk-venue'), cateringFee = g('bk-catering');
-  const fxItems = getFXItemsSelected();
-  const fxTotal = fxItems.reduce((a, i) => a + i.customPrice, 0);
-  const subtotalEl = document.getElementById('bk-subtotal-disp');
+  const venueFee    = g('bk-venue');
+  const cateringFee = g('bk-catering');
+  const fxItems     = getFXItemsSelected();
+  const fxTotal     = fxItems.reduce((a, i) => a + (i.customPrice || 0), 0);
+  const subtotal    = venueFee + cateringFee + fxTotal;
+  const discPct     = g('bk-disc-pct');
+  const discAmt     = Math.round(subtotal * discPct / 100 * 100) / 100;
+  const grand       = Math.max(0, subtotal - discAmt);
+
+  // Update FX subtotal badge
   const fxSubEl = document.getElementById('bk-fx-subtotal');
-  const discEl = document.getElementById('bk-discount-disp');
-  const totalEl = document.getElementById('bk-total-disp');
-  const subtotal = venueFee + cateringFee + fxTotal;
-  const discPct = g('bk-disc-pct');
-  const discAmt = Math.round(subtotal * discPct / 100 * 100) / 100;
-  const grand = Math.max(0, subtotal - discAmt);
-  if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
   if (fxSubEl) fxSubEl.textContent = fmt(fxTotal);
-  if (discEl) discEl.textContent = '– ' + fmt(discAmt);
-  if (totalEl) totalEl.textContent = fmt(grand);
+
+  // Update breakdown panel
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('bk-venue-disp',    fmt(venueFee));
+  set('bk-catering-disp', fmt(cateringFee));
+  set('bk-fx-disp',       fmt(fxTotal));
+  set('bk-subtotal-disp', fmt(subtotal));
+  set('bk-discount-disp', '– ' + fmt(discAmt));
+  set('bk-total-disp',    fmt(grand));
 }
+
+// ── SAVE BOOKING  (fixed: reads from getFXItemsSelected + bk-disc-pct) ──
 async function saveBooking(editId) {
   const v = id => document.getElementById(id)?.value;
   const start = v('bk-start'), end = v('bk-end');
+
   const cf = checkConflict(start, end, editId);
   if (cf.conflict) {
     const w = document.getElementById('bk-conflict-warn');
@@ -1313,16 +1370,63 @@ async function saveBooking(editId) {
     w.textContent = `⚠ Conflict with ${cf.booking.clientName} (${fmtD(cf.booking.startDate)})`;
     return;
   }
+
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const venueFee = g('bk-venue'), cateringFee = g('bk-catering'), fxFee = g('bk-fx'), discount = g('bk-disc'), amountPaid = g('bk-paid');
-  const grandTotal = venueFee + cateringFee + fxFee - discount;
-  const payload = { clientName: v('bk-client'), phone: v('bk-phone'), email: v('bk-email'), category: v('bk-cat'), startDate: start, endDate: end, guestCount: g('bk-guests'), venueFee, cateringFee, fxFee, discount, amountPaid, grandTotal, reservationStatus: v('bk-rstat'), notes: v('bk-notes') };
+
+  // ── Collect fee components ──
+  const venueFee    = g('bk-venue');
+  const cateringFee = g('bk-catering');
+  const fxItems     = getFXItemsSelected();           // array of { id, name, customPrice }
+  const fxFee       = fxItems.reduce((a, i) => a + (i.customPrice || 0), 0);
+  const discPct     = g('bk-disc-pct');
+  const subtotal    = venueFee + cateringFee + fxFee;
+  const discount    = Math.round(subtotal * discPct / 100 * 100) / 100;
+  const grandTotal  = Math.max(0, subtotal - discount);
+  const amountPaid  = g('bk-paid');
+
+  const payload = {
+    clientName:        v('bk-client'),
+    phone:             v('bk-phone'),
+    email:             v('bk-email'),
+    category:          v('bk-cat'),
+    startDate:         start,
+    endDate:           end,
+    guestCount:        g('bk-guests'),
+    venueFee,
+    cateringFee,
+    fxFee,                                            // numeric total for reports / receipts
+    fxItems:           JSON.stringify(fxItems),       // full breakdown persisted to Supabase
+    discountPct:       discPct,
+    discount,
+    amountPaid,
+    grandTotal,                                       // correct computed total
+    reservationStatus: v('bk-rstat'),
+    notes:             v('bk-notes')
+  };
+
   try {
-    if (editId) { const updated = await dbUpdate('bookings', editId, payload); db.bookings = db.bookings.map(b => b.id === editId ? camelizeBooking(updated) : b); toast('Booking updated ✓'); }
-    else { const created = await dbInsert('bookings', { ...payload, id: uid() }); db.bookings.unshift(camelizeBooking(created)); toast('Booking created ✓'); }
-    closeModal(); renderBookings(); refreshCalendars(); renderDash();
-  } catch(e) { toast('Save failed: ' + e.message, 'e'); }
+    if (editId) {
+      const updated = await dbUpdate('bookings', editId, payload);
+      const parsed  = camelizeBooking(updated);
+      parsed.fxItems = fxItems;                       // restore parsed array in memory
+      db.bookings = db.bookings.map(b => b.id === editId ? parsed : b);
+      toast('Booking updated ✓');
+    } else {
+      const created = await dbInsert('bookings', { ...payload, id: uid() });
+      const parsed  = camelizeBooking(created);
+      parsed.fxItems = fxItems;
+      db.bookings.unshift(parsed);
+      toast('Booking created ✓');
+    }
+    closeModal();
+    renderBookings();
+    refreshCalendars();
+    renderDash();
+  } catch(e) {
+    toast('Save failed: ' + e.message, 'e');
+  }
 }
+
 async function deleteBooking(id) {
   if (!can('canDelete')) { toast('Admin only', 'e'); return; }
   if (!confirm('Delete this booking?')) return;
@@ -1338,6 +1442,7 @@ function sendWhatsApp(bookingId) {
   const msg = encodeURIComponent(`Hello ${b.clientName},\n\nReminder from ${s.venueName||'AMWAJ SEAFRONT VENUE'}:\n\n📅 Date: ${fmtD(b.startDate)}\n🎉 Event: ${b.category||'Event'}\n💰 Balance Due: KES ${Number(b.balance||0).toLocaleString()}\n\n${s.mpesaShortcode?`Pay via M-Pesa: ${s.mpesaShortcode}\n\n`:''}Thank you! 🌊`);
   window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
 }
+
 // ═══════════════════════════════════════════════════════════
 //  M-PESA
 // ═══════════════════════════════════════════════════════════
@@ -1418,7 +1523,20 @@ function printBookingReceipt(bookingId) {
   y += 8;
   doc.autoTable({ startY: y, head: [['Event Details', '']], body: [['Event Type', b.category||'—'],['Start', fmtDT(b.startDate)],['End', fmtDT(b.endDate)],['Guests', String(b.guestCount||'—')],['Status', b.reservationStatus||'—']], styles: { fontSize: 8 }, headStyles: { fillColor: [13, 74, 107] }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }, margin: { left: 10, right: 10 } });
   y = doc.lastAutoTable.finalY + 6;
-  doc.autoTable({ startY: y, head: [['Payment Summary', 'KES']], body: [['Venue Fee', Number(b.venueFee||0).toLocaleString()],['Catering Fee', Number(b.cateringFee||0).toLocaleString()],['FX / Decor', Number(b.fxFee||0).toLocaleString()],['Discount', '('+Number(b.discount||0).toLocaleString()+')'],['Grand Total', Number(b.grandTotal||0).toLocaleString()],['Amount Paid', Number(b.amountPaid||0).toLocaleString()],['Balance Due', Number(b.balance||0).toLocaleString()]], styles: { fontSize: 8 }, headStyles: { fillColor: [20, 128, 94] }, columnStyles: { 1: { halign: 'right' } }, didParseCell: (data) => { if (data.row.index === 6) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181,42,42] : [20,128,94]; } if (data.row.index === 4) data.cell.styles.fontStyle = 'bold'; }, margin: { left: 10, right: 10 } });
+
+  // Build payment rows including FX line items
+  const fxItems = Array.isArray(b.fxItems) ? b.fxItems : [];
+  const payRows = [
+    ['Venue Fee', 'KES ' + Number(b.venueFee||0).toLocaleString()],
+    ['Catering Fee', 'KES ' + Number(b.cateringFee||0).toLocaleString()],
+    ...fxItems.map(i => ['  🎛 ' + i.name, 'KES ' + Number(i.customPrice||0).toLocaleString()]),
+    ['FX / Decor Total', 'KES ' + Number(b.fxFee||0).toLocaleString()],
+    ['Discount (' + (b.discountPct||0) + '%)', '(KES ' + Number(b.discount||0).toLocaleString() + ')'],
+    ['Grand Total', 'KES ' + Number(b.grandTotal||0).toLocaleString()],
+    ['Amount Paid', 'KES ' + Number(b.amountPaid||0).toLocaleString()],
+    ['Balance Due', 'KES ' + Number(b.balance||0).toLocaleString()]
+  ];
+  doc.autoTable({ startY: y, head: [['Payment Summary', 'KES']], body: payRows, styles: { fontSize: 8 }, headStyles: { fillColor: [20, 128, 94] }, columnStyles: { 1: { halign: 'right' } }, didParseCell: (data) => { if (data.row.index === payRows.length - 1) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181,42,42] : [20,128,94]; } if (data.row.index === payRows.length - 3) data.cell.styles.fontStyle = 'bold'; }, margin: { left: 10, right: 10 } });
   y = doc.lastAutoTable.finalY + 8;
   if (b.mpesaAmount > 0) { doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(0,166,81); doc.text('📱 M-Pesa: KES ' + Number(b.mpesaAmount).toLocaleString() + ' received', 10, y); y += 5; }
   if (s.bank) { doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(120,120,120); doc.text('Bank: ' + s.bank, 10, y); }
@@ -1514,7 +1632,7 @@ function printInvoicePDF(invId) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const PW = doc.internal.pageSize.width;
-  doc.setFillColor(13,74,107); doc.rect(0,0,PW,30,'F');
+  doc.setFillColor(13,74,107); doc.rect(0,0,PW,28,'F');
   doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
   doc.text(s.venueName||'AMWAJ SEAFRONT VENUE',14,14);
   doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text(s.venueLocation||'Tudor Creek, Mombasa',14,22);
@@ -1853,8 +1971,8 @@ function renderReportCharts() {
   const evTypes={}; db.bookings.filter(b=>b.reservationStatus!=='CANCELLED').forEach(b=>{evTypes[b.category||'Other']=(evTypes[b.category||'Other']||0)+(b.amountPaid||0);});
   if (rptCharts.ev) rptCharts.ev.destroy();
   rptCharts.ev=new Chart(document.getElementById('rpt-ev-chart'),{type:'doughnut',data:{labels:Object.keys(evTypes),datasets:[{data:Object.values(evTypes),backgroundColor:['#0d4a6b','#1a6d9e','#14805e','#d97706','#c62828','#64748b','#7c3aed']}]},options:{plugins:{legend:{position:'bottom'}}}});
-  const now=new Date(); const months=[]; const rev6=[],bk6=[];
-  for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); const end=new Date(d.getFullYear(),d.getMonth()+1,1); months.push(d.toLocaleDateString('en',{month:'short'})); const mbk=db.bookings.filter(b=>{const s=new Date(b.startDate);return s>=d&&s<end&&b.reservationStatus!=='CANCELLED';}); rev6.push(mbk.reduce((a,b)=>a+(b.amountPaid||0),0)); bk6.push(mbk.length); }
+  const now=new Date(); const months=[]; const rev6=[];
+  for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); const end=new Date(d.getFullYear(),d.getMonth()+1,1); months.push(d.toLocaleDateString('en',{month:'short'})); const mbk=db.bookings.filter(b=>{const s=new Date(b.startDate);return s>=d&&s<end&&b.reservationStatus!=='CANCELLED';}); rev6.push(mbk.reduce((a,b)=>a+(b.amountPaid||0),0)); }
   if (rptCharts.trend) rptCharts.trend.destroy();
   rptCharts.trend=new Chart(document.getElementById('rpt-trend-chart'),{type:'line',data:{labels:months,datasets:[{label:'Revenue',data:rev6,borderColor:'#14805e',backgroundColor:'rgba(20,128,94,.1)',tension:.4,fill:true}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
   const expCats={}; db.expenses.forEach(e=>{expCats[e.category||'Other']=(expCats[e.category||'Other']||0)+Number(e.amount||0);});
@@ -1981,21 +2099,14 @@ function initInactivityWatcher() { ['mousemove','mousedown','keydown','touchstar
 function renderAll() { renderDash(); renderBookings(); renderInvoices(); renderExpenses(); renderClients(); renderVendors(); renderInventory(); renderStaff(); }
 
 function initAll() {
-  document.getElementById('e-date').value =
-    new Date().toISOString().slice(0,10);
-
+  document.getElementById('e-date').value = new Date().toISOString().slice(0,10);
   renderAll();
-
   initCalendars();
-
-  // Restore last opened view
   const savedView = prefs.lastView || 'dash';
-
-  // Run after calendars are initialized/rendered
-  requestAnimationFrame(() => {
-    goView(savedView, true);
-  });
+  requestAnimationFrame(() => { goView(savedView, true); });
 }
+
+
 </script>
 </body>
 </html>
