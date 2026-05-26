@@ -1601,7 +1601,7 @@ function printBookingReceipt(bookingId) {
         ['Venue Fee',    'KES ' + Number(b.venueFee    || 0).toLocaleString()],
         ['Catering Fee', 'KES ' + Number(b.cateringFee || 0).toLocaleString()],
         ...fxItems.map(i => ['  🎛 ' + i.name, 'KES ' + Number(i.customPrice || 0).toLocaleString()]),
-        ['FX / Decor',   'KES ' + Number(b.fxFee       || 0).toLocaleString()],
+       ...(fxItems.length ? [] : [['FX / Decor', 'KES ' + Number(b.fxFee || 0).toLocaleString()]]),
         ['Discount (' + (b.discountPct || 0) + '%)', '(' + Number(b.discount || 0).toLocaleString() + ')'],
         ['GRAND TOTAL',  'KES ' + Number(b.grandTotal  || 0).toLocaleString()],
         ['Amount Paid',  'KES ' + Number(b.amountPaid  || 0).toLocaleString()],
@@ -2422,18 +2422,7 @@ function initAll() {
   const savedView = prefs.lastView || 'dash';
   requestAnimationFrame(() => { goView(savedView, true); });
 }
-
-// ── Supabase column note ──────────────────────────────────
-// The bookings table needs these columns for FX persistence:
-//   fx_items  TEXT  (stores JSON array of { id, name, customPrice })
-//   fx_fee    NUMERIC
-//   discount_pct NUMERIC
-//   discount  NUMERIC
-// Run in Supabase SQL editor if columns don't exist:
-//   ALTER TABLE bookings ADD COLUMN IF NOT EXISTS fx_items TEXT;
-//   ALTER TABLE bookings ADD COLUMN IF NOT EXISTS fx_fee NUMERIC DEFAULT 0;
-//   ALTER TABLE bookings ADD COLUMN IF NOT EXISTS discount_pct NUMERIC DEFAULT 0;
-//   ALTER TABLE bookings ADD COLUMN IF NOT EXISTS discount NUMERIC DEFAULT 0;
+//Lord Jesus is my Saviour
 </script>
 </body>
 </html>
