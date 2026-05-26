@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AMWAJ SEAFRONT VENUE · ERP v4</title>
+  <title>AMWAJ SEAFRONT VENUE</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
@@ -206,6 +206,14 @@
     .lbl { font-size: 11px; font-weight: 600; color: var(--ink2); margin-bottom: 4px; display: block; }
     .accent-line { width: 40px; height: 3px; background: var(--coral); border-radius: 2px; margin-top: 4px; }
     #sb-logo-area { padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+
+    /* ── FX Item Selector Styles ── */
+    .fx-item-row { transition: background .15s, border-color .15s; }
+    .fx-item-row:hover { background: var(--surface2) !important; }
+    .fx-item-row.fx-selected { background: rgba(13,74,107,.06) !important; border-color: var(--ocean-lt) !important; }
+    .fx-item-chk { accent-color: var(--ocean); }
+    .fx-price-tag { font-size: 12px; font-weight: 700; color: var(--ocean); white-space: nowrap; min-width: 70px; text-align: right; }
+    .fx-price-input { width: 100px !important; padding: 4px 8px !important; font-size: 12px !important; border-radius: 6px !important; }
   </style>
 </head>
 <body>
@@ -521,7 +529,7 @@
         </div>
         <div class="card" style="overflow-x:auto">
           <table class="tbl">
-            <thead><tr><th>Item</th><th>Serial</th><th style="text-align:center">Qty</th><th>Rental Price</th><th>Status</th><th>Assigned To</th><th style="text-align:center">Actions</th></tr></thead>
+            <thead><tr><th>Item</th><th>Serial</th><th style="text-align:center">Qty</th><th>Rental Price</th><th>Price Type</th><th>Status</th><th>Assigned To</th><th style="text-align:center">Actions</th></tr></thead>
             <tbody id="fx-tbody"></tbody>
           </table>
           <div id="fx-empty" class="empty-state" style="display:none"><div class="emoji">📦</div><p>No inventory items.</p></div>
@@ -723,6 +731,18 @@ async function dbLoad() {
     db.staff     = (stRes.data || []).map(camelize);
     db.shifts    = (shRes.data || []).map(camelize);
     db.settings  = prefs.settings || { venueName: 'AMWAJ SEAFRONT VENUE', venueLocation: 'Tudor Creek, Mombasa', phone: '', email: '', bank: '', vatRate: 16, monthlyTarget: 0, mpesaShortcode: '', mpesaCallback: '' };
+
+    if (!db.fx.length) {
+      const fxSeeds = [
+        { id: uid(), name: 'Smoke Ice Machine',  serial: '', qty: 1, rentalPrice: 0,      status: 'Available', assignedTo: '', editablePerBooking: true  },
+        { id: uid(), name: 'Pyro Machine',        serial: '', qty: 1, rentalPrice: 3500,   status: 'Available', assignedTo: '', editablePerBooking: false },
+        { id: uid(), name: 'Moving Headlight',    serial: '', qty: 1, rentalPrice: 3500,   status: 'Available', assignedTo: '', editablePerBooking: false },
+        { id: uid(), name: 'Laser Projection',    serial: '', qty: 1, rentalPrice: 0,      status: 'Available', assignedTo: '', editablePerBooking: true  },
+        { id: uid(), name: 'Mapping',             serial: '', qty: 1, rentalPrice: 70000,  status: 'Available', assignedTo: '', editablePerBooking: false },
+      ];
+      db.fx = fxSeeds;
+      fxSeeds.forEach(item => dbInsert('inventory', item).catch(() => {}));
+    }
   } catch(e) {
     toast('Failed to load data: ' + e.message, 'e');
   } finally { hideLoader(); }
@@ -734,10 +754,18 @@ function camelize(row) {
   for (const k in row) out[k.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] = row[k];
   return out;
 }
+
 function camelizeBooking(row) {
   const b = camelize(row);
   b.grandTotal = b.grandTotal || b.totalAmount || 0;
   b.balance = Math.max(0, b.grandTotal - (b.amountPaid || 0));
+
+  // ── FIX: Parse fxItems from JSON string if stored as text ──
+  if (typeof b.fxItems === 'string') {
+    try { b.fxItems = JSON.parse(b.fxItems); } catch { b.fxItems = []; }
+  }
+  if (!Array.isArray(b.fxItems)) b.fxItems = [];
+
   const pct = (b.amountPaid || 0) / (b.grandTotal || 1);
   if (b.reservationStatus === 'CANCELLED') b.paymentStatus = 'UNPAID';
   else if (pct <= 0) b.paymentStatus = 'UNPAID';
@@ -745,6 +773,7 @@ function camelizeBooking(row) {
   else b.paymentStatus = 'PARTIAL';
   return b;
 }
+
 function camelizeInvoice(row) {
   const i = camelize(row);
   i.balance = Math.max(0, (i.amount || 0) - (i.amountPaid || 0));
@@ -752,6 +781,7 @@ function camelizeInvoice(row) {
   else if (i.status !== 'Cancelled') { const due = new Date(i.dueDate); if (!isNaN(due) && due < new Date()) i.status = 'Overdue'; }
   return i;
 }
+
 function snakerize(obj) {
   const out = {};
   for (const k in obj) out[k.replace(/([A-Z])/g, '_$1').toLowerCase()] = obj[k];
@@ -804,9 +834,7 @@ async function bootApp(user) {
   const roleClass = { Administrator: 'role-admin', Manager: 'role-manager', Staff: 'role-staff' }[CURRENT_ROLE] || 'role-staff';
   document.getElementById('tb-role').textContent = CURRENT_ROLE;
   document.getElementById('tb-role').className = 'role-badge ' + roleClass;
-
   if (!can('canViewReports')) document.getElementById('nav-reports').style.display = 'none';
-
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   await dbLoad();
@@ -826,27 +854,28 @@ async function doLogout() {
 let currentView = 'dash';
 const viewTitles = { dash:'Dashboard', calendar:'Calendar', bookings:'Bookings', invoices:'Invoices', expenses:'Expenses', clients:'Clients', vendors:'Vendors', inventory:'Inventory', staff:'Staff', reports:'Reports', settings:'Settings' };
 
-function goView(v) {
+function goView(v, skipPersist = false) {
   if (v === 'settings' && !can('canManageUsers')) { toast('Access denied. Administrators only.', 'e'); return; }
-  if (v === 'reports'  && !can('canViewReports'))  { toast('Access denied.', 'e'); return; }
+  if (v === 'reports' && !can('canViewReports')) { toast('Access denied.', 'e'); return; }
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const el = document.getElementById('v-' + v);
-  if (el) el.classList.add('active');
-  const nav = document.getElementById('nav-' + v);
-  if (nav) nav.classList.add('active');
+  const viewEl = document.getElementById('v-' + v);
+  if (viewEl) viewEl.classList.add('active');
+  const navEl = document.getElementById('nav-' + v);
+  if (navEl) navEl.classList.add('active');
   document.getElementById('tb-title').textContent = viewTitles[v] || v;
   currentView = v;
-  // Persist view so a page refresh returns here
-  try { localStorage.setItem('amwaj_view', v); } catch(e) {}
-  if (v === 'reports')  renderReportCharts();
+  if (!skipPersist) { prefs.lastView = v; savePrefs(); }
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      if (v === 'dash' && miniCal) miniCal.updateSize();
+      if (v === 'calendar' && fullCal) fullCal.updateSize();
+    }, 50);
+  });
+  if (v === 'reports') renderReportCharts();
   if (v === 'settings') loadSettingsForm();
   if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
-  // Force FullCalendar to recalculate its size after the view becomes visible
-  if (v === 'calendar') requestAnimationFrame(() => requestAnimationFrame(() => { if (fullCal) fullCal.updateSize(); }));
-  if (v === 'dash')     requestAnimationFrame(() => requestAnimationFrame(() => { if (miniCal) miniCal.updateSize(); }));
 }
-
 function toggleSidebar() {
   const sb_ = document.getElementById('sidebar');
   if (window.innerWidth <= 768) sb_.classList.toggle('open');
@@ -950,45 +979,32 @@ function setCalF(type, val, el) {
   el.classList.add('on');
   refreshCalendars();
 }
-
 function initCalendars() {
-  // Mini calendar on dashboard
   const miniEl = document.getElementById('mini-cal');
   if (miniEl && !miniCal) {
     miniCal = new FullCalendar.Calendar(miniEl, {
-      initialView: 'dayGridMonth',
-      height: 280,
+      initialView: 'dayGridMonth', height: 280,
       headerToolbar: { left: 'prev,next', center: 'title', right: '' },
-      eventDisplay: 'block',
-      dayMaxEvents: 2,
+      eventDisplay: 'block', dayMaxEvents: 2,
       events: buildCalEvents(),
       eventClick: ({ event }) => openBookingDetail(event.extendedProps.booking),
       dateClick: ({ dateStr }) => openBookingModal(null, dateStr)
     });
     miniCal.render();
-    // Recalculate size after the browser has painted the layout
-    requestAnimationFrame(() => requestAnimationFrame(() => miniCal.updateSize()));
   }
-
-  // Full calendar on calendar view
   const fullEl = document.getElementById('full-cal');
   if (fullEl && !fullCal) {
     fullCal = new FullCalendar.Calendar(fullEl, {
-      initialView: 'dayGridMonth',
-      height: 580,
+      initialView: 'dayGridMonth', height: 580,
       headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
-      eventDisplay: 'block',
-      dayMaxEvents: false,
+      eventDisplay: 'block', dayMaxEvents: false,
       events: buildCalEvents(),
       eventClick: ({ event }) => openBookingDetail(event.extendedProps.booking),
       dateClick: ({ dateStr }) => openBookingModal(null, dateStr)
     });
     fullCal.render();
-    // Recalculate size after the browser has painted the layout
-    requestAnimationFrame(() => requestAnimationFrame(() => fullCal.updateSize()));
   }
 }
-
 function refreshCalendars() {
   const evs = buildCalEvents();
   [miniCal, fullCal].forEach(c => { if (c) { c.removeAllEvents(); c.addEventSource(evs); } });
@@ -1096,6 +1112,13 @@ function renderBookings() {
 
 function openBookingDetail(b) {
   if (!b) return;
+  // Build FX breakdown if any items are stored
+  const fxLines = (b.fxItems || []).map(i =>
+    `<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0">
+      <span style="color:var(--ink2)">🎛 ${i.name}</span>
+      <span style="font-weight:600">${fmt(i.customPrice)}</span>
+    </div>`
+  ).join('');
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -1114,7 +1137,8 @@ function openBookingDetail(b) {
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Total</div><div style="font-weight:800;font-size:16px;color:var(--ocean);margin-top:2px">${fmt(b.grandTotal)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Balance</div><div style="font-weight:800;font-size:16px;color:var(--amber);margin-top:2px">${fmt(b.balance)}</div></div>
       </div>
-      ${b.notes ? `<div style="margin-top:14px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--ink2)">${b.notes}</div>` : ''}
+      ${fxLines ? `<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px"><div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;margin-bottom:6px">🎛 FX / Decor Items</div>${fxLines}</div>` : ''}
+      ${b.notes ? `<div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--ink2)">${b.notes}</div>` : ''}
       <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
         ${can('canEdit') ? `<button class="btn btn-ocean" onclick="closeModal();openBookingModal('${b.id}')">✏️ Edit</button>` : ''}
         <button class="btn btn-ghost" onclick="generateInvoiceFromBooking('${b.id}')">📄 Generate Invoice</button>
@@ -1124,9 +1148,13 @@ function openBookingDetail(b) {
     </div>`);
 }
 
+// ──────────────────────────────────────────────────────────
+//  BOOKING MODAL  (with corrected FX selector)
+// ──────────────────────────────────────────────────────────
 function openBookingModal(id, prefillDate) {
   if (!can('canCreate') && !id) { toast('Insufficient permissions', 'e'); return; }
   const b = id ? db.bookings.find(x => x.id === id) : null;
+
   openModal(`
     <div style="padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -1134,51 +1162,207 @@ function openBookingModal(id, prefillDate) {
         <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink3)">×</button>
       </div>
       <form id="bk-form" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
         <div><label class="lbl">Client Name *</label><input id="bk-client" value="${b?.clientName||''}" required style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Phone</label><input id="bk-phone" value="${b?.phone||''}" style="width:100%;padding:7px 10px" placeholder="+254…"></div>
         <div><label class="lbl">Email</label><input id="bk-email" value="${b?.email||''}" type="email" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Event Type *</label>
+
+        <div>
+          <label class="lbl" for="bk-cat">Event Type *</label>
           <select id="bk-cat" style="width:100%;padding:7px 10px">
             ${['Wedding','Birthday','Conference','Corporate','Graduation','Anniversary','Other'].map(o => `<option ${b?.category===o?'selected':''}>${o}</option>`).join('')}
           </select>
         </div>
+
         <div><label class="lbl">Start Date & Time *</label><input id="bk-start" type="datetime-local" value="${b?.startDate?.slice(0,16)||prefillDate||''}" required style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">End Date & Time *</label><input id="bk-end" type="datetime-local" value="${b?.endDate?.slice(0,16)||''}" required style="width:100%;padding:7px 10px"></div>
+
         <div><label class="lbl">Guest Count</label><input id="bk-guests" type="number" value="${b?.guestCount||''}" min="0" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Catering Fee (KES)</label><input id="bk-catering" type="number" value="${b?.cateringFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">FX/Decor Fee (KES)</label><input id="bk-fx" type="number" value="${b?.fxFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Discount (KES)</label><input id="bk-disc" type="number" value="${b?.discount||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||0}" min="0" step="0.01" style="width:100%;padding:7px 10px" oninput="calcBkTotal()"></div>
+
+        <div style="grid-column:span 2">
+          <label class="lbl">Catering Fee (KES)</label>
+          <input id="bk-catering" type="number" value="${b?.cateringFee||0}" min="0" step="0.01" style="width:100%;padding:7px 10px" oninput="calcBkTotal()">
+        </div>
+
+        <!-- ── FX / DECOR ITEMS SELECTOR ── -->
+        <div style="grid-column:span 2">
+          <label class="lbl">🎛 FX &amp; Decor Items</label>
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:6px">
+            Select items included in this booking. Tick the checkbox to include; items with a custom price field let you enter the agreed rate.
+          </div>
+          <div id="bk-fx-items" style="display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;max-height:240px;overflow-y:auto">
+            <div style="font-size:11px;color:var(--ink3)">Loading FX items…</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px">
+            <span style="color:var(--ink2);font-weight:600">FX / Decor Subtotal:</span>
+            <span id="bk-fx-subtotal" style="font-weight:800;color:var(--ocean)">KES 0</span>
+          </div>
+        </div>
+
+        <div><label class="lbl">Discount (%)</label><input id="bk-disc-pct" type="number" value="${b?.discountPct||0}" min="0" max="100" step="0.1" placeholder="0" style="width:100%;padding:7px 10px" oninput="calcBkTotal()"></div>
         <div><label class="lbl">Amount Paid (KES)</label><input id="bk-paid" type="number" value="${b?.amountPaid||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Reservation Status</label>
+
+        <div style="grid-column:span 2">
+          <label class="lbl" for="bk-rstat">Reservation Status</label>
           <select id="bk-rstat" style="width:100%;padding:7px 10px">
             ${['RESERVED','CONFIRMED','COMPLETED','CANCELLED'].map(s => `<option ${b?.reservationStatus===s?'selected':''}>${s}</option>`).join('')}
           </select>
         </div>
+
         <div style="grid-column:span 2"><label class="lbl">Notes</label><textarea id="bk-notes" style="width:100%;padding:7px 10px;height:64px;resize:vertical">${b?.notes||''}</textarea></div>
-        <div style="grid-column:span 2;background:var(--surface2);border-radius:8px;padding:10px;font-size:13px">
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--ink3)">Grand Total</span><span id="bk-total-disp" style="font-weight:800;font-size:16px">${fmt(b?.grandTotal||0)}</span></div>
+
+        <!-- ── LIVE TOTAL BREAKDOWN ── -->
+        <div style="grid-column:span 2;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:8px">💰 Booking Total Breakdown</div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--ink3)">Venue Fee</span><span id="bk-venue-disp" style="font-weight:600">KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--ink3)">Catering Fee</span><span id="bk-catering-disp" style="font-weight:600">KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--ink3)">FX / Decor</span><span id="bk-fx-disp" style="font-weight:600">KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;padding-top:6px;border-top:1px dashed var(--border)"><span style="color:var(--ink3)">Subtotal</span><span id="bk-subtotal-disp" style="font-weight:600">KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--red)">Discount</span><span id="bk-discount-disp" style="font-weight:600;color:var(--red)">– KES 0</span></div>
+          <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:2px solid var(--border)"><span style="font-weight:700;font-size:14px">Grand Total</span><span id="bk-total-disp" style="font-weight:800;font-size:18px;color:var(--ocean)">KES 0</span></div>
         </div>
+
         <div id="bk-conflict-warn" style="grid-column:span 2;display:none" class="sec-notice"></div>
+
         <div style="grid-column:span 2;display:flex;gap:8px">
           <button type="submit" class="btn btn-ocean" style="flex:1;justify-content:center">💾 Save Booking</button>
           <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
         </div>
       </form>
     </div>`);
-  ['bk-venue','bk-catering','bk-fx','bk-disc'].forEach(id => document.getElementById(id)?.addEventListener('input', calcBkTotal));
+
+  // Populate FX items selector AFTER modal is in DOM
+  buildFXItemsSelector(b);
   calcBkTotal();
+
   document.getElementById('bk-form').onsubmit = async ev => { ev.preventDefault(); await saveBooking(id); };
 }
+
+// ──────────────────────────────────────────────────────────
+//  FX ITEMS SELECTOR  — renders checkbox rows for each
+//  inventory item and wires up live price recalculation
+// ──────────────────────────────────────────────────────────
+function buildFXItemsSelector(booking) {
+  const container = document.getElementById('bk-fx-items');
+  if (!container) return;
+
+  const savedItems = Array.isArray(booking?.fxItems) ? booking.fxItems : [];
+
+  if (!db.fx.length) {
+    container.innerHTML = '<div style="font-size:11px;color:var(--ink3);padding:4px">No FX/Decor items in inventory. Add items via the Inventory section.</div>';
+    return;
+  }
+
+  container.innerHTML = db.fx.map(item => {
+    const saved       = savedItems.find(s => s.id === item.id);
+    const isChecked   = !!saved;
+    const customPrice = saved?.customPrice ?? item.rentalPrice;
+
+    // Price cell: editable input (if editablePerBooking) or fixed label
+    const priceCell = item.editablePerBooking
+      ? `<label style="font-size:11px;color:var(--ink3);margin-right:2px">KES</label>
+         <input type="number"
+                class="fx-item-price fx-price-input"
+                data-id="${item.id}"
+                value="${customPrice}"
+                min="0" step="100"
+                ${!isChecked ? 'disabled' : ''}
+                oninput="calcBkTotal()"
+                placeholder="Enter price">`
+      : `<span class="fx-price-tag">${fmt(item.rentalPrice)}</span>`;
+
+    return `<div class="fx-item-row ${isChecked ? 'fx-selected' : ''}"
+                 data-id="${item.id}"
+                 style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;background:var(--surface);border:1px solid var(--border)">
+      <input type="checkbox"
+             class="fx-item-chk"
+             data-id="${item.id}"
+             ${isChecked ? 'checked' : ''}
+             onchange="onFXItemToggle(this)"
+             style="width:15px;height:15px;flex-shrink:0;cursor:pointer;accent-color:var(--ocean)">
+      <label style="flex:1;font-size:12px;font-weight:600;cursor:pointer;user-select:none"
+             onclick="this.previousElementSibling.click()">
+        ${item.name}
+        ${item.editablePerBooking
+          ? '<span style="font-size:10px;font-weight:400;color:var(--ink3);margin-left:4px">(custom price)</span>'
+          : ''}
+      </label>
+      <div style="display:flex;align-items:center;gap:4px">${priceCell}</div>
+    </div>`;
+  }).join('');
+
+  calcBkTotal();
+}
+
+// Toggle: enable/disable price input & highlight row when checkbox changes
+function onFXItemToggle(chk) {
+  const id    = chk.getAttribute('data-id');
+  const row   = chk.closest('.fx-item-row');
+  const priceInput = document.querySelector(`.fx-item-price[data-id="${id}"]`);
+
+  if (chk.checked) {
+    row.classList.add('fx-selected');
+    if (priceInput) priceInput.disabled = false;
+  } else {
+    row.classList.remove('fx-selected');
+    if (priceInput) priceInput.disabled = true;
+  }
+  calcBkTotal();
+}
+
+// Collect all currently-selected FX items with their prices
+function getFXItemsSelected() {
+  const result = [];
+  document.querySelectorAll('.fx-item-row').forEach(row => {
+    const id  = row.getAttribute('data-id');
+    const chk = row.querySelector('.fx-item-chk');
+    if (!chk?.checked) return;
+
+    const fxItem = db.fx.find(x => x.id === id);
+    if (!fxItem) return;
+
+    let price = fxItem.rentalPrice;
+    if (fxItem.editablePerBooking) {
+      const inp = row.querySelector('.fx-item-price');
+      price = Number(inp?.value || 0);
+    }
+    result.push({ id, name: fxItem.name, customPrice: price });
+  });
+  return result;
+}
+
+// ── LIVE TOTAL RECALCULATION ──
 function calcBkTotal() {
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const total = g('bk-venue') + g('bk-catering') + g('bk-fx') - g('bk-disc');
-  const el = document.getElementById('bk-total-disp');
-  if (el) el.textContent = fmt(total);
+  const venueFee    = g('bk-venue');
+  const cateringFee = g('bk-catering');
+  const fxItems     = getFXItemsSelected();
+  const fxTotal     = fxItems.reduce((a, i) => a + (i.customPrice || 0), 0);
+  const subtotal    = venueFee + cateringFee + fxTotal;
+  const discPct     = g('bk-disc-pct');
+  const discAmt     = Math.round(subtotal * discPct / 100 * 100) / 100;
+  const grand       = Math.max(0, subtotal - discAmt);
+
+  // Update FX subtotal badge
+  const fxSubEl = document.getElementById('bk-fx-subtotal');
+  if (fxSubEl) fxSubEl.textContent = fmt(fxTotal);
+
+  // Update breakdown panel
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('bk-venue-disp',    fmt(venueFee));
+  set('bk-catering-disp', fmt(cateringFee));
+  set('bk-fx-disp',       fmt(fxTotal));
+  set('bk-subtotal-disp', fmt(subtotal));
+  set('bk-discount-disp', '– ' + fmt(discAmt));
+  set('bk-total-disp',    fmt(grand));
 }
+
+// ── SAVE BOOKING  (fixed: reads from getFXItemsSelected + bk-disc-pct) ──
 async function saveBooking(editId) {
   const v = id => document.getElementById(id)?.value;
   const start = v('bk-start'), end = v('bk-end');
+
   const cf = checkConflict(start, end, editId);
   if (cf.conflict) {
     const w = document.getElementById('bk-conflict-warn');
@@ -1186,16 +1370,63 @@ async function saveBooking(editId) {
     w.textContent = `⚠ Conflict with ${cf.booking.clientName} (${fmtD(cf.booking.startDate)})`;
     return;
   }
+
   const g = id => Number(document.getElementById(id)?.value || 0);
-  const venueFee = g('bk-venue'), cateringFee = g('bk-catering'), fxFee = g('bk-fx'), discount = g('bk-disc'), amountPaid = g('bk-paid');
-  const grandTotal = venueFee + cateringFee + fxFee - discount;
-  const payload = { clientName: v('bk-client'), phone: v('bk-phone'), email: v('bk-email'), category: v('bk-cat'), startDate: start, endDate: end, guestCount: g('bk-guests'), venueFee, cateringFee, fxFee, discount, amountPaid, grandTotal, reservationStatus: v('bk-rstat'), notes: v('bk-notes') };
+
+  // ── Collect fee components ──
+  const venueFee    = g('bk-venue');
+  const cateringFee = g('bk-catering');
+  const fxItems     = getFXItemsSelected();           // array of { id, name, customPrice }
+  const fxFee       = fxItems.reduce((a, i) => a + (i.customPrice || 0), 0);
+  const discPct     = g('bk-disc-pct');
+  const subtotal    = venueFee + cateringFee + fxFee;
+  const discount    = Math.round(subtotal * discPct / 100 * 100) / 100;
+  const grandTotal  = Math.max(0, subtotal - discount);
+  const amountPaid  = g('bk-paid');
+
+  const payload = {
+    clientName:        v('bk-client'),
+    phone:             v('bk-phone'),
+    email:             v('bk-email'),
+    category:          v('bk-cat'),
+    startDate:         start,
+    endDate:           end,
+    guestCount:        g('bk-guests'),
+    venueFee,
+    cateringFee,
+    fxFee,                                            // numeric total for reports / receipts
+    fxItems:           JSON.stringify(fxItems),       // full breakdown persisted to Supabase
+    discountPct:       discPct,
+    discount,
+    amountPaid,
+    grandTotal,                                       // correct computed total
+    reservationStatus: v('bk-rstat'),
+    notes:             v('bk-notes')
+  };
+
   try {
-    if (editId) { const updated = await dbUpdate('bookings', editId, payload); db.bookings = db.bookings.map(b => b.id === editId ? camelizeBooking(updated) : b); toast('Booking updated ✓'); }
-    else { const created = await dbInsert('bookings', { ...payload, id: uid() }); db.bookings.unshift(camelizeBooking(created)); toast('Booking created ✓'); }
-    closeModal(); renderBookings(); refreshCalendars(); renderDash();
-  } catch(e) { toast('Save failed: ' + e.message, 'e'); }
+    if (editId) {
+      const updated = await dbUpdate('bookings', editId, payload);
+      const parsed  = camelizeBooking(updated);
+      parsed.fxItems = fxItems;                       // restore parsed array in memory
+      db.bookings = db.bookings.map(b => b.id === editId ? parsed : b);
+      toast('Booking updated ✓');
+    } else {
+      const created = await dbInsert('bookings', { ...payload, id: uid() });
+      const parsed  = camelizeBooking(created);
+      parsed.fxItems = fxItems;
+      db.bookings.unshift(parsed);
+      toast('Booking created ✓');
+    }
+    closeModal();
+    renderBookings();
+    refreshCalendars();
+    renderDash();
+  } catch(e) {
+    toast('Save failed: ' + e.message, 'e');
+  }
 }
+
 async function deleteBooking(id) {
   if (!can('canDelete')) { toast('Admin only', 'e'); return; }
   if (!confirm('Delete this booking?')) return;
@@ -1266,66 +1497,6 @@ async function saveBooking_amountPaid(id, amountPaid, mpesaAmount) {
   try { const changes = { amountPaid }; if (mpesaAmount !== undefined) changes.mpesaAmount = mpesaAmount; const u = await dbUpdate('bookings', id, changes); db.bookings = db.bookings.map(b => b.id === id ? camelizeBooking(u) : b); renderBookings(); renderDash(); } catch(e) { console.error(e); }
 }
 
-
-// ═══════════════════════════════════════════════════════════
-//  PDF LETTERHEAD HELPER
-// ═══════════════════════════════════════════════════════════
-const LOGO_B64 = 'data:image/png;base64,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';
-
-function drawLetterhead(doc, isA5 = false) {
-  const PW = doc.internal.pageSize.width;
-  const LOGO_SIZE = isA5 ? 16 : 20;
-  const LEFT = isA5 ? 8 : 12;
-  const TOP  = isA5 ? 5 : 7;
-
-  // Navy header bar
-  doc.setFillColor(13, 74, 107);
-  doc.rect(0, 0, PW, isA5 ? 34 : 40, 'F');
-
-  // Logo (white background circle behind it)
-  try {
-    doc.addImage(LOGO_B64, 'PNG', LEFT, TOP, LOGO_SIZE, LOGO_SIZE);
-  } catch(e) { /* skip */ }
-
-  const TL = LEFT + LOGO_SIZE + (isA5 ? 5 : 6);
-  let ty = TOP + (isA5 ? 2 : 2.5);
-  const lh = isA5 ? 3.8 : 4.5;
-
-  // Venue name
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(isA5 ? 10 : 13);
-  doc.setTextColor(255, 255, 255);
-  doc.text('AMWAJ SEAFRONT VENUE', TL, ty + lh);
-
-  // Tagline
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(isA5 ? 5.5 : 7);
-  doc.setTextColor(180, 215, 235);
-  ty += lh + (isA5 ? 3.8 : 4.5);
-  doc.text('Luxury + Modern Weddings, Corporate & Private Events Venue', TL, ty + lh);
-
-  // Phone & email
-  doc.setFontSize(isA5 ? 5.2 : 6.5);
-  doc.setTextColor(210, 230, 245);
-  ty += lh + (isA5 ? 2.8 : 3.5);
-  doc.text('0742 400 400 / 0748 400 400   |   info@amwajseafrontvenue.com', TL, ty + lh);
-
-  // Address
-  ty += lh + (isA5 ? 2.5 : 3);
-  doc.text('Off Tom Mboya Road, Mombasa, Kenya', TL, ty + lh);
-
-  // Coral accent line
-  const sepY = isA5 ? 35 : 41;
-  doc.setDrawColor(224, 92, 58);
-  doc.setLineWidth(0.7);
-  doc.line(0, sepY, PW, sepY);
-
-  doc.setTextColor(30, 30, 30);
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(0.2);
-  return sepY + (isA5 ? 5 : 7);
-}
-
 function printBookingReceipt(bookingId) {
   const b = db.bookings.find(x => x.id === bookingId);
   if (!b) return;
@@ -1333,91 +1504,46 @@ function printBookingReceipt(bookingId) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a5' });
   const PW = doc.internal.pageSize.width;
+  doc.setFillColor(13, 74, 107); doc.rect(0, 0, PW, 30, 'F');
+  doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+  doc.text(s.venueName || 'AMWAJ SEAFRONT VENUE', 10, 13);
+  doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+  doc.text((s.venueLocation || 'Tudor Creek, Mombasa') + (s.phone ? '  ·  ' + s.phone : ''), 10, 19);
+  if (s.email) doc.text(s.email, 10, 24);
+  doc.setTextColor(30, 30, 30); doc.setFontSize(12); doc.setFont('helvetica', 'bold');
+  doc.text('BOOKING RECEIPT', PW / 2, 38, { align: 'center' });
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100);
+  doc.text('Generated: ' + new Date().toLocaleString('en-GB'), PW / 2, 43, { align: 'center' });
+  let y = 52;
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30); doc.text('Client Details', 10, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+  y += 5; doc.text('Name:   ' + (b.clientName || '—'), 10, y);
+  y += 4; doc.text('Phone:  ' + (b.phone || '—'), 10, y);
+  if (b.email) { y += 4; doc.text('Email:  ' + b.email, 10, y); }
+  y += 8;
+  doc.autoTable({ startY: y, head: [['Event Details', '']], body: [['Event Type', b.category||'—'],['Start', fmtDT(b.startDate)],['End', fmtDT(b.endDate)],['Guests', String(b.guestCount||'—')],['Status', b.reservationStatus||'—']], styles: { fontSize: 8 }, headStyles: { fillColor: [13, 74, 107] }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 40 } }, margin: { left: 10, right: 10 } });
+  y = doc.lastAutoTable.finalY + 6;
 
-  let y = drawLetterhead(doc, true);
-
-  // Document title
-  doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(13, 74, 107);
-  doc.text('BOOKING RECEIPT', PW / 2, y, { align: 'center' }); y += 4.5;
-  doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(140, 140, 140);
-  doc.text('Generated: ' + new Date().toLocaleString('en-GB'), PW / 2, y, { align: 'center' }); y += 6;
-
-  // Client block
-  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30);
-  doc.text('Client Details', 10, y); y += 4;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(50, 50, 50);
-  doc.text('Name:  ' + (b.clientName || '—'), 10, y); y += 3.8;
-  doc.text('Phone: ' + (b.phone || '—'), 10, y); y += 3.8;
-  if (b.email) { doc.text('Email: ' + b.email, 10, y); y += 3.8; }
-  y += 2;
-
-  // Event table
-  doc.autoTable({
-    startY: y,
-    head: [['Event Details', '']],
-    body: [
-      ['Event Type', b.category || '—'],
-      ['Start',      fmtDT(b.startDate)],
-      ['End',        fmtDT(b.endDate)],
-      ['Guests',     String(b.guestCount || '—')],
-      ['Status',     b.reservationStatus || '—']
-    ],
-    styles: { fontSize: 7.5, cellPadding: 2 },
-    headStyles: { fillColor: [13, 74, 107], fontSize: 7.5, fontStyle: 'bold', textColor: 255 },
-    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 36 } },
-    margin: { left: 10, right: 10 }
-  });
-  y = doc.lastAutoTable.finalY + 4;
-
-  // Payment table
+  // Build payment rows including FX line items
   const fxItems = Array.isArray(b.fxItems) ? b.fxItems : [];
   const payRows = [
-    ['Venue Fee',    'KES ' + Number(b.venueFee    || 0).toLocaleString()],
-    ['Catering Fee', 'KES ' + Number(b.cateringFee || 0).toLocaleString()],
-    ...fxItems.map(i => ['  🎛 ' + i.name, 'KES ' + Number(i.customPrice || 0).toLocaleString()]),
-    ['FX / Decor',   'KES ' + Number(b.fxFee       || 0).toLocaleString()],
-    ['Discount (' + (b.discountPct || 0) + '%)', '(' + Number(b.discount || 0).toLocaleString() + ')'],
-    ['GRAND TOTAL',  'KES ' + Number(b.grandTotal  || 0).toLocaleString()],
-    ['Amount Paid',  'KES ' + Number(b.amountPaid  || 0).toLocaleString()],
-    ['Balance Due',  'KES ' + Number(b.balance     || 0).toLocaleString()]
+    ['Venue Fee', 'KES ' + Number(b.venueFee||0).toLocaleString()],
+    ['Catering Fee', 'KES ' + Number(b.cateringFee||0).toLocaleString()],
+    ...fxItems.map(i => ['  🎛 ' + i.name, 'KES ' + Number(i.customPrice||0).toLocaleString()]),
+    ['FX / Decor Total', 'KES ' + Number(b.fxFee||0).toLocaleString()],
+    ['Discount (' + (b.discountPct||0) + '%)', '(KES ' + Number(b.discount||0).toLocaleString() + ')'],
+    ['Grand Total', 'KES ' + Number(b.grandTotal||0).toLocaleString()],
+    ['Amount Paid', 'KES ' + Number(b.amountPaid||0).toLocaleString()],
+    ['Balance Due', 'KES ' + Number(b.balance||0).toLocaleString()]
   ];
-  const totIdx = payRows.length - 3;
-  const balIdx = payRows.length - 1;
-  doc.autoTable({
-    startY: y,
-    head: [['Payment Summary', 'Amount (KES)']],
-    body: payRows,
-    styles: { fontSize: 7.5, cellPadding: 2 },
-    headStyles: { fillColor: [20, 128, 94], fontSize: 7.5, fontStyle: 'bold', textColor: 255 },
-    columnStyles: { 1: { halign: 'right' } },
-    didParseCell: data => {
-      if (data.row.index === totIdx) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.fontSize = 8.5; }
-      if (data.row.index === balIdx) {
-        data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.textColor = b.balance > 0 ? [181, 42, 42] : [20, 128, 94];
-      }
-    },
-    margin: { left: 10, right: 10 }
-  });
-  y = doc.lastAutoTable.finalY + 5;
-
-  if (b.mpesaAmount > 0) {
-    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 140, 60);
-    doc.text('M-Pesa received: KES ' + Number(b.mpesaAmount).toLocaleString(), 10, y); y += 4;
-  }
-  if (s.bank) {
-    doc.setFontSize(7); doc.setFont('helvetica', 'italic'); doc.setTextColor(130, 130, 130);
-    doc.text('Bank: ' + s.bank, 10, y);
-  }
-
-  // Footer
+  doc.autoTable({ startY: y, head: [['Payment Summary', 'KES']], body: payRows, styles: { fontSize: 8 }, headStyles: { fillColor: [20, 128, 94] }, columnStyles: { 1: { halign: 'right' } }, didParseCell: (data) => { if (data.row.index === payRows.length - 1) { data.cell.styles.fontStyle = 'bold'; data.cell.styles.textColor = b.balance > 0 ? [181,42,42] : [20,128,94]; } if (data.row.index === payRows.length - 3) data.cell.styles.fontStyle = 'bold'; }, margin: { left: 10, right: 10 } });
+  y = doc.lastAutoTable.finalY + 8;
+  if (b.mpesaAmount > 0) { doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(0,166,81); doc.text('📱 M-Pesa: KES ' + Number(b.mpesaAmount).toLocaleString() + ' received', 10, y); y += 5; }
+  if (s.bank) { doc.setFontSize(7); doc.setFont('helvetica','italic'); doc.setTextColor(120,120,120); doc.text('Bank: ' + s.bank, 10, y); }
   const PH = doc.internal.pageSize.height;
-  doc.setDrawColor(224, 92, 58); doc.setLineWidth(0.4);
-  doc.line(10, PH - 11, PW - 10, PH - 11);
-  doc.setFontSize(6); doc.setTextColor(150, 150, 150); doc.setFont('helvetica', 'italic');
-  doc.text('Thank you for choosing Amwaj Seafront Venue!', PW / 2, PH - 6, { align: 'center' });
-
-  doc.save('Receipt_' + (b.clientName || 'Booking').replace(/\W/g, '_') + '_' + (b.startDate || '').slice(0, 10) + '.pdf');
+  doc.setFontSize(7); doc.setTextColor(150,150,150);
+  doc.text('Thank you for choosing ' + (s.venueName||'AMWAJ SEAFRONT VENUE') + '!', PW/2, PH-8, { align: 'center' });
+  doc.save('Receipt_' + (b.clientName||'Booking').replace(/\W/g,'_') + '_' + (b.startDate||'').slice(0,10) + '.pdf');
   toast('Receipt PDF downloaded ✓');
 }
 
@@ -1500,84 +1626,25 @@ function generateInvoiceFromBooking(bookingId) {
   setTimeout(() => { openInvoiceModal(); setTimeout(() => { document.getElementById('inv-client').value=b.clientName||''; document.getElementById('inv-amt').value=b.grandTotal||0; document.getElementById('inv-paid').value=b.amountPaid||0; document.getElementById('inv-bk').value=b.id; }, 100); }, 150);
 }
 function printInvoicePDF(invId) {
-  const inv = db.invoices.find(i => i.id === invId);
+  const inv = db.invoices.find(i=>i.id===invId);
   if (!inv) return;
+  const s = db.settings;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const PW = doc.internal.pageSize.width;
-
-  let y = drawLetterhead(doc, false);
-
-  // Invoice title & number
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.setTextColor(13, 74, 107);
-  doc.text('INVOICE', PW - 14, y + 5, { align: 'right' });
-  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100);
-  doc.text(inv.invNumber || '', PW - 14, y + 11, { align: 'right' });
-  y += 16;
-
-  // Bill To block
-  doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(13, 74, 107);
-  doc.text('BILL TO', 14, y);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(50, 50, 50);
-  doc.text(inv.clientName || '', 14, y + 6);
-  doc.setTextColor(100, 100, 100);
-  doc.text('Issue Date: ' + fmtD(inv.issueDate), PW - 14, y,     { align: 'right' });
-  doc.text('Due Date:   ' + fmtD(inv.dueDate),   PW - 14, y + 6, { align: 'right' });
-  y += 18;
-
-  // Divider
-  doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
-  doc.line(14, y, PW - 14, y); y += 5;
-
-  // Invoice line items table
-  doc.autoTable({
-    startY: y,
-    head: [['Description', 'Amount']],
-    body: [
-      ['Venue & Event Services', 'KES ' + Number(inv.amount).toLocaleString()],
-      ['Amount Paid',            'KES ' + Number(inv.amountPaid || 0).toLocaleString()],
-      ['BALANCE DUE',            'KES ' + Number(inv.balance   || 0).toLocaleString()]
-    ],
-    styles: { fontSize: 9, cellPadding: 3.5 },
-    headStyles: { fillColor: [13, 74, 107], fontStyle: 'bold', textColor: 255 },
-    columnStyles: { 1: { halign: 'right' } },
-    didParseCell: data => {
-      if (data.row.index === 2) {
-        data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fontSize = 10;
-        data.cell.styles.textColor = (inv.balance || 0) > 0 ? [181, 42, 42] : [20, 128, 94];
-      }
-    },
-    margin: { left: 14, right: 14 }
-  });
-  y = doc.lastAutoTable.finalY + 8;
-
-  // Notes
-  if (inv.notes) {
-    doc.setFontSize(8); doc.setFont('helvetica', 'italic'); doc.setTextColor(100, 100, 100);
-    doc.text('Notes: ' + inv.notes, 14, y); y += 7;
-  }
-
-  // Payment instructions box
-  doc.setFillColor(242, 247, 250);
-  doc.setDrawColor(200, 215, 225);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(14, y, PW - 28, 14, 2, 2, 'FD');
-  doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(13, 74, 107);
-  doc.text('Payment Instructions', 18, y + 5);
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(60, 60, 60);
-  doc.text('M-Pesa / Bank Transfer  ·  Contact: 0742 400 400 / 0748 400 400', 18, y + 10);
-
-  // Footer
-  const PH = doc.internal.pageSize.height;
-  doc.setDrawColor(224, 92, 58); doc.setLineWidth(0.5);
-  doc.line(14, PH - 16, PW - 14, PH - 16);
-  doc.setFontSize(7); doc.setTextColor(130, 130, 130); doc.setFont('helvetica', 'italic');
-  doc.text('Amwaj Seafront Venue  ·  Off Tom Mboya Road, Mombasa, Kenya  ·  info@amwajseafrontvenue.com  ·  0742 400 400', PW / 2, PH - 10, { align: 'center' });
-  doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 100, 100);
-  doc.text('Thank you for your business!', PW / 2, PH - 5, { align: 'center' });
-
-  doc.save((inv.invNumber || 'INV') + '_' + (inv.clientName || '').replace(/\W/g, '_') + '.pdf');
+  doc.setFillColor(13,74,107); doc.rect(0,0,PW,28,'F');
+  doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+  doc.text(s.venueName||'AMWAJ SEAFRONT VENUE',14,14);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text(s.venueLocation||'Tudor Creek, Mombasa',14,22);
+  doc.setTextColor(50,50,50); doc.setFontSize(20); doc.setFont('helvetica','bold'); doc.text('INVOICE',PW-14,18,{align:'right'});
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text(inv.invNumber||'',PW-14,25,{align:'right'});
+  let y=42; doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.text('Bill To:',14,y);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(inv.clientName||'',14,y+6);
+  doc.text('Issue: '+fmtD(inv.issueDate),PW-14,y,{align:'right'}); doc.text('Due:   '+fmtD(inv.dueDate),PW-14,y+6,{align:'right'});
+  y+=20;
+  doc.autoTable({startY:y,head:[['Description','Amount']],body:[['Venue Services','KES '+Number(inv.amount).toLocaleString()],['Amount Paid','KES '+Number(inv.amountPaid||0).toLocaleString()],['Balance Due','KES '+Number(inv.balance||0).toLocaleString()]],styles:{fontSize:9},headStyles:{fillColor:[13,74,107]}});
+  if (inv.notes) { const ny=doc.lastAutoTable.finalY+8; doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.text('Notes: '+inv.notes,14,ny); }
+  doc.save((inv.invNumber||'INV')+'_'+(inv.clientName||'').replace(/\W/g,'_')+'.pdf');
   toast('Invoice PDF downloaded ✓');
 }
 
@@ -1757,7 +1824,8 @@ function renderInventory() {
       <td><div style="font-weight:600">${f.name||'—'}</div></td>
       <td style="font-family:DM Mono,monospace;font-size:11px">${f.serial||'—'}</td>
       <td style="text-align:center">${f.qty||1}</td>
-      <td>${fmt(f.rentalPrice)}</td>
+      <td>${f.editablePerBooking ? '<span style="color:var(--ink3);font-style:italic">Per booking</span>' : fmt(f.rentalPrice)}</td>
+      <td><span class="badge" style="background:${f.editablePerBooking?'#eff6ff':'#f0fdf4'};color:${f.editablePerBooking?'#1e40af':'#166534'};border:1px solid ${f.editablePerBooking?'#93c5fd':'#86efac'}">${f.editablePerBooking?'✏️ Custom':'🔒 Fixed'}</span></td>
       <td><span class="badge ${f.status==='Available'?'b-confirmed':f.status==='Booked'?'b-partial':'b-unpaid'}">${f.status||'Available'}</span></td>
       <td>${f.assignedTo||'—'}</td>
       <td style="text-align:center;white-space:nowrap">
@@ -1781,6 +1849,10 @@ function openFXModal(id) {
           <div><label class="lbl">Quantity</label><input id="fx-qty" type="number" value="${f?.qty||1}" min="1" style="width:100%;padding:7px 10px"></div>
           <div><label class="lbl">Rental Price/Day (KES)</label><input id="fx-price" type="number" value="${f?.rentalPrice||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         </div>
+        <div style="padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="fx-editable" ${f?.editablePerBooking?'checked':''} style="width:16px;height:16px;cursor:pointer;border-radius:4px !important">
+          <div><label class="lbl" for="fx-editable" style="cursor:pointer;margin:0">Price editable per booking</label><div style="font-size:11px;color:var(--ink3)">When checked, staff enter a custom price when booking this item (e.g. Smoke Ice Machine, Laser Projection)</div></div>
+        </div>
         <div><label class="lbl">Status</label><select id="fx-stat" style="width:100%;padding:7px 10px"><option ${f?.status==='Available'?'selected':''}>Available</option><option ${f?.status==='Booked'?'selected':''}>Booked</option><option ${f?.status==='Under Maintenance'?'selected':''}>Under Maintenance</option></select></div>
         <div><label class="lbl">Assigned To</label><input id="fx-assigned" value="${f?.assignedTo||''}" style="width:100%;padding:7px 10px" placeholder="Booking / event name"></div>
         <div style="display:flex;gap:8px">
@@ -1792,7 +1864,7 @@ function openFXModal(id) {
   document.getElementById('fx-form').onsubmit=async ev=>{
     ev.preventDefault();
     const g=i=>document.getElementById(i)?.value;
-    const payload={name:g('fx-name'),serial:g('fx-serial'),qty:Number(g('fx-qty')||1),rentalPrice:Number(g('fx-price')||0),status:g('fx-stat'),assignedTo:g('fx-assigned')};
+    const payload={name:g('fx-name'),serial:g('fx-serial'),qty:Number(g('fx-qty')||1),rentalPrice:Number(g('fx-price')||0),status:g('fx-stat'),assignedTo:g('fx-assigned'),editablePerBooking:document.getElementById('fx-editable')?.checked||false};
     try {
       if (id) { const u=await dbUpdate('inventory',id,payload); db.fx=db.fx.map(x=>x.id===id?camelize(u):x); toast('Item updated ✓'); }
       else { const cr=await dbInsert('inventory',{...payload,id:uid()}); db.fx.push(camelize(cr)); toast('Item added ✓'); }
@@ -1899,8 +1971,8 @@ function renderReportCharts() {
   const evTypes={}; db.bookings.filter(b=>b.reservationStatus!=='CANCELLED').forEach(b=>{evTypes[b.category||'Other']=(evTypes[b.category||'Other']||0)+(b.amountPaid||0);});
   if (rptCharts.ev) rptCharts.ev.destroy();
   rptCharts.ev=new Chart(document.getElementById('rpt-ev-chart'),{type:'doughnut',data:{labels:Object.keys(evTypes),datasets:[{data:Object.values(evTypes),backgroundColor:['#0d4a6b','#1a6d9e','#14805e','#d97706','#c62828','#64748b','#7c3aed']}]},options:{plugins:{legend:{position:'bottom'}}}});
-  const now=new Date(); const months=[]; const rev6=[],bk6=[];
-  for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); const end=new Date(d.getFullYear(),d.getMonth()+1,1); months.push(d.toLocaleDateString('en',{month:'short'})); const mbk=db.bookings.filter(b=>{const s=new Date(b.startDate);return s>=d&&s<end&&b.reservationStatus!=='CANCELLED';}); rev6.push(mbk.reduce((a,b)=>a+(b.amountPaid||0),0)); bk6.push(mbk.length); }
+  const now=new Date(); const months=[]; const rev6=[];
+  for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); const end=new Date(d.getFullYear(),d.getMonth()+1,1); months.push(d.toLocaleDateString('en',{month:'short'})); const mbk=db.bookings.filter(b=>{const s=new Date(b.startDate);return s>=d&&s<end&&b.reservationStatus!=='CANCELLED';}); rev6.push(mbk.reduce((a,b)=>a+(b.amountPaid||0),0)); }
   if (rptCharts.trend) rptCharts.trend.destroy();
   rptCharts.trend=new Chart(document.getElementById('rpt-trend-chart'),{type:'line',data:{labels:months,datasets:[{label:'Revenue',data:rev6,borderColor:'#14805e',backgroundColor:'rgba(20,128,94,.1)',tension:.4,fill:true}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
   const expCats={}; db.expenses.forEach(e=>{expCats[e.category||'Other']=(expCats[e.category||'Other']||0)+Number(e.amount||0);});
@@ -2024,30 +2096,17 @@ function showIdleWarn() {
 }
 function initInactivityWatcher() { ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev=>document.addEventListener(ev,resetIdle,{passive:true})); resetIdle(); }
 
-// ═══════════════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════════════
 function renderAll() { renderDash(); renderBookings(); renderInvoices(); renderExpenses(); renderClients(); renderVendors(); renderInventory(); renderStaff(); }
 
 function initAll() {
   document.getElementById('e-date').value = new Date().toISOString().slice(0,10);
   renderAll();
   initCalendars();
+  const savedView = prefs.lastView || 'dash';
+  requestAnimationFrame(() => { goView(savedView, true); });
 }
 
-// ── Boot on page load ──
-window.onload = async () => {
-  const { data } = await sb.auth.getSession();
-  if (data.session) {
-    await bootApp(data.session.user);
-    // Restore the view the user was on before refresh
-    try {
-      const savedView = localStorage.getItem('amwaj_view');
-      if (savedView && savedView !== 'dash') goView(savedView);
-    } catch(e) {}
-  }
-  // If no session, login-screen is already visible — nothing else needed.
-};
+
 </script>
 </body>
 </html>
