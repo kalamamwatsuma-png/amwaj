@@ -663,12 +663,35 @@
 // ═══════════════════════════════════════════════════════════
 //  SUPABASE INIT
 // ═══════════════════════════════════════════════════════════
-const SUPA_URL  = 'https://ccbgqyiiolbjcsahahkk.supabase.co';
-const SUPA_ANON = 'sb_publishable_6jnO41Lkd2FF0XG_u46GXw_ONVXbmDy';
-const sb = window.supabase.createClient(SUPA_URL, SUPA_ANON, {
-  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'amwaj-v3-auth' }
-});
+import { createClient } from '@supabase/supabase-js'
+const supabase = createClient('https://ccbgqyiiolbjcsahahkk.supabase.co', 'sb_publishable_6jnO41Lkd2FF0XG_u46GXw_ONVXbmDy')
 
+async function loadFXItems() {
+  const { data, error } = await supabase
+    .from('inventory')
+    .select('id, name, serial, rental_price, qty')
+    .eq('status', 'AVAILABLE')
+    .ilike('category', '%FX%') // Adjust if you use a different column name
+
+  if (error) {
+    console.error('Failed to load FX items:', error.message)
+    return
+  }
+
+  const selectEl = document.getElementById('fx-items-select') // Your dropdown ID
+  selectEl.innerHTML = '<option value="">-- Select FX Item --</option>'
+  
+  data.forEach(item => {
+    const opt = document.createElement('option')
+    opt.value = item.id
+    opt.textContent = `${item.name} (${item.serial}) - KES ${item.rental_price}`
+    opt.dataset.price = item.rental_price
+    selectEl.appendChild(opt)
+  })
+}
+
+// Call this when the "+ New Booking" modal opens
+document.getElementById('new-booking-btn')?.addEventListener('click', loadFXItems)
 // ═══════════════════════════════════════════════════════════
 //  ROLE SYSTEM
 // ═══════════════════════════════════════════════════════════
@@ -1147,7 +1170,10 @@ function openBookingModal(id, prefillDate) {
         <div><label class="lbl">Guest Count</label><input id="bk-guests" type="number" value="${b?.guestCount||''}" min="0" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Catering Fee (KES)</label><input id="bk-catering" type="number" value="${b?.cateringFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">FX/Decor Fee (KES)</label><input id="bk-fx" type="number" value="${b?.fxFee||''}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
+       <label for="fx-items-select">Add FX / Effects Equipment:</label>
+<select id="fx-items-select" multiple>
+  <!-- Options will be injected by JS -->
+</select>
         <div><label class="lbl">Discount (KES)</label><input id="bk-disc" type="number" value="${b?.discount||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Amount Paid (KES)</label><input id="bk-paid" type="number" value="${b?.amountPaid||0}" min="0" step="0.01" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Reservation Status</label>
