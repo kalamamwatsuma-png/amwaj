@@ -684,19 +684,10 @@ function can(perm) { return !!(ROLE_PERMS[CURRENT_ROLE] && ROLE_PERMS[CURRENT_RO
 
 async function fetchUserRole(userId) {
   try {
-    const { data, error } = await sb.from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
-    if (error || !data) {
-      console.warn('Role lookup failed:', error?.message);
-      return 'Staff';   // default
-    }
+    const { data, error } = await sb.from('user_roles').select('role').eq('user_id', userId).single();
+    if (error || !data) return 'Staff';
     return data.role;
-  } catch(e) {
-    console.error('fetchUserRole error:', e);
-    return 'Staff';
-  }
+  } catch { return 'Staff'; }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1616,38 +1607,10 @@ function renderExpenses() {
 }
 document.getElementById('exp-form').onsubmit = async ev => {
   ev.preventDefault();
-  const v = id => document.getElementById(id)?.value;
-  const btn = ev.target.querySelector('button[type="submit"]');
-  const origLabel = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Saving…';
-  const payload = {
-    date:     v('e-date'),
-    category: v('e-cat'),
-    item:     v('e-item'),
-    amount:   Number(v('e-amt') || 0),
-    vendorId: v('e-vendor') || null,
-    notes:    v('e-notes')
-  };
-  try {
-    const c = await dbInsert('expenses', { ...payload, id: uid() });
-    db.expenses.unshift(camelize(c));
-    ev.target.reset();
-    document.getElementById('e-date').value = new Date().toISOString().slice(0, 10);
-    // Re-populate vendor select after reset
-    const vSel = document.getElementById('e-vendor');
-    if (vSel) vSel.innerHTML = '<option value="">-- No vendor --</option>'
-      + db.vendors.map(v2 => `<option value="${v2.id}">${v2.company||v2.name}</option>`).join('');
-    renderExpenses();
-    renderDash();
-    toast('Expense logged ✓');
-  } catch(e) {
-    console.error('Expense save failed:', e);
-    toast('Save failed: ' + e.message, 'e');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = origLabel;
-  }
+  const v=id=>document.getElementById(id)?.value;
+  const payload={date:v('e-date'),category:v('e-cat'),item:v('e-item'),amount:Number(v('e-amt')||0),vendorId:v('e-vendor')||null,notes:v('e-notes')};
+  try { const c=await dbInsert('expenses',{...payload,id:uid()}); db.expenses.unshift(camelize(c)); document.getElementById('exp-form').reset(); document.getElementById('e-date').value=new Date().toISOString().slice(0,10); renderExpenses(); renderDash(); toast('Expense logged ✓'); }
+  catch(e) { toast('Save failed: '+e.message,'e'); }
 };
 async function deleteExpense(id) {
   if (!can('canDelete')) { toast('Admin only','e'); return; }
@@ -1655,14 +1618,7 @@ async function deleteExpense(id) {
   try { await dbDelete('expenses',id); db.expenses=db.expenses.filter(e=>e.id!==id); renderExpenses(); renderDash(); toast('Deleted'); }
   catch(e) { toast(e.message,'e'); }
 }
-function openExpenseModal() {
-  document.getElementById('e-date').value = new Date().toISOString().slice(0, 10);
-  // Populate vendor dropdown from current db state
-  const vSel = document.getElementById('e-vendor');
-  if (vSel) vSel.innerHTML = '<option value="">-- No vendor --</option>'
-    + db.vendors.map(v => `<option value="${v.id}">${v.company||v.name}</option>`).join('');
-  goView('expenses');
-}
+function openExpenseModal() { document.getElementById('e-date').value=new Date().toISOString().slice(0,10); goView('expenses'); }
 
 // ═══════════════════════════════════════════════════════════
 //  CLIENTS
