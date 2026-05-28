@@ -1991,10 +1991,16 @@ function renderExpenses() {
 document.getElementById('exp-form').onsubmit = async ev => {
   ev.preventDefault();
   const v=id=>document.getElementById(id)?.value;
-  const payload={date:v('e-date'),category:v('e-cat'),item:v('e-item'),amount:Number(v('e-amt')||0),vendorId:v('e-vendor')||null,notes:v('e-notes')};
-  try { const c=await dbInsert('expenses',{...payload,id:uid()}); db.expenses.unshift(camelize(c)); document.getElementById('exp-form').reset(); document.getElementById('e-date').value=new Date().toISOString().slice(0,10); renderExpenses(); renderDash(); toast('Expense logged ✓'); }
-  catch(e) { toast('Save failed: '+e.message,'e'); }
-};
+
+  // Convert DD/MM/YYYY → YYYY-MM-DD for Supabase
+  const rawDate = v('e-date') || '';
+  let isoDate = rawDate;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawDate)) {
+    const [dd, mm, yyyy] = rawDate.split('/');
+    isoDate = `${yyyy}-${mm}-${dd}`;
+  }
+
+  const payload={date:isoDate,category:v('e-cat'),item:v('e-item'),amount:Number(v('e-amt')||0),vendorId:v('e-vendor')||null,notes:v('e-notes')};
 async function deleteExpense(id) {
   if (!can('canDelete')) { toast('Admin only','e'); return; }
   if (!confirm('Delete expense?')) return;
