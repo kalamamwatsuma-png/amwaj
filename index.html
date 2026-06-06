@@ -2289,8 +2289,8 @@ function renderReportCharts() {
   const evTypes={}; db.bookings.filter(b=>b.reservationStatus!=='CANCELLED').forEach(b=>{evTypes[b.category||'Other']=(evTypes[b.category||'Other']||0)+(b.amountPaid||0);});
   if (rptCharts.ev) rptCharts.ev.destroy();
   rptCharts.ev=new Chart(document.getElementById('rpt-ev-chart'),{type:'doughnut',data:{labels:Object.keys(evTypes),datasets:[{data:Object.values(evTypes),backgroundColor:['#0d4a6b','#1a6d9e','#14805e','#d97706','#c62828','#64748b','#7c3aed']}]},options:{plugins:{legend:{position:'bottom'}}}});
-  const now=new Date(); const months=[]; const rev6=[];
-  for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); const end=new Date(d.getFullYear(),d.getMonth()+1,1); months.push(d.toLocaleDateString('en',{month:'short'})); const mbk=db.bookings.filter(b=>{const s=new Date(b.startDate);return s>=d&&s<end&&b.reservationStatus!=='CANCELLED';}); rev6.push(mbk.reduce((a,b)=>a+(b.amountPaid||0),0)); }
+  const now=new Date(); const months=[]; const rev6=[],bk6=[];
+  for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); const end=new Date(d.getFullYear(),d.getMonth()+1,1); months.push(d.toLocaleDateString('en',{month:'short'})); const mbk=db.bookings.filter(b=>{const s=new Date(b.startDate);return s>=d&&s<end&&b.reservationStatus!=='CANCELLED';}); rev6.push(mbk.reduce((a,b)=>a+(b.amountPaid||0),0)); bk6.push(mbk.length); }
   if (rptCharts.trend) rptCharts.trend.destroy();
   rptCharts.trend=new Chart(document.getElementById('rpt-trend-chart'),{type:'line',data:{labels:months,datasets:[{label:'Revenue',data:rev6,borderColor:'#14805e',backgroundColor:'rgba(20,128,94,.1)',tension:.4,fill:true}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
   const expCats={}; db.expenses.forEach(e=>{expCats[e.category||'Other']=(expCats[e.category||'Other']||0)+Number(e.amount||0);});
@@ -2310,7 +2310,6 @@ function exportReport() {
   doc.save('AMWAJ_Report_'+new Date().toISOString().slice(0,10)+'.pdf');
   toast('Report PDF downloaded ✓');
 }
-
 // ═══════════════════════════════════════════════════════════
 //  SETTINGS
 // ═══════════════════════════════════════════════════════════
