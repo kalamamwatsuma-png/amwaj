@@ -147,6 +147,19 @@
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity .2s; }
     .modal-overlay.open { opacity: 1; pointer-events: auto; }
     .modal-box { background: var(--surface); border-radius: 18px; width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+    /* Ensure consistent input padding inside modal dialogs */
+    .modal-box input,
+    .modal-box select,
+    .modal-box textarea {
+      padding: 7px 10px;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--ink) !important;
+      font-size: 13px;
+    }
     #toast-root { position: fixed; top: 16px; right: 16px; z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
     .toast { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,.2); pointer-events: auto; animation: tIn .25s ease; max-width: 320px; }
     .toast-s { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
@@ -180,8 +193,25 @@
     .fc .fc-daygrid-day.fc-day-today { background: rgba(13,74,107,.06) !important; }
     .view { display: none; }
     .view.active { display: block; }
-    #login-screen { position: fixed; inset: 0; background: linear-gradient(145deg, #071424 0%, #0d3a5a 60%, #0a2040 100%); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    @media (max-width: 768px) {
+    #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 28%), linear-gradient(145deg, #071424 0%, #0d3a5a 60%, #0a2040 100%); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+    .login-shell { width: 100%; max-width: 420px; padding: 16px; }
+    #v-reports .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    #v-reports canvas { width: 100% !important; max-width: 100% !important; min-height: 220px !important; }
+    @media (max-width: 900px) { #v-reports .report-grid { grid-template-columns: 1fr; } }
+    .login-card { padding: 36px 32px; border-radius: 24px; }
+    .login-header { text-align: center; margin-bottom: 28px; }
+    .login-brand { width: 56px; height: 56px; background: var(--ocean); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 14px; }
+    .login-brand img { width: 28px; height: 28px; object-fit: contain; }
+    .login-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px; }
+    .login-subtitle { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+    .login-form { display: flex; flex-direction: column; gap: 14px; }
+    .login-form .input-field { width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface2); color: var(--ink); font-size: 14px; }
+    .login-button { width: 100%; justify-content: center; padding: 14px 16px; border-radius: 14px; }
+    .login-error { color: var(--red); font-size: 12px; text-align: center; display: none; min-height: 18px; }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 44px !important; }
+    .pw-eye { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none !important; color: var(--ink3); font-size: 14px; padding: 0; }
+    @media (max-width: 900px) {
       #sidebar { transform: translateX(-220px); }
       #sidebar.open { transform: translateX(0); }
       #main-content { margin-left: 0; }
@@ -192,9 +222,6 @@
       form[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
       [style*="grid-column:span 2"] { grid-column: span 1 !important; }
     }
-    .pw-wrap { position: relative; }
-    .pw-wrap input { padding-right: 36px !important; }
-    .pw-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; background: none; border: none !important; color: var(--ink3); font-size: 14px; padding: 0; }
     .search-input { padding: 7px 12px 7px 34px; background: var(--surface2) !important; position: relative; }
     .search-wrap { position: relative; }
     .search-wrap::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none; }
@@ -206,6 +233,12 @@
     .lbl { font-size: 11px; font-weight: 600; color: var(--ink2); margin-bottom: 4px; display: block; }
     .accent-line { width: 40px; height: 3px; background: var(--coral); border-radius: 2px; margin-top: 4px; }
     #sb-logo-area { padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+
+    /* ── Session Selector Styles ── */
+    .sess-btn { flex:1; padding:12px 8px; border-radius:10px; border:2px solid var(--border); background:var(--surface2); cursor:pointer; font-size:12px; font-weight:700; transition:all .15s; min-width:120px; text-align:center; color:var(--ink); line-height:1.4; }
+    .sess-btn:active { transform: scale(.97); }
+    .sess-btn.sess-active { border-color:var(--ocean); background:rgba(13,74,107,.09); color:var(--ocean); }
+    @media (max-width:768px) { .sess-btn { padding:14px 8px; font-size:13px; } }
 
     /* ── FX Item Selector Styles ── */
     .fx-item-row { transition: background .15s, border-color .15s; }
@@ -220,21 +253,27 @@
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div style="width:100%;max-width:400px;padding:16px">
-    <div class="card" style="padding:36px 32px;border-radius:20px">
-      <div style="text-align:center;margin-bottom:28px">
-        <div style="width:56px;height:56px;background:var(--ocean);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px"><img src="Amwaj logo.jpg"></div>
-        <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">AMWAJ SEAFRONT</div>
-        <div style="font-size:12px;color:var(--ink3);margin-top:2px">Tudor Creek, Mombasa</div>
+  <div class="login-shell">
+    <div class="card login-card">
+      <div class="login-header">
+        <div class="login-brand"><img src="Amwaj logo.jpg" alt="Amwaj logo"></div>
+        <div class="login-title">AMWAJ SEAFRONT</div>
+        <div class="login-subtitle">Tudor Creek, Mombasa</div>
       </div>
-      <form id="login-form" style="display:flex;flex-direction:column;gap:12px">
-        <div><label class="lbl">Email Address</label><input id="l-email" type="email" placeholder="user@gmail.com" required style="width:100%;padding:10px 12px"></div>
-        <div><label class="lbl">Password</label>
-          <div class="pw-wrap"><input id="l-pass" type="password" placeholder="••••••••" required style="width:100%;padding:10px 12px">
-          <button type="button" class="pw-eye" onclick="togglePw('l-pass')">👁</button></div>
+      <form id="login-form" class="login-form">
+        <div>
+          <label class="lbl">Email Address</label>
+          <input id="l-email" class="input-field" type="email" placeholder="user@gmail.com" required>
         </div>
-        <button id="login-btn" type="submit" class="btn btn-ocean" style="width:100%;justify-content:center;padding:10px">Sign In</button>
-        <p id="login-err" style="color:var(--red);font-size:12px;text-align:center;display:none"></p>
+        <div>
+          <label class="lbl">Password</label>
+          <div class="pw-wrap">
+            <input id="l-pass" class="input-field" type="password" placeholder="••••••••" required>
+            <button type="button" class="pw-eye" onclick="togglePw('l-pass')" aria-label="Toggle password visibility">👁</button>
+          </div>
+        </div>
+        <button id="login-btn" type="submit" class="btn btn-ocean login-button">Sign In</button>
+        <p id="login-err" class="login-error"></p>
       </form>
     </div>
   </div>
@@ -449,6 +488,7 @@
       <div id="v-expenses" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Expenses & Purchases</div><div class="accent-line"></div></div>
+          <button class="btn btn-red" onclick="openExpenseModal()">+ Log Expense</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 300px;gap:16px">
           <div class="card" style="overflow-x:auto">
@@ -466,17 +506,10 @@
               <span>Total:</span><span id="exp-total" style="color:var(--red)">KES 0</span>
             </div>
           </div>
-          <div class="card" style="padding:18px">
+          <div class="card" style="padding:18px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:260px">
             <div style="font-weight:700;font-size:13px;margin-bottom:14px">Log Expenses</div>
-            <form id="exp-form" style="display:flex;flex-direction:column;gap:10px">
-             <div><label class="lbl">Date</label><input id="e-date" type="Date" placeholder="DD/MM/YYYY" required style="width:100%;padding:7px 10px"></div>
-              <div><label class="lbl">Category</label><input id="e-cat" placeholder="e.g. Diesel, Catering" list="exp-cats" required style="width:100%;padding:7px 10px"><datalist id="exp-cats"><option value="Diesel/Generator"><option value="Toiletries"><option value="Cleaning Supplies"><option value="Maintenance"><option value="Catering"><option value="Transport"><option value="Decor/Florals"><option value="Security"><option value="Utilities"><option value="Miscellaneous"></datalist></div>
-              <div><label class="lbl">Description</label><input id="e-item" placeholder="Item / description" required style="width:100%;padding:7px 10px"></div>
-              <div><label class="lbl">Amount (KES)</label><input id="e-amt" type="number" min="0" step="0.01" placeholder="0.00" required style="width:100%;padding:7px 10px"></div>
-              <div><label class="lbl">Vendor</label><select id="e-vendor" style="width:100%;padding:7px 10px"><option value="">-- No vendor --</option></select></div>
-              <div><label class="lbl">Notes / Receipt #</label><textarea id="e-notes" style="width:100%;padding:7px 10px;height:56px;resize:vertical"></textarea></div>
-              <button type="submit" class="btn btn-red" style="width:100%;justify-content:center">💾 Save Expense</button>
-            </form>
+            <div style="color:var(--ink3);font-size:13px;margin-bottom:20px;text-align:center">Click the button below to open the expense entry form in a centered popup.</div>
+            <button class="btn btn-red" onclick="openExpenseModal()" style="width:100%;justify-content:center">+ Log Expense</button>
           </div>
         </div>
       </div>
@@ -572,11 +605,11 @@
       <!-- REPORTS -->
       <div id="v-reports" class="view">
         <div style="margin-bottom:16px"><div class="sec-h">Reports & Analytics</div><div class="accent-line"></div></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="report-grid" style="margin-bottom:16px">
           <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">💰 Revenue by Event Type</div><canvas id="rpt-ev-chart" style="max-height:200px"></canvas></div>
           <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">📈 Monthly Trend</div><canvas id="rpt-trend-chart" style="max-height:200px"></canvas></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="report-grid">
           <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">💳 Expense Breakdown</div><canvas id="rpt-exp-chart" style="max-height:200px"></canvas></div>
           <div class="card" style="padding:16px">
             <div style="font-weight:700;font-size:13px;margin-bottom:12px">📋 Financial Summary</div>
@@ -873,11 +906,11 @@ function goView(v, skipPersist = false) {
   });
   if (v === 'reports') renderReportCharts();
   if (v === 'settings') loadSettingsForm();
-  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  if (window.matchMedia('(max-width: 900px)').matches) document.getElementById('sidebar').classList.remove('open');
 }
 function toggleSidebar() {
   const sb_ = document.getElementById('sidebar');
-  if (window.innerWidth <= 768) sb_.classList.toggle('open');
+  if (window.matchMedia('(max-width: 900px)').matches) sb_.classList.toggle('open');
   else sb_.classList.toggle('collapsed');
   document.getElementById('main-content').classList.toggle('full', sb_.classList.contains('collapsed'));
 }
@@ -940,7 +973,7 @@ function checkAvail() {
   if (!d) return;
   const sessions = [
     { label: 'Session 1: 1PM–5PM', start: d + 'T13:00', end: d + 'T17:00' },
-    { label: 'Session 2: 8PM–12AM', start: d + 'T20:00', end: d + 'T23:59' }
+    { label: 'Session 2: 5PM–9PM', start: d + 'T17:00', end: d + 'T21:00' }
   ];
   const el = document.getElementById('avail-result');
   el.innerHTML = sessions.map(s => {
@@ -948,6 +981,37 @@ function checkAvail() {
     const cls = c.conflict ? 'background:#fef2f2;color:#991b1b;border:1px solid #fca5a5' : 'background:#f0fdf4;color:#166534;border:1px solid #86efac';
     return `<div style="padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;${cls}">${c.conflict ? '🚫' : '✅'} ${s.label}</div>`;
   }).join('');
+}
+
+function selectSession(n) {
+  document.getElementById('bk-session').value = n;
+  const d = document.getElementById('bk-start').value;
+  const sess1 = document.getElementById('bk-sess-1');
+  const sess2 = document.getElementById('bk-sess-2');
+  if (!sess1 || !sess2) return;
+  sess1.classList.toggle('sess-active', n === 1);
+  sess2.classList.toggle('sess-active', n === 2);
+  if (d) {
+    const startFull = n === 1 ? d + 'T13:00' : d + 'T17:00';
+    const endFull   = n === 1 ? d + 'T17:00' : d + 'T21:00';
+    document.getElementById('bk-end').value = endFull;
+    const excludeId = document.getElementById('bk-session').getAttribute('data-exclude') || null;
+    const c = checkConflict(startFull, endFull, excludeId);
+    const warn = document.getElementById('bk-conflict-warn');
+    if (warn) {
+      if (c.conflict) {
+        warn.style.display = 'block';
+        warn.textContent = '⚠ Conflict: This session overlaps with booking for ' + (c.booking.clientName || 'another client') + ' on ' + fmtD(c.booking.startDate);
+      } else {
+        warn.style.display = 'none';
+      }
+    }
+  }
+}
+
+function updateSessionEnd() {
+  const sessVal = document.getElementById('bk-session')?.value;
+  if (sessVal) selectSession(Number(sessVal));
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1097,7 +1161,7 @@ function renderBookings() {
     return `<tr>
       <td><div style="font-weight:600">${b.clientName||'—'}</div><div style="font-size:11px;color:var(--ink3)">${b.phone||''}</div></td>
       <td>${b.category||'—'}</td>
-      <td><div>${fmtD(b.startDate)}</div><div style="font-size:11px;color:var(--ink3)">${fmtD(b.endDate)}</div></td>
+      <td><div>${fmtD(b.startDate)}</div><div style="font-size:11px;color:var(--ink3)">${b.session==='1'?'🌅 1–5 PM':b.session==='2'?'🌆 5–9 PM':fmtD(b.endDate)}</div></td>
       <td>${rsBadge(b.reservationStatus)}</td>
       <td>${psBadge(b.paymentStatus)}</td>
       <td style="text-align:right;font-weight:600">${fmt(b.grandTotal)}</td>
@@ -1130,7 +1194,7 @@ function openBookingDetail(b) {
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Event Type</div><div style="font-weight:600;margin-top:2px">${b.category||'—'}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Guests</div><div style="font-weight:600;margin-top:2px">${b.guestCount||'—'}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Start</div><div style="font-weight:600;margin-top:2px">${fmtDT(b.startDate)}</div></div>
-        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">End</div><div style="font-weight:600;margin-top:2px">${fmtDT(b.endDate)}</div></div>
+        <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Session</div><div style="font-weight:600;margin-top:2px">${b.session==='1'?'🌅 Session 1 (1–5 PM)':b.session==='2'?'🌆 Session 2 (5–9 PM)':fmtDT(b.endDate)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Reservation</div><div style="margin-top:2px">${rsBadge(b.reservationStatus)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Payment</div><div style="margin-top:2px">${psBadge(b.paymentStatus)}</div></div>
         <div><div style="color:var(--ink3);font-size:10px;font-weight:600;text-transform:uppercase">Total</div><div style="font-weight:800;font-size:16px;color:var(--ocean);margin-top:2px">${fmt(b.grandTotal)}</div></div>
@@ -1173,8 +1237,20 @@ function openBookingModal(id, prefillDate) {
           </select>
         </div>
 
-        <div><label class="lbl">Start Date & Time *</label><input id="bk-start" type="datetime-local" value="${b?.startDate?.slice(0,16)||prefillDate||''}" required style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">End Date & Time *</label><input id="bk-end" type="datetime-local" value="${b?.endDate?.slice(0,16)||''}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Event Date *</label><input id="bk-start" type="date" value="${b?.startDate?.slice(0,10)||prefillDate?.slice(0,10)||''}" required style="width:100%;padding:7px 10px" oninput="updateSessionEnd()"></div>
+        <div>
+          <label class="lbl">Session *</label>
+          <div id="bk-session-btns" style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" id="bk-sess-1" class="sess-btn" onclick="selectSession(1)">
+              🌅 Session 1<br><span style="font-size:10px;font-weight:500;color:var(--ink3)">1:00 PM – 5:00 PM</span>
+            </button>
+            <button type="button" id="bk-sess-2" class="sess-btn" onclick="selectSession(2)">
+              🌆 Session 2<br><span style="font-size:10px;font-weight:500;color:var(--ink3)">5:00 PM – 9:00 PM</span>
+            </button>
+          </div>
+          <input type="hidden" id="bk-session" value="${b?.session||''}">
+          <input type="hidden" id="bk-end" value="${b?.endDate?.slice(0,16)||''}">
+        </div>
 
         <div><label class="lbl">Guest Count</label><input id="bk-guests" type="number" value="${b?.guestCount||''}" min="0" style="width:100%;padding:7px 10px"></div>
         <div><label class="lbl">Venue Fee (KES)</label><input id="bk-venue" type="number" value="${b?.venueFee||0}" min="0" step="0.01" style="width:100%;padding:7px 10px" oninput="calcBkTotal()"></div>
@@ -1234,6 +1310,17 @@ function openBookingModal(id, prefillDate) {
   // Populate FX items selector AFTER modal is in DOM
   buildFXItemsSelector(b);
   calcBkTotal();
+
+  // Pre-select session from existing booking
+  if (b?.session) {
+    selectSession(Number(b.session));
+  } else if (b?.startDate) {
+    const hr = new Date(b.startDate).getHours();
+    selectSession(hr < 17 ? 1 : 2);
+  }
+  // Store booking id for conflict exclusion
+  const sessInput = document.getElementById('bk-session');
+  if (sessInput && id) sessInput.setAttribute('data-exclude', id);
 
   document.getElementById('bk-form').onsubmit = async ev => { ev.preventDefault(); await saveBooking(id); };
 }
@@ -1360,7 +1447,11 @@ function calcBkTotal() {
 // ── SAVE BOOKING  (fixed: reads from getFXItemsSelected + bk-disc-pct) ──
 async function saveBooking(editId) {
   const v = id => document.getElementById(id)?.value;
-  const start = v('bk-start'), end = v('bk-end');
+  const dateVal = v('bk-start');
+  const sessVal = v('bk-session');
+  if (!dateVal || !sessVal) { toast('Please select a date and session', 'w'); return; }
+  const start = sessVal === '1' ? dateVal + 'T13:00' : dateVal + 'T17:00';
+  const end   = sessVal === '1' ? dateVal + 'T17:00' : dateVal + 'T21:00';
 
   const cf = checkConflict(start, end, editId);
   if (cf.conflict) {
@@ -1400,6 +1491,7 @@ async function saveBooking(editId) {
     amountPaid,
     grandTotal,                                       // correct computed total
     reservationStatus: v('bk-rstat'),
+    session:           v('bk-session'),
     notes:             v('bk-notes')
   };
 
@@ -1988,22 +2080,47 @@ function renderExpenses() {
       <td style="text-align:center">${can('canDelete')?`<button class="btn btn-sm" style="background:#fef2f2;color:var(--red)" onclick="deleteExpense('${e.id}')">🗑</button>`:''}</td>
     </tr>`).join('');
 }
-document.getElementById('exp-form').onsubmit = async ev => {
-  ev.preventDefault();
-  const v=id=>document.getElementById(id)?.value;
-  const payload={date:v('e-date'),category:v('e-cat'),item:v('e-item'),amount:Number(v('e-amt')||0),vendorId:v('e-vendor')||null,notes:v('e-notes')};
-  try { const c=await dbInsert('expenses',{...payload,id:uid()}); db.expenses.unshift(camelize(c)); document.getElementById('exp-form').reset(); document.getElementById('e-date').value=new Date().toISOString().slice(0,10); renderExpenses(); renderDash(); toast('Expense logged ✓'); }
-  catch(e) { toast('Save failed: '+e.message,'e'); }
-};
-
-  const payload={date:isoDate,category:v('e-cat'),item:v('e-item'),amount:Number(v('e-amt')||0),vendorId:v('e-vendor')||null,notes:v('e-notes')};
+function openExpenseModal() {
+  const now = new Date().toISOString().slice(0,10);
+  const vendorOptions = db.vendors.map(v => `<option value="${v.id}">${v.company||v.name}</option>`).join('');
+    openModal(`
+    <div style="padding:10px 10px 10px 10px;max-width:520px;display:flex;flex-direction:column;gap:10px">
+      <form id="exp-modal-form" style="display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:18px;font-weight:800;margin-bottom:4px">Log Expense</div>
+        <div><label class="lbl">Date</label><input id="e-date" type="date" value="${now}" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Category</label><input id="e-cat" placeholder="e.g. Diesel, Catering" list="exp-cats" required style="width:100%;padding:7px 10px"><datalist id="exp-cats"><option value="Diesel/Generator"><option value="Toiletries"><option value="Cleaning Supplies"><option value="Maintenance"><option value="Catering"><option value="Transport"><option value="Decor/Florals"><option value="Security"><option value="Utilities"><option value="Miscellaneous"></datalist></div>
+        <div><label class="lbl">Description</label><input id="e-item" placeholder="Item / description" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Amount (KES)</label><input id="e-amt" type="number" min="0" step="0.01" placeholder="0.00" required style="width:100%;padding:7px 10px"></div>
+        <div><label class="lbl">Vendor</label><select id="e-vendor" style="width:100%;padding:7px 10px"><option value="">-- No vendor --</option>${vendorOptions}</select></div>
+        <div><label class="lbl">Notes / Receipt #</label><textarea id="e-notes" style="width:100%;padding:7px 10px;height:56px;resize:vertical"></textarea></div>
+        <div style="display:flex;gap:8px">
+          <button type="submit" class="btn btn-red" style="flex:1;justify-content:center">💾 Save Expense</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>`);
+  document.getElementById('exp-modal-form').onsubmit = async ev => {
+    ev.preventDefault();
+    const v=id=>document.getElementById(id)?.value;
+    const payload={date:v('e-date'),category:v('e-cat'),item:v('e-item'),amount:Number(v('e-amt')||0),vendorId:v('e-vendor')||null,notes:v('e-notes')};
+    try {
+      const c = await dbInsert('expenses',{...payload,id:uid()});
+      db.expenses.unshift(camelize(c));
+      closeModal();
+      renderExpenses();
+      renderDash();
+      toast('Expense logged ✓');
+    } catch(e) {
+      toast('Save failed: '+e.message,'e');
+    }
+  };
+}
 async function deleteExpense(id) {
   if (!can('canDelete')) { toast('Admin only','e'); return; }
   if (!confirm('Delete expense?')) return;
   try { await dbDelete('expenses',id); db.expenses=db.expenses.filter(e=>e.id!==id); renderExpenses(); renderDash(); toast('Deleted'); }
   catch(e) { toast(e.message,'e'); }
 }
-function openExpenseModal() { document.getElementById('e-date').value=new Date().toISOString().slice(0,10); goView('expenses'); }
 
 // ═══════════════════════════════════════════════════════════
 //  CLIENTS
@@ -2274,54 +2391,48 @@ async function deleteStaff(id) {
 // ═══════════════════════════════════════════════════════════
 //  REPORTS
 // ═══════════════════════════════════════════════════════════
-function renderReports(){
-  const now=new Date();
-  const totalRev=db.bookings.reduce((s,b)=>s+(b.grandTotal||b.totalAmount||0),0);
-  const totalExp=db.expenses.reduce((s,e)=>s+(e.amount||0),0);
-  const profit=totalRev-totalExp;
-  const margin=totalRev?(profit/totalRev*100).toFixed(1):0;
-  const avg=db.bookings.length?totalRev/db.bookings.length:0;
-  const mpesaCount=(db.mpesaPayments||[]).length;
-  document.getElementById('rpt-rev').textContent=currency(totalRev);
-  document.getElementById('rpt-exp').textContent=currency(totalExp);
-  document.getElementById('rpt-profit').textContent=currency(profit);
-  document.getElementById('rpt-margin').textContent=margin+'%';
+let rptCharts={};
+function renderReportCharts() {
+console.log("Rendering reports...");
+console.log(db);
+  const totalRev=db.bookings.filter(b=>b.reservationStatus!=='CANCELLED').reduce((a,b)=>a+(b.amountPaid||0),0);
+  const totalExp=db.expenses.reduce((a,e)=>a+Number(e.amount||0),0);
+  document.getElementById('rpt-rev').textContent=fmt(totalRev);
+  document.getElementById('rpt-exp').textContent=fmt(totalExp);
+  document.getElementById('rpt-profit').textContent=fmt(totalRev-totalExp);
+  document.getElementById('rpt-margin').textContent=totalRev>0?((totalRev-totalExp)/totalRev*100).toFixed(1)+'%':'0%';
   document.getElementById('rpt-clients').textContent=db.clients.length;
-  document.getElementById('rpt-avg').textContent=currency(avg);
-  document.getElementById('rpt-mpesa').textContent=mpesaCount;
-  if(charts.event)charts.event.destroy();
-  const byType={};db.bookings.forEach(b=>{byType[b.category]=(byType[b.category]||0)+(b.grandTotal||b.totalAmount||0);});
-  const ctx1=document.getElementById('chart-event');if(ctx1)charts.event=new Chart(ctx1,{type:'doughnut',data:{labels:Object.keys(byType),datasets:[{data:Object.values(byType),backgroundColor:['#00875a','#1565c0','#d97706','#c62828','#7c3aed','#db2777','#0891b2']}]},options:{plugins:{legend:{position:'bottom'}}}});
-  if(charts.trend)charts.trend.destroy();
-  const months={};
-  for(let i=5;i>=0;i--){
-    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    const key=d.toLocaleDateString('en-GB',{month:'short',year:'2-digit'});
-    const mo=d.getMonth(),yr=d.getFullYear();
-    const r=db.bookings.filter(b=>{const bd=new Date(b.startDate);return bd.getMonth()===mo&&bd.getFullYear()===yr;}).reduce((s,b)=>s+(b.grandTotal||b.totalAmount||0),0);
-    const ex=db.expenses.filter(e=>{const ed=new Date(e.date+'T12:00');return ed.getMonth()===mo&&ed.getFullYear()===yr;}).reduce((s,e)=>s+(e.amount||0),0);
-    months[key]={r,ex};
-  }
-  const ctx2=document.getElementById('chart-trend');
-  if(ctx2)charts.trend=new Chart(ctx2,{type:'line',data:{labels:Object.keys(months),datasets:[{label:'Revenue',data:Object.values(months).map(x=>x.r),borderColor:'#00875a',backgroundColor:'rgba(0,135,90,.1)',fill:true,tension:.4},{label:'Expenses',data:Object.values(months).map(x=>x.ex),borderColor:'#c62828',backgroundColor:'rgba(198,40,40,.1)',fill:true,tension:.4}]},options:{scales:{y:{beginAtZero:true}}}});
-  if(charts.exp)charts.exp.destroy();
-  const byCat={};db.expenses.forEach(e=>{byCat[e.category]=(byCat[e.category]||0)+(e.amount||0);});
-  const ctx3=document.getElementById('chart-exp');
-  if(ctx3)charts.exp=new Chart(ctx3,{type:'bar',data:{labels:Object.keys(byCat),datasets:[{data:Object.values(byCat),backgroundColor:'#d97706',borderRadius:4}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  const activeBk=db.bookings.filter(b=>b.reservationStatus!=='CANCELLED');
+  document.getElementById('rpt-avg').textContent=fmt(activeBk.length?activeBk.reduce((a,b)=>a+(b.grandTotal||0),0)/activeBk.length:0);
+  document.getElementById('rpt-mp').textContent=db.bookings.filter(b=>b.mpesaAmount>0).length;
+  const evTypes={}; db.bookings.filter(b=>b.reservationStatus!=='CANCELLED').forEach(b=>{ const revValue = Number(b.amountPaid||b.grandTotal||0); evTypes[b.category||'Other']=(evTypes[b.category||'Other']||0)+revValue; });
+  if (rptCharts.ev) rptCharts.ev.destroy();
+  rptCharts.ev=new Chart(document.getElementById('rpt-ev-chart'),{type:'doughnut',data:{labels:Object.keys(evTypes),datasets:[{data:Object.values(evTypes),backgroundColor:['#0d4a6b','#1a6d9e','#14805e','#d97706','#c62828','#64748b','#7c3aed']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  rptCharts.ev.resize();
+  const now=new Date(); const months=[]; const rev6=[];
+  for (let i=5;i>=0;i--) { const d=new Date(now.getFullYear(),now.getMonth()-i,1); const end=new Date(d.getFullYear(),d.getMonth()+1,1); months.push(d.toLocaleDateString('en',{month:'short'})); const mbk=db.bookings.filter(b=>{const s=new Date(b.startDate);return s>=d&&s<end&&b.reservationStatus!=='CANCELLED';}); rev6.push(mbk.reduce((a,b)=>a+Number(b.amountPaid||b.grandTotal||0),0)); }
+  if (rptCharts.trend) rptCharts.trend.destroy();
+  rptCharts.trend=new Chart(document.getElementById('rpt-trend-chart'),{type:'line',data:{labels:months,datasets:[{label:'Revenue',data:rev6,borderColor:'#14805e',backgroundColor:'rgba(20,128,94,.1)',tension:.4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  rptCharts.trend.resize();
+  const expCats={}; db.expenses.forEach(e=>{expCats[e.category||'Other']=(expCats[e.category||'Other']||0)+Number(e.amount||0);});
+  if (rptCharts.exp) rptCharts.exp.destroy();
+  rptCharts.exp=new Chart(document.getElementById('rpt-exp-chart'),{type:'bar',data:{labels:Object.keys(expCats),datasets:[{label:'KES',data:Object.values(expCats),backgroundColor:'rgba(176,44,44,.7)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  rptCharts.exp.resize();
 }
-function exportReport(){
-  const {jsPDF}=window.jspdf;const doc=new jsPDF();
-  doc.setFontSize(18);doc.text('AMWAJ SEAFRONT VENUE - Financial Report',14,20);
-  doc.setFontSize(10);doc.text('Generated: '+new Date().toLocaleDateString(),14,28);
-  const totalRev=db.bookings.reduce((s,b)=>s+(b.grandTotal||b.totalAmount||0),0);
-  const totalExp=db.expenses.reduce((s,e)=>s+(e.amount||0),0);
-  doc.text('Total Revenue: KES '+totalRev.toLocaleString(),14,38);
-  doc.text('Total Expenses: KES '+totalExp.toLocaleString(),14,44);
-  doc.text('Net Profit: KES '+(totalRev-totalExp).toLocaleString(),14,50);
-  doc.text('M-Pesa Transactions: '+(db.mpesaPayments||[]).length,14,56);
-  doc.autoTable({startY:66,head:[['Date','Client','Category','Reservation','Payment','Total','Paid','Balance']],body:db.bookings.map(b=>[fmt(b.startDate),b.clientName,b.category,b.reservationStatus,b.paymentStatus,currency(b.grandTotal||b.totalAmount),currency(b.amountPaid||0),currency(b.balance||0)]),theme:'grid'});
-  doc.save('AMWAJ_Financial_Report.pdf');toast('Report exported');
+function exportReport() {
+  const {jsPDF}=window.jspdf; const doc=new jsPDF(); const PW=doc.internal.pageSize.width;
+  doc.setFillColor(13,74,107); doc.rect(0,0,PW,28,'F');
+  doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+  doc.text('AMWAJ SEAFRONT VENUE · Financial Report',14,16);
+  doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.text('Generated: '+new Date().toLocaleString(),14,23);
+  doc.setTextColor(30,30,30);
+  const totalRev=db.bookings.filter(b=>b.reservationStatus!=='CANCELLED').reduce((a,b)=>a+(b.amountPaid||0),0);
+  const totalExp=db.expenses.reduce((a,e)=>a+Number(e.amount||0),0);
+  doc.autoTable({startY:35,head:[['Metric','Value']],body:[['Total Revenue','KES '+totalRev.toLocaleString()],['Total Expenses','KES '+totalExp.toLocaleString()],['Net Profit','KES '+(totalRev-totalExp).toLocaleString()],['Profit Margin',totalRev>0?((totalRev-totalExp)/totalRev*100).toFixed(1)+'%':'0%'],['Total Clients',db.clients.length],['Total Bookings',db.bookings.length]],headStyles:{fillColor:[13,74,107]},styles:{fontSize:9}});
+  doc.save('AMWAJ_Report_'+new Date().toISOString().slice(0,10)+'.pdf');
+  toast('Report PDF downloaded ✓');
 }
+
 // ═══════════════════════════════════════════════════════════
 //  SETTINGS
 // ═══════════════════════════════════════════════════════════
