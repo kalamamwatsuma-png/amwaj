@@ -281,7 +281,7 @@
 
 <div id="page-loader"></div>
 <div id="toast-root"></div>
-<div id="modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+<div id="modal-overlay" class="modal-overlay">
   <div id="modal-box" class="modal-box"></div>
 </div>
 
@@ -490,25 +490,19 @@
           <div><div class="sec-h">Expenses & Purchases</div><div class="accent-line"></div></div>
           <button class="btn btn-red" onclick="openExpenseModal()">+ Log Expense</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 300px;gap:16px">
-          <div class="card" style="overflow-x:auto">
-            <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px">
-              <span class="chip on" onclick="setExpF('today',this)">Today</span>
-              <span class="chip" onclick="setExpF('month',this)">This Month</span>
-              <span class="chip" onclick="setExpF('all',this)">All Time</span>
-            </div>
-            <table class="tbl">
-              <thead><tr><th>Date</th><th>Category</th><th>Description</th><th style="text-align:right">Amount</th><th>Vendor</th><th style="text-align:center">Actions</th></tr></thead>
-              <tbody id="exp-tbody"></tbody>
-            </table>
-            <div id="exp-empty" class="empty-state" style="display:none"><div class="emoji">💳</div><p>No expenses logged.</p></div>
-            <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;font-weight:700">
-              <span>Total:</span><span id="exp-total" style="color:var(--red)">KES 0</span>
-            </div>
-          </div><div class="card" style="padding:18px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:260px">
-            <div style="font-weight:700;font-size:13px;margin-bottom:14px">Log Expenses</div>
-            <div style="color:var(--ink3);font-size:13px;margin-bottom:20px;text-align:center">Click the button below to open the expense entry form in a centered popup.</div>
-            <button class="btn btn-red" onclick="openExpenseModal()" style="width:100%;justify-content:center">+ Log Expense</button>
+        <div class="card" style="overflow-x:auto">
+          <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px">
+            <span class="chip on" onclick="setExpF('today',this)">Today</span>
+            <span class="chip" onclick="setExpF('month',this)">This Month</span>
+            <span class="chip" onclick="setExpF('all',this)">All Time</span>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Category</th><th>Description</th><th style="text-align:right">Amount</th><th>Vendor</th><th style="text-align:center">Actions</th></tr></thead>
+            <tbody id="exp-tbody"></tbody>
+          </table>
+          <div id="exp-empty" class="empty-state" style="display:none"><div class="emoji">💳</div><p>No expenses logged.</p></div>
+          <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;font-weight:700">
+            <span>Total:</span><span id="exp-total" style="color:var(--red)">KES 0</span>
           </div>
         </div>
       </div>
@@ -571,34 +565,26 @@
       <div id="v-staff" class="view">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div><div class="sec-h">Staff & Scheduling</div><div class="accent-line"></div></div>
-          <button class="btn btn-ocean" onclick="openStaffModal()">+ Add Staff</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 320px;gap:16px">
-          <div class="card" style="overflow-x:auto">
-            <table class="tbl">
-              <thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Rate/Day</th><th>Status</th><th style="text-align:center">Actions</th></tr></thead>
-              <tbody id="st-tbody"></tbody>
-            </table>
-            <div id="st-empty" class="empty-state" style="display:none"><div class="emoji">👤</div><p>No staff added yet.</p></div>
-          </div>
-          <div class="card" style="padding:18px">
-            <div style="font-weight:700;font-size:13px;margin-bottom:14px">📅 Assign Shift</div>
-            <form id="shift-form" style="display:flex;flex-direction:column;gap:10px">
-              <div><label class="lbl">Staff Member</label><select id="sh-staff" style="width:100%;padding:7px 10px" required><option value="">-- Select --</option></select></div>
-              <div><label class="lbl">Linked Event</label><input id="sh-event" placeholder="Booking / event name" style="width:100%;padding:7px 10px"></div>
-              <div><label class="lbl">Date</label><input id="sh-date" type="date" required style="width:100%;padding:7px 10px"></div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <div><label class="lbl">Start</label><input id="sh-start" type="time" required style="width:100%;padding:7px 10px"></div>
-                <div><label class="lbl">End</label><input id="sh-end" type="time" required style="width:100%;padding:7px 10px"></div>
-              </div>
-              <div><label class="lbl">Status</label><select id="sh-status" style="width:100%;padding:7px 10px"><option>Scheduled</option><option>Confirmed</option><option>Completed</option><option>On Leave</option></select></div>
-              <button type="submit" class="btn btn-green" style="width:100%;justify-content:center">📅 Assign Shift</button>
-            </form>
-            <hr class="divider">
-            <div style="font-weight:700;font-size:12px;margin-bottom:8px">Upcoming Shifts</div>
-            <div id="shifts-list" style="font-size:12px;max-height:160px;overflow-y:auto"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-green" onclick="openAssignShiftModal()">📅 Assign Shift</button>
+            <button class="btn btn-ocean" onclick="openStaffModal()">+ Add Staff</button>
           </div>
         </div>
+        <div class="card" style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Role</th><th>Phone</th><th>Rate/Day</th><th>Status</th><th style="text-align:center">Actions</th></tr></thead>
+            <tbody id="st-tbody"></tbody>
+          </table>
+          <div id="st-empty" class="empty-state" style="display:none"><div class="emoji">👤</div><p>No staff added yet.</p></div>
+        </div>
+        <!-- Hidden shift-form fields (needed for existing JS submit handler) -->
+        <div style="display:none">
+          <select id="sh-staff"><option value="">-- Select --</option></select>
+          <input id="sh-event"><input id="sh-date" type="date"><input id="sh-start" type="time"><input id="sh-end" type="time">
+          <select id="sh-status"><option>Scheduled</option><option>Confirmed</option><option>Completed</option><option>On Leave</option></select>
+          <form id="shift-form"></form>
+        </div>
+        <div id="shifts-list" style="display:none"></div>
       </div>
 
       <!-- REPORTS -->
@@ -2082,19 +2068,49 @@ function renderExpenses() {
 function openExpenseModal() {
   const now = new Date().toISOString().slice(0,10);
   const vendorOptions = db.vendors.map(v => `<option value="${v.id}">${v.company||v.name}</option>`).join('');
-    openModal(`
-    <div style="padding:10px 10px 10px 10px;max-width:520px;display:flex;flex-direction:column;gap:10px">
-      <form id="exp-modal-form" style="display:flex;flex-direction:column;gap:12px">
-        <div style="font-size:18px;font-weight:800;margin-bottom:4px">Log Expense</div>
-        <div><label class="lbl">Date</label><input id="e-date" type="date" value="${now}" required style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Category</label><input id="e-cat" placeholder="e.g. Diesel, Catering" list="exp-cats" required style="width:100%;padding:7px 10px"><datalist id="exp-cats"><option value="Diesel/Generator"><option value="Toiletries"><option value="Cleaning Supplies"><option value="Maintenance"><option value="Catering"><option value="Transport"><option value="Decor/Florals"><option value="Security"><option value="Utilities"><option value="Miscellaneous"></datalist></div>
-        <div><label class="lbl">Description</label><input id="e-item" placeholder="Item / description" required style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Amount (KES)</label><input id="e-amt" type="number" min="0" step="0.01" placeholder="0.00" required style="width:100%;padding:7px 10px"></div>
-        <div><label class="lbl">Vendor</label><select id="e-vendor" style="width:100%;padding:7px 10px"><option value="">-- No vendor --</option>${vendorOptions}</select></div>
-        <div><label class="lbl">Notes / Receipt #</label><textarea id="e-notes" style="width:100%;padding:7px 10px;height:56px;resize:vertical"></textarea></div>
-        <div style="display:flex;gap:8px">
-          <button type="submit" class="btn btn-red" style="flex:1;justify-content:center">💾 Save Expense</button>
-          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+  openModal(`
+    <div style="padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div>
+          <div style="font-size:16px;font-weight:800;color:var(--ink)">💳 Log Expense</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px">Record a new expense entry</div>
+        </div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink3);line-height:1">×</button>
+      </div>
+      <form id="exp-modal-form" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label class="lbl">Date *</label>
+            <input id="e-date" type="date" value="${now}" required style="width:100%;padding:8px 10px">
+          </div>
+          <div>
+            <label class="lbl">Amount (KES) *</label>
+            <input id="e-amt" type="number" min="0" step="0.01" placeholder="0.00" required style="width:100%;padding:8px 10px">
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Category *</label>
+          <input id="e-cat" placeholder="e.g. Diesel, Catering, Maintenance" list="exp-cats" required style="width:100%;padding:8px 10px">
+          <datalist id="exp-cats"><option value="Diesel/Generator"><option value="Toiletries"><option value="Cleaning Supplies"><option value="Maintenance"><option value="Catering"><option value="Transport"><option value="Decor/Florals"><option value="Security"><option value="Utilities"><option value="Miscellaneous"></datalist>
+        </div>
+        <div>
+          <label class="lbl">Description *</label>
+          <input id="e-item" placeholder="Brief description of the expense" required style="width:100%;padding:8px 10px">
+        </div>
+        <div>
+          <label class="lbl">Vendor</label>
+          <select id="e-vendor" style="width:100%;padding:8px 10px">
+            <option value="">— No vendor —</option>
+            ${vendorOptions}
+          </select>
+        </div>
+        <div>
+          <label class="lbl">Notes / Receipt #</label>
+          <textarea id="e-notes" placeholder="Optional notes or receipt reference" style="width:100%;padding:8px 10px;height:68px;resize:vertical"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;padding-top:4px;border-top:1px solid var(--border);margin-top:2px">
+          <button type="submit" class="btn btn-red" style="flex:1;justify-content:center;padding:9px 14px">💾 Save Expense</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost" style="padding:9px 16px">Cancel</button>
         </div>
       </form>
     </div>`);
@@ -2380,6 +2396,46 @@ document.getElementById('shift-form').onsubmit=async ev=>{
   try { const cr=await dbInsert('shifts',{...payload,id:uid()}); db.shifts.unshift(camelize(cr)); document.getElementById('shift-form').reset(); renderStaff(); toast('Shift assigned ✓'); }
   catch(e) { toast(e.message,'e'); }
 };
+function openAssignShiftModal() {
+  const staffOpts = db.staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  openModal(`
+    <div style="padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div style="font-size:16px;font-weight:800">📅 Assign Shift</div>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--ink3)">×</button>
+      </div>
+      <form id="shift-modal-form" style="display:flex;flex-direction:column;gap:12px">
+        <div><label class="lbl">Staff Member *</label><select id="shm-staff" required style="width:100%;padding:8px 10px"><option value="">-- Select --</option>${staffOpts}</select></div>
+        <div><label class="lbl">Linked Event</label><input id="shm-event" placeholder="Booking / event name" style="width:100%;padding:8px 10px"></div>
+        <div><label class="lbl">Date *</label><input id="shm-date" type="date" required style="width:100%;padding:8px 10px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label class="lbl">Start Time *</label><input id="shm-start" type="time" required style="width:100%;padding:8px 10px"></div>
+          <div><label class="lbl">End Time *</label><input id="shm-end" type="time" required style="width:100%;padding:8px 10px"></div>
+        </div>
+        <div><label class="lbl">Status</label><select id="shm-status" style="width:100%;padding:8px 10px"><option>Scheduled</option><option>Confirmed</option><option>Completed</option><option>On Leave</option></select></div>
+        <div style="margin-top:4px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-weight:700;font-size:12px;margin-bottom:8px;color:var(--ink2)">Upcoming Shifts</div>
+          <div style="font-size:12px;max-height:140px;overflow-y:auto">${(()=>{const now=new Date();const upcoming=db.shifts.filter(sh=>new Date(sh.date)>=now).slice(0,8);return upcoming.length?upcoming.map(sh=>{const sm=db.staff.find(s=>s.id===sh.staffId);return `<div style="padding:6px 8px;border-radius:6px;background:var(--surface2);margin-bottom:4px"><div style="font-weight:600">${sm?.name||sh.staffId}</div><div style="color:var(--ink3)">${fmtD(sh.date)} · ${sh.startTime||''}–${sh.endTime||''}</div></div>`;}).join(''):'<div style="color:var(--ink3)">No upcoming shifts</div>';})()}</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button type="submit" class="btn btn-green" style="flex:1;justify-content:center">📅 Assign Shift</button>
+          <button type="button" onclick="closeModal()" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </div>`);
+  document.getElementById('shift-modal-form').onsubmit=async ev=>{
+    ev.preventDefault();
+    const g=id=>document.getElementById(id)?.value;
+    const payload={staffId:g('shm-staff'),linkedEvent:g('shm-event'),date:g('shm-date'),startTime:g('shm-start'),endTime:g('shm-end'),status:g('shm-status')};
+    try {
+      const cr=await dbInsert('shifts',{...payload,id:uid()});
+      db.shifts.unshift(camelize(cr));
+      closeModal();
+      renderStaff();
+      toast('Shift assigned ✓');
+    } catch(e) { toast(e.message,'e'); }
+  };
+}
 async function deleteStaff(id) {
   if (!can('canDelete')) { toast('Admin only','e'); return; }
   if (!confirm('Delete staff member?')) return;
