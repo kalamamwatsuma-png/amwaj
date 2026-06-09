@@ -196,7 +196,6 @@
     #login-screen { position: fixed; inset: 0; background: radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 28%), linear-gradient(145deg, #071424 0%, #0d3a5a 60%, #0a2040 100%); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
     .login-shell { width: 100%; max-width: 420px; padding: 16px; }
     #v-reports .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    #v-reports canvas { width: 100% !important; max-width: 100% !important; min-height: 220px !important; }
     @media (max-width: 900px) { #v-reports .report-grid { grid-template-columns: 1fr; } }
     .login-card { padding: 36px 32px; border-radius: 24px; }
     .login-header { text-align: center; margin-bottom: 28px; }
@@ -378,7 +377,7 @@
         </div>
         <div class="card" style="padding:16px;margin-top:16px">
           <div style="font-weight:700;font-size:13px;margin-bottom:12px">📊 Revenue vs Expenses (6 months)</div>
-          <canvas id="rev-chart" style="max-height:200px"></canvas>
+          <div style="position:relative;height:220px"><canvas id="rev-chart"></canvas></div>
         </div>
       </div>
 
@@ -591,11 +590,11 @@
       <div id="v-reports" class="view">
         <div style="margin-bottom:16px"><div class="sec-h">Reports & Analytics</div><div class="accent-line"></div></div>
         <div class="report-grid" style="margin-bottom:16px">
-          <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">💰 Revenue by Event Type</div><canvas id="rpt-ev-chart" style="max-height:200px"></canvas></div>
-          <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">📈 Monthly Trend</div><canvas id="rpt-trend-chart" style="max-height:200px"></canvas></div>
+          <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">💰 Revenue by Event Type</div><div style="position:relative;height:240px"><canvas id="rpt-ev-chart"></canvas></div></div>
+          <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">📈 Monthly Trend</div><div style="position:relative;height:240px"><canvas id="rpt-trend-chart"></canvas></div></div>
         </div>
         <div class="report-grid">
-          <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">💳 Expense Breakdown</div><canvas id="rpt-exp-chart" style="max-height:200px"></canvas></div>
+          <div class="card" style="padding:16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">💳 Expense Breakdown</div><div style="position:relative;height:240px"><canvas id="rpt-exp-chart"></canvas></div></div>
           <div class="card" style="padding:16px">
             <div style="font-weight:700;font-size:13px;margin-bottom:12px">📋 Financial Summary</div>
             <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
